@@ -1,31 +1,72 @@
 {
+  "Chella-Magale-MassTamilan.dev.mp3": {
+    "status": "success",
+    "timestamp": "2026-06-14T20:00:33.587Z",
+    "metadata": {
+      "title": "Chella Magale (From \"Jana Nayagan\")",
+      "artist": "Anirudh Ravichander, Vijay & Vivek",
+      "album": "Chella Magale (From \"Jana Nayagan\") - Single",
+      "hasArtwork": true,
+      "composer": "Anirudh Ravichander",
+      "trackNumber": 1
+    }
+  },
+  "Oru-Pere-Varalaaru-MassTamilan.dev.mp3": {
+    "status": "success",
+    "timestamp": "2026-06-14T20:00:33.788Z",
+    "metadata": {
+      "title": "Oru Pere Varalaaru (From \"Jana Nayagan\")",
+      "artist": "Anirudh Ravichander, Vishal Mishra & Vivek",
+      "album": "Oru Pere Varalaaru (From \"Jana Nayagan\") - Single",
+      "hasArtwork": true,
+      "composer": "Anirudh Ravichander",
+      "trackNumber": 1
+    }
+  },
+  "Raavana-Mavandaa-MassTamilan.dev.mp3": {
+    "status": "success",
+    "timestamp": "2026-06-14T20:00:33.879Z",
+    "metadata": {
+      "title": "Raavana Mavandaa (From \"Jana Nayagan\")",
+      "artist": "Anirudh Ravichander & Vivek",
+      "album": "Raavana Mavandaa (From \"Jana Nayagan\") - Single",
+      "hasArtwork": true,
+      "composer": "Anirudh Ravichander",
+      "trackNumber": 1
+    }
+  },
+  "_album:jana-nayagan-2026-songs": {
+    "downloaded": true,
+    "albumFolder": "Jana Nayagan",
+    "timestamp": "2026-06-14T20:11:40.776Z"
+  },
   "Oorum Blood.mp3": {
     "status": "success",
-    "timestamp": "2026-06-14T18:29:16.246Z",
+    "timestamp": "2026-06-15T03:24:02.094Z",
     "metadata": {
-      "title": "Oorum Blood Unplugged",
-      "artist": "Sai Abhyankkar",
+      "title": "Oorum Blood",
+      "artist": "Sai Abhyankkar, bebhumika, Deepthi Suresh & Paal Dabba",
       "album": "Dude (Original Motion Picture Soundtrack)",
       "hasArtwork": true,
       "composer": "Sai Abhyankkar",
-      "trackNumber": 9
+      "trackNumber": 1
     }
   },
   "Singari.mp3": {
     "status": "success",
-    "timestamp": "2026-06-14T18:29:16.460Z",
+    "timestamp": "2026-06-15T03:24:02.430Z",
     "metadata": {
-      "title": "Singari",
-      "artist": "Sai Abhyankkar, Pradeep Ranganathan & Sai Smriti",
-      "album": "Dude (Original Motion Picture Soundtrack)",
+      "title": "Singari (From \"Dude\")",
+      "artist": "Sai Abhyankkar, Pradeep Ranganathan, Sai Smriti & Semv.iii",
+      "album": "Singari (From \"Dude\") - Single",
       "hasArtwork": true,
       "composer": "Sai Abhyankkar",
-      "trackNumber": 2
+      "trackNumber": 1
     }
   },
   "Yumabaibesa.mp3": {
     "status": "success",
-    "timestamp": "2026-06-14T18:29:16.619Z",
+    "timestamp": "2026-06-15T03:24:02.649Z",
     "metadata": {
       "title": "Yumabaibesa",
       "artist": "Sai Abhyankkar",
@@ -37,7 +78,7 @@
   },
   "Blud Is On His Way.mp3": {
     "status": "success",
-    "timestamp": "2026-06-14T18:29:16.737Z",
+    "timestamp": "2026-06-15T03:24:02.758Z",
     "metadata": {
       "title": "Blud Is On His Way",
       "artist": "Sai Abhyankkar",
@@ -49,7 +90,7 @@
   },
   "Nallaru Po.mp3": {
     "status": "success",
-    "timestamp": "2026-06-14T18:29:16.945Z",
+    "timestamp": "2026-06-15T03:24:03.327Z",
     "metadata": {
       "title": "Nallaru Po",
       "artist": "Sai Abhyankkar & Tippu",
@@ -61,7 +102,7 @@
   },
   "Dude Trailer Blast (Theme).mp3": {
     "status": "success",
-    "timestamp": "2026-06-14T18:29:17.558Z",
+    "timestamp": "2026-06-15T03:24:03.454Z",
     "metadata": {
       "title": "Dude Trailer Blast (Theme)",
       "artist": "Sai Abhyankkar",
@@ -73,7 +114,7 @@
   },
   "Kannukulla (Reprise).mp3": {
     "status": "success",
-    "timestamp": "2026-06-14T18:29:18.055Z",
+    "timestamp": "2026-06-15T03:24:03.716Z",
     "metadata": {
       "title": "Kannukulla (Reprise)",
       "artist": "Sai Abhyankkar",
@@ -85,7 +126,7 @@
   },
   "Kannukulla.mp3": {
     "status": "success",
-    "timestamp": "2026-06-14T18:29:18.366Z",
+    "timestamp": "2026-06-15T03:24:03.875Z",
     "metadata": {
       "title": "Kannukulla (Reprise)",
       "artist": "Sai Abhyankkar",
@@ -97,7 +138,7 @@
   },
   "Oorum Blood Unplugged.mp3": {
     "status": "success",
-    "timestamp": "2026-06-14T18:29:18.447Z",
+    "timestamp": "2026-06-15T03:24:03.981Z",
     "metadata": {
       "title": "Oorum Blood Unplugged",
       "artist": "Sai Abhyankkar",
@@ -107,9 +148,384 @@
       "trackNumber": 9
     }
   },
+  "_album:dude-2025-songs?ref=sb": {
+    "downloaded": true,
+    "albumFolder": "Dude",
+    "timestamp": "2026-06-15T03:24:03.982Z"
+  },
+  "Chella Magale (From -Jana Nayagan-).mp3": {
+    "status": "success",
+    "timestamp": "2026-06-14T20:08:50.171Z",
+    "metadata": {
+      "title": "Chella Magale (From \"Jana Nayagan\")",
+      "artist": "Anirudh Ravichander, Vijay & Vivek",
+      "album": "Chella Magale (From \"Jana Nayagan\") - Single",
+      "hasArtwork": true,
+      "composer": "Anirudh Ravichander",
+      "trackNumber": 1
+    }
+  },
+  "Oru Pere Varalaaru (From -Jana Nayagan-).mp3": {
+    "status": "success",
+    "timestamp": "2026-06-14T20:08:50.389Z",
+    "metadata": {
+      "title": "Oru Pere Varalaaru (From \"Jana Nayagan\")",
+      "artist": "Anirudh Ravichander, Vishal Mishra & Vivek",
+      "album": "Oru Pere Varalaaru (From \"Jana Nayagan\") - Single",
+      "hasArtwork": true,
+      "composer": "Anirudh Ravichander",
+      "trackNumber": 1
+    }
+  },
+  "Raavana Mavandaa (From -Jana Nayagan-).mp3": {
+    "status": "success",
+    "timestamp": "2026-06-14T20:08:50.506Z",
+    "metadata": {
+      "title": "Raavana Mavandaa (From \"Jana Nayagan\")",
+      "artist": "Anirudh Ravichander & Vivek",
+      "album": "Raavana Mavandaa (From \"Jana Nayagan\") - Single",
+      "hasArtwork": true,
+      "composer": "Anirudh Ravichander",
+      "trackNumber": 1
+    }
+  },
+  "Chella Magale (From \"Jana Nayagan\").mp3": {
+    "status": "success",
+    "timestamp": "2026-06-14T20:11:40.431Z",
+    "metadata": {
+      "title": "Chella Magale (From \"Jana Nayagan\")",
+      "artist": "Anirudh Ravichander, Vijay & Vivek",
+      "album": "Chella Magale (From \"Jana Nayagan\") - Single",
+      "hasArtwork": true,
+      "composer": "Anirudh Ravichander",
+      "trackNumber": 1
+    }
+  },
+  "Oru Pere Varalaaru (From \"Jana Nayagan\").mp3": {
+    "status": "success",
+    "timestamp": "2026-06-14T20:11:40.652Z",
+    "metadata": {
+      "title": "Oru Pere Varalaaru (From \"Jana Nayagan\")",
+      "artist": "Anirudh Ravichander, Vishal Mishra & Vivek",
+      "album": "Oru Pere Varalaaru (From \"Jana Nayagan\") - Single",
+      "hasArtwork": true,
+      "composer": "Anirudh Ravichander",
+      "trackNumber": 1
+    }
+  },
+  "Raavana Mavandaa (From \"Jana Nayagan\").mp3": {
+    "status": "success",
+    "timestamp": "2026-06-14T20:11:40.776Z",
+    "metadata": {
+      "title": "Raavana Mavandaa (From \"Jana Nayagan\")",
+      "artist": "Anirudh Ravichander & Vivek",
+      "album": "Raavana Mavandaa (From \"Jana Nayagan\") - Single",
+      "hasArtwork": true,
+      "composer": "Anirudh Ravichander",
+      "trackNumber": 1
+    }
+  },
+  "Singari (From \"Dude\").mp3": {
+    "status": "success",
+    "timestamp": "2026-06-15T03:19:06.900Z",
+    "metadata": {
+      "title": "Singari (From \"Dude\")",
+      "artist": "Sai Abhyankkar, Pradeep Ranganathan, Sai Smriti & Semv.iii",
+      "album": "Singari (From \"Dude\") - Single",
+      "hasArtwork": true,
+      "composer": "Sai Abhyankkar",
+      "trackNumber": 1
+    }
+  },
   "_album:dude-2025-songs": {
     "downloaded": true,
-    "albumFolder": "Dude (Original Motion Picture Soundtrack)",
-    "timestamp": "2026-06-14T18:44:48.104Z"
+    "albumFolder": "Dude",
+    "timestamp": "2026-06-15T03:15:17.510Z"
+  },
+  "Singari (From \"Dude\") (1).mp3": {
+    "status": "success",
+    "timestamp": "2026-06-14T20:16:50.116Z",
+    "metadata": {
+      "title": "Singari (From \"Dude\")",
+      "artist": "Sai Abhyankkar, Pradeep Ranganathan, Sai Smriti & Semv.iii",
+      "album": "Singari (From \"Dude\") - Single",
+      "hasArtwork": true,
+      "composer": "Sai Abhyankkar",
+      "trackNumber": 1
+    }
+  },
+  "Kannukulla (Reprise) (1).mp3": {
+    "status": "success",
+    "timestamp": "2026-06-14T20:17:26.527Z",
+    "metadata": {
+      "title": "Kannukulla (Reprise)",
+      "artist": "Sai Abhyankkar",
+      "album": "Dude (Original Motion Picture Soundtrack)",
+      "hasArtwork": true,
+      "composer": "Sai Abhyankkar",
+      "trackNumber": 6
+    }
+  },
+  "Ambikapathy.mp3": {
+    "status": "success",
+    "timestamp": "2026-06-15T17:30:34.985Z",
+    "metadata": {
+      "title": "Ambikapathy",
+      "artist": "A.R. Rahman & Naresh Iyer",
+      "album": "Ambikapathy (Original Motion Picture Soundtrack)",
+      "hasArtwork": true,
+      "composer": "A.R.Rahman",
+      "trackNumber": 1
+    }
+  },
+  "The Land of Shiva.mp3": {
+    "status": "success",
+    "timestamp": "2026-06-15T17:30:35.319Z",
+    "metadata": {
+      "title": "The Land of Shiva",
+      "artist": "A.R. Rahman",
+      "album": "Ambikapathy (Original Motion Picture Soundtrack)",
+      "hasArtwork": true,
+      "composer": "A.R.Rahman",
+      "trackNumber": 8
+    }
+  },
+  "Solvadhai Seidhu Mudippom.mp3": {
+    "status": "success",
+    "timestamp": "2026-06-15T17:30:35.650Z",
+    "metadata": {
+      "title": "Solvadhai Seidhu Mudippom",
+      "artist": "A.R. Rahman & Mohd. Rafi",
+      "album": "Ambikapathy (Original Motion Picture Soundtrack)",
+      "hasArtwork": true,
+      "composer": "A.R.Rahman",
+      "trackNumber": 6
+    }
+  },
+  "Kalaarasiga.mp3": {
+    "status": "success",
+    "timestamp": "2026-06-15T17:30:36.213Z",
+    "metadata": {
+      "title": "Kalaarasiga",
+      "artist": "A.R. Rahman & Shweta Mohan",
+      "album": "Ambikapathy (Original Motion Picture Soundtrack)",
+      "hasArtwork": true,
+      "composer": "A.R.Rahman",
+      "trackNumber": 2
+    }
+  },
+  "Oliyaaga Vandhaai.mp3": {
+    "status": "success",
+    "timestamp": "2026-06-15T17:30:36.936Z",
+    "metadata": {
+      "title": "Oliyaaga Vandhaai",
+      "artist": "A.R. Rahman, Javed Ali & KMMC Sufi Ensemble",
+      "album": "Ambikapathy (Original Motion Picture Soundtrack)",
+      "hasArtwork": true,
+      "composer": "A.R.Rahman",
+      "trackNumber": 3
+    }
+  },
+  "Paarkaadhey Oru Madhiri.mp3": {
+    "status": "success",
+    "timestamp": "2026-06-15T17:30:37.607Z",
+    "metadata": {
+      "title": "Paarkaadhey Oru Madhiri",
+      "artist": "A.R. Rahman",
+      "album": "Ambikapathy (Original Motion Picture Soundtrack)",
+      "hasArtwork": true,
+      "composer": "A.R.Rahman",
+      "trackNumber": 7
+    }
+  },
+  "Unnaal Unnaal.mp3": {
+    "status": "success",
+    "timestamp": "2026-06-15T17:30:38.639Z",
+    "metadata": {
+      "title": "Unnaal Unnaal",
+      "artist": "A.R. Rahman, Hariharan, Haricharan & Pooja",
+      "album": "Ambikapathy (Original Motion Picture Soundtrack)",
+      "hasArtwork": true,
+      "composer": "A.R.Rahman",
+      "trackNumber": 9
+    }
+  },
+  "Parakka Seivaai.mp3": {
+    "status": "success",
+    "timestamp": "2026-06-15T17:30:39.168Z",
+    "metadata": {
+      "title": "Parakka Seivaai",
+      "artist": "A.R. Rahman, Karthik & Mili Nair",
+      "album": "Ambikapathy (Original Motion Picture Soundtrack)",
+      "hasArtwork": true,
+      "composer": "A.R.Rahman",
+      "trackNumber": 5
+    }
+  },
+  "Kanaave Kanaave.mp3": {
+    "status": "success",
+    "timestamp": "2026-06-15T17:30:40.326Z",
+    "metadata": {
+      "title": "Kanaave Kanaave",
+      "artist": "A.R. Rahman, Madhushree, Vaishali, Chinmayi Sripada, Pooja, Sharanya Srinivas & Aanchal Sethi",
+      "album": "Ambikapathy (Original Motion Picture Soundtrack)",
+      "hasArtwork": true,
+      "composer": "A.R.Rahman",
+      "trackNumber": 4
+    }
+  },
+  "_album:ambikapathy-songs": {
+    "downloaded": true,
+    "albumFolder": "Ambikapathy",
+    "timestamp": "2026-06-15T17:30:40.328Z"
+  },
+  "The-Land-Of-Shiva.mp3": {
+    "status": "success",
+    "timestamp": "2026-06-15T17:20:20.108Z",
+    "metadata": {
+      "title": "The Land of Shiva",
+      "artist": "A.R. Rahman",
+      "album": "Ambikapathy (Original Motion Picture Soundtrack)",
+      "hasArtwork": true,
+      "composer": "A.R.Rahman",
+      "trackNumber": 8
+    }
+  },
+  "Solvadhai-Seidhu-Mudippom.mp3": {
+    "status": "success",
+    "timestamp": "2026-06-15T17:20:20.482Z",
+    "metadata": {
+      "title": "Solvadhai Seidhu Mudippom",
+      "artist": "A.R. Rahman & Mohd. Rafi",
+      "album": "Ambikapathy (Original Motion Picture Soundtrack)",
+      "hasArtwork": true,
+      "composer": "A.R.Rahman",
+      "trackNumber": 6
+    }
+  },
+  "Oliyaaga-Vandhaai.mp3": {
+    "status": "success",
+    "timestamp": "2026-06-15T17:20:21.699Z",
+    "metadata": {
+      "title": "Oliyaaga Vandhaai",
+      "artist": "A.R. Rahman, Javed Ali & KMMC Sufi Ensemble",
+      "album": "Ambikapathy (Original Motion Picture Soundtrack)",
+      "hasArtwork": true,
+      "composer": "A.R.Rahman",
+      "trackNumber": 3
+    }
+  },
+  "Paarkaadhey-Oru-Madhiri.mp3": {
+    "status": "success",
+    "timestamp": "2026-06-15T17:20:22.385Z",
+    "metadata": {
+      "title": "Paarkaadhey Oru Madhiri",
+      "artist": "A.R. Rahman",
+      "album": "Ambikapathy (Original Motion Picture Soundtrack)",
+      "hasArtwork": true,
+      "composer": "A.R.Rahman",
+      "trackNumber": 7
+    }
+  },
+  "Unnaal-Unnaal.mp3": {
+    "status": "success",
+    "timestamp": "2026-06-15T17:20:23.249Z",
+    "metadata": {
+      "title": "Unnaal Unnaal",
+      "artist": "A.R. Rahman, Hariharan, Haricharan & Pooja",
+      "album": "Ambikapathy (Original Motion Picture Soundtrack)",
+      "hasArtwork": true,
+      "composer": "A.R.Rahman",
+      "trackNumber": 9
+    }
+  },
+  "Parakka-Seivaai.mp3": {
+    "status": "success",
+    "timestamp": "2026-06-15T17:20:23.915Z",
+    "metadata": {
+      "title": "Parakka Seivaai",
+      "artist": "A.R. Rahman, Karthik & Mili Nair",
+      "album": "Ambikapathy (Original Motion Picture Soundtrack)",
+      "hasArtwork": true,
+      "composer": "A.R.Rahman",
+      "trackNumber": 5
+    }
+  },
+  "Kanaave-Kanaave.mp3": {
+    "status": "success",
+    "timestamp": "2026-06-15T17:20:25.273Z",
+    "metadata": {
+      "title": "Kanaave Kanaave",
+      "artist": "A.R. Rahman, Madhushree, Vaishali, Chinmayi Sripada, Pooja, Sharanya Srinivas & Aanchal Sethi",
+      "album": "Ambikapathy (Original Motion Picture Soundtrack)",
+      "hasArtwork": true,
+      "composer": "A.R.Rahman",
+      "trackNumber": 4
+    }
+  },
+  "Showkali.mp3": {
+    "status": "success",
+    "timestamp": "2026-06-15T17:52:04.946Z",
+    "metadata": {
+      "title": "Showkali",
+      "artist": "A.R. Rahman, Aditya Rao, Aaryan Dinesh Kanagaratnam & Sri Rascol",
+      "album": "Achcham Yenbadhu Madamaiyada (Original Motion Picture Soundtrack) - EP",
+      "hasArtwork": true,
+      "composer": "A.R.Rahman",
+      "trackNumber": 1
+    }
+  },
+  "Rasaali.mp3": {
+    "status": "success",
+    "timestamp": "2026-06-15T17:52:06.107Z",
+    "metadata": {
+      "title": "Rasaali",
+      "artist": "A.R. Rahman, Sathya Prakash & Shashaa Tirupati",
+      "album": "Achcham Yenbadhu Madamaiyada (Original Motion Picture Soundtrack) - EP",
+      "hasArtwork": true,
+      "composer": "A.R.Rahman",
+      "trackNumber": 3
+    }
+  },
+  "Thalli Pogathey.mp3": {
+    "status": "success",
+    "timestamp": "2026-06-15T17:52:06.572Z",
+    "metadata": {
+      "title": "Thalli Pogathey",
+      "artist": "A.R. Rahman, Sid Sriram, Aaryan Dinesh Kanagaratnam & Aparna Narayanan",
+      "album": "Achcham Yenbadhu Madamaiyada (Original Motion Picture Soundtrack) - EP",
+      "hasArtwork": true,
+      "composer": "A.R.Rahman",
+      "trackNumber": 5
+    }
+  },
+  "Avalum Naanum.mp3": {
+    "status": "success",
+    "timestamp": "2026-06-15T17:52:07.054Z",
+    "metadata": {
+      "title": "Avalum Naanum",
+      "artist": "A.R. Rahman & Vijay Yesudas",
+      "album": "Achcham Yenbadhu Madamaiyada (Original Motion Picture Soundtrack) - EP",
+      "hasArtwork": true,
+      "composer": "A.R.Rahman",
+      "trackNumber": 4
+    }
+  },
+  "Idhu Naal.mp3": {
+    "status": "success",
+    "timestamp": "2026-06-15T17:52:07.598Z",
+    "metadata": {
+      "title": "Idhu Naal",
+      "artist": "A.R. Rahman, Aditya Rao & Jonita Gandhi",
+      "album": "Achcham Yenbadhu Madamaiyada (Original Motion Picture Soundtrack) - EP",
+      "hasArtwork": true,
+      "composer": "A.R.Rahman",
+      "trackNumber": 2
+    }
+  },
+  "_album:achcham-yenbadhu-madamaiyada-songs-35": {
+    "downloaded": true,
+    "albumFolder": "Achcham Yenbadhu Madamaiyada (AYM)",
+    "timestamp": "2026-06-15T17:52:07.599Z"
   }
 }

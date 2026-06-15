@@ -8,11 +8,23 @@ const crypto = require('crypto');
 const { exec } = require('child_process');
 
 // Configuration
-const MOVIE_URL = 'https://www.masstamilan.dev/dude-2025-songs';
+const args = process.argv.slice(2);
+const OVERWRITE = args.includes('-overwrite') || args.includes('--overwrite');
+const urlArg = args.find(arg => arg.startsWith('http'));
+
+const MOVIE_URL = urlArg || 'https://www.masstamilan.dev/dude-2025-songs?ref=sb';
 const TARGET_DIR = '/Users/vino/Documents/songs';
 const LOG_FILE = path.join(__dirname, 'process-log.json');
 const SONGS_JSON_FILE = path.join(__dirname, 'songs-data.json');
 const TEMP_DIR = path.join(__dirname, 'temp');
+const DELETE_ZIP_AFTER_EXTRACT = false; // Set to true to delete the zip file, false to keep it
+
+// TMDB API Configuration
+const TMDB_API_KEY = '9951f6fd62760bffe5c47ba59777221c';
+const TMDB_HEADERS = {
+  accept: 'application/json',
+  Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI5OTUxZjZmZDYyNzYwYmZmZTVjNDdiYTU5Nzc3MjIxYyIsIm5iZiI6MTU1NDM5ODk3My41NzMsInN1YiI6IjVjYTYzZWZkYzNhMzY4NjE0ZTE2ZDU5YiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.eCo-hmtR4nKaEzbk9SAQuj6QTQBmFcXCJUAsnAc6GmE'
+};
 
 // Ensure directories exist
 if (!fs.existsSync(TARGET_DIR)) {
@@ -66,6 +78,179 @@ function cleanMetadataString(str) {
     .trim();
 }
 
+// TMDB API Helpers
+const tmdbCache = {
+  movies: {},
+  people: {}
+};
+
+async function fetchTmdbMovie(title) {
+  if (tmdbCache.movies[title]) return tmdbCache.movies[title];
+  
+  // Clean title for TMDB search (remove special chars, parens)
+  const cleanTitle = title.replace(/\(.*?\)/g, '').replace(/[^a-zA-Z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim();
+  
+  try {
+    let searchUrl = `https://api.themoviedb.org/3/search/movie?query=${encodeURIComponent(cleanTitle)}&language=en-US`;
+    
+    // Add retry logic for ECONNRESET
+    let searchRes;
+    let retries = 3;
+    while (retries > 0) {
+        try {
+            searchRes = await axios.get(searchUrl, { headers: TMDB_HEADERS, timeout: 10000 });
+            break;
+        } catch (err) {
+            if (err.code === 'ECONNRESET' || err.code === 'ETIMEDOUT') {
+                retries--;
+                if (retries === 0) throw err;
+                await new Promise(r => setTimeout(r, 1000));
+            } else {
+                throw err;
+            }
+        }
+    }
+
+    if (searchRes.data.results && searchRes.data.results.length > 0) {
+      // Find exact or closest match (often TMDB returns sequels, etc.)
+      const movie = searchRes.data.results.find(m => m.title.toLowerCase() === cleanTitle.toLowerCase()) || searchRes.data.results[0];
+      
+      let creditsRes;
+      retries = 3;
+      while (retries > 0) {
+          try {
+              creditsRes = await axios.get(`https://api.themoviedb.org/3/movie/${movie.id}/credits?language=en-US`, { headers: TMDB_HEADERS, timeout: 10000 });
+              break;
+          } catch (err) {
+              if (err.code === 'ECONNRESET' || err.code === 'ETIMEDOUT') {
+                  retries--;
+                  if (retries === 0) throw err;
+                  await new Promise(r => setTimeout(r, 1000));
+              } else {
+                  throw err;
+              }
+          }
+      }
+      
+      const result = {
+        id: movie.id,
+        posterUrl: movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : null,
+        cast: creditsRes.data.cast || [],
+        crew: creditsRes.data.crew || []
+      };
+      tmdbCache.movies[title] = result;
+      return result;
+    }
+  } catch (e) {
+    console.warn(`TMDB Movie search failed for ${title}:`, e.message);
+  }
+  return null;
+}
+
+async function fetchTmdbPerson(name) {
+  if (!name) return null;
+  const cleanName = name.trim();
+  if (tmdbCache.people[cleanName]) return tmdbCache.people[cleanName];
+  
+  // Clean up name for search (remove dots, extra spaces, handle initials better)
+  // e.g., "R.Sarath Kumar" -> "R Sarathkumar" (or just let TMDB fuzzy match the raw string without dots)
+  const searchString = cleanName.replace(/\./g, ' ').replace(/\s+/g, ' ').trim();
+  
+  try {
+    let res;
+    let retries = 3;
+    while (retries > 0) {
+        try {
+            res = await axios.get(`https://api.themoviedb.org/3/search/person?query=${encodeURIComponent(searchString)}&language=en-US`, { headers: TMDB_HEADERS, timeout: 10000 });
+            break;
+        } catch (err) {
+            if (err.code === 'ECONNRESET' || err.code === 'ETIMEDOUT') {
+                retries--;
+                if (retries === 0) throw err;
+                await new Promise(r => setTimeout(r, 1000));
+            } else {
+                throw err;
+            }
+        }
+    }
+
+    if (res.data.results && res.data.results.length > 0) {
+      // Find the best match
+      // Try exact match on cleaned name first
+      let person = res.data.results.find(p => p.name.replace(/\./g, '').replace(/\s+/g, '').toLowerCase() === searchString.replace(/\s+/g, '').toLowerCase());
+      
+      // Fallback to first result if no exact string match (TMDB search is usually good at putting the most famous person first)
+      if (!person) {
+          person = res.data.results[0];
+      }
+      
+      const result = {
+        id: person.id,
+        name: person.name, // Keep TMDB's official spelling
+        profileUrl: person.profile_path ? `https://image.tmdb.org/t/p/w200${person.profile_path}` : null
+      };
+      tmdbCache.people[cleanName] = result;
+      return result;
+    }
+  } catch (e) {
+    console.warn(`TMDB Person search failed for ${cleanName}:`, e.message);
+  }
+  // Cache null so we don't keep retrying
+  tmdbCache.people[cleanName] = { id: null, name: cleanName, profileUrl: null };
+  return tmdbCache.people[cleanName];
+}
+
+async function enrichPeopleNames(namesStr, movieCredits, role = null) {
+  if (!namesStr) return [];
+  // Handle '&' and ',' as separators
+  const names = namesStr.replace(/&/g, ',').split(',').map(n => n.trim()).filter(Boolean);
+  const enriched = [];
+  
+  for (const name of names) {
+    let personMatch = null;
+    
+    // Normalize name for comparison
+    const normalizedSearchName = name.replace(/\./g, '').replace(/\s+/g, '').toLowerCase();
+    
+    // 1. Try to find in movie credits first
+    if (movieCredits) {
+      if (role === 'Actor') {
+        personMatch = movieCredits.cast.find(p => p.name.replace(/\./g, '').replace(/\s+/g, '').toLowerCase() === normalizedSearchName);
+      } else {
+        personMatch = movieCredits.crew.find(p => p.name.replace(/\./g, '').replace(/\s+/g, '').toLowerCase() === normalizedSearchName && (!role || p.job === role || p.department === role));
+        if (!personMatch) {
+            // Check cast just in case (sometimes directors/composers also act or are listed weirdly)
+            personMatch = movieCredits.cast.find(p => p.name.replace(/\./g, '').replace(/\s+/g, '').toLowerCase() === normalizedSearchName);
+        }
+      }
+    }
+    
+    // 2. If found in credits, format it
+    if (personMatch) {
+      enriched.push({
+        id: personMatch.id.toString(),
+        name: personMatch.name, // Use TMDB official name
+        profileUrl: personMatch.profile_path ? `https://image.tmdb.org/t/p/w200${personMatch.profile_path}` : null
+      });
+      continue;
+    }
+    
+    // 3. Fallback to generic TMDB person search
+    const searchPerson = await fetchTmdbPerson(name);
+    if (searchPerson && searchPerson.id) {
+      enriched.push({
+        id: searchPerson.id.toString(),
+        name: searchPerson.name,
+        profileUrl: searchPerson.profileUrl
+      });
+    } else {
+      enriched.push({ id: crypto.randomUUID(), name: name, profileUrl: null, isLocal: true });
+    }
+  }
+  
+  return enriched;
+}
+
 // 1. Scrape Masstamilan using Playwright
 async function scrapeMovieInfoAndDownloadLink() {
   console.log('Launching browser to scrape masstamilan.dev...');
@@ -83,7 +268,10 @@ async function scrapeMovieInfoAndDownloadLink() {
     const movieInfo = {
       starring: '',
       director: '',
-      album: ''
+      album: '',
+      music: '',
+      lyricist: '',
+      year: ''
     };
     
     // Extract Album Name
@@ -105,6 +293,15 @@ async function scrapeMovieInfoAndDownloadLink() {
       if (line.includes('Director:')) {
         movieInfo.director = line.replace('Director:', '').trim();
       }
+      if (line.includes('Music:')) {
+        movieInfo.music = line.replace('Music:', '').trim();
+      }
+      if (line.match(/Lyricists?:/)) {
+        movieInfo.lyricist = line.replace(/Lyricists?:/, '').trim();
+      }
+      if (line.includes('Year:')) {
+        movieInfo.year = line.replace('Year:', '').trim();
+      }
     }
     
     console.log('Movie Info Extracted:', movieInfo);
@@ -114,38 +311,19 @@ async function scrapeMovieInfoAndDownloadLink() {
     const songList = [];
     
     // Try to find the song table/list on the page
-    // Masstamilan typically has songs in a table or list format
-    const songRows = await page.locator('table tr, .song-list tr, .songs tr').all();
+    const songRows = await page.locator('table tbody tr[itemprop="itemListElement"]').all();
     
     for (const row of songRows) {
-      const rowText = await row.innerText();
-      // Parse song info from row text
-      // Format typically: "Song Name - Singer(s) Length Downloads"
-      if (rowText.includes('Singers:') || rowText.includes('Length:') || rowText.includes('Downloads:')) {
         const songInfo = {
-          name: '',
-          singers: '',
-          length: '',
-          downloads: ''
+          name: await row.locator('h2 a').innerText().catch(() => ''),
+          singers: await row.locator('span[itemprop="byArtist"]').innerText().catch(() => ''),
+          length: await row.locator('span[itemprop="duration"]').innerText().catch(() => ''),
+          downloads: await row.locator('.dl-count').innerText().catch(() => '')
         };
-        
-        const parts = rowText.split('\n').map(p => p.trim()).filter(p => p);
-        for (const part of parts) {
-          if (part.includes('Singers:')) {
-            songInfo.singers = part.replace('Singers:', '').trim();
-          } else if (part.includes('Length:')) {
-            songInfo.length = part.replace('Length:', '').trim();
-          } else if (part.includes('Downloads:')) {
-            songInfo.downloads = part.replace('Downloads:', '').trim();
-          } else if (!songInfo.name && part && !part.includes('Singers') && !part.includes('Length') && !part.includes('Downloads')) {
-            songInfo.name = part;
-          }
-        }
         
         if (songInfo.name) {
           songList.push(songInfo);
         }
-      }
     }
     
     // Alternative: Try to find song info in a different format
@@ -264,8 +442,77 @@ async function downloadZip(url, destPath) {
   });
 }
 
+// Get individual song download URLs from the movie page
+async function getIndividualSongUrls(movieUrl, songList) {
+  console.log('Getting individual song download URLs...');
+  const browser = await chromium.launch({ headless: false });
+  const page = await browser.newPage();
+  
+  try {
+    await page.goto(movieUrl, { waitUntil: 'domcontentloaded', timeout: 30000 });
+    await page.waitForTimeout(2000);
+    
+    const songUrls = {};
+    
+    for (const song of songList) {
+      const songName = song.name.replace(/\s+/g, '-').toLowerCase();
+      const songLinks = await page.locator('a').all();
+      
+      for (const link of songLinks) {
+        const href = await link.getAttribute('href');
+        const text = await link.innerText();
+        
+        if (href && href.includes(songName) && text.includes('320kbps')) {
+          songUrls[song.name] = href.startsWith('http') ? href : `https://www.masstamilan.dev${href}`;
+          console.log(`Found download URL for ${song.name}`);
+          break;
+        }
+      }
+    }
+    
+    await browser.close();
+    return songUrls;
+  } catch (error) {
+    await browser.close();
+    throw error;
+  }
+}
+
+// Download individual song using Free Download Manager
+async function downloadIndividualSong(url, songName) {
+  console.log(`Downloading ${songName} using Free Download Manager...`);
+  
+  const urlParts = url.split('/');
+  const expectedFilename = urlParts[urlParts.length - 1] + '.mp3';
+  const downloadPath = path.join('/Users/vino/Downloads', expectedFilename);
+  
+  return new Promise((resolve, reject) => {
+    exec(`open -a "/Applications/Free Download Manager.app" "${url}"`, (error) => {
+      if (error) {
+        console.error('Failed to open Free Download Manager:', error);
+        reject(error);
+        return;
+      }
+      console.log(`Free Download Manager launched for ${songName}. Waiting for download...`);
+      
+      const checkInterval = setInterval(() => {
+        if (fs.existsSync(downloadPath)) {
+          clearInterval(checkInterval);
+          console.log(`Download complete for ${songName}: ${downloadPath}`);
+          resolve(downloadPath);
+        }
+      }, 2000);
+      
+      setTimeout(() => {
+        clearInterval(checkInterval);
+        reject(new Error(`Download timeout for ${songName}`));
+      }, 300000);
+    });
+  });
+}
+
 // 3. iTunes API Search - First get album info, then search for songs
-async function searchITunes(songName, albumName) {
+async function searchITunes(songName, albumName, albumYear = null) {
   try {
     // Clean up album name - extract just the movie name
     const cleanAlbumName = albumName
@@ -283,36 +530,60 @@ async function searchITunes(songName, albumName) {
     // First, search for the album to get the album ID and proper metadata
     // Add "Tamil" to prioritize Tamil version, use country=IN for India
     const albumQuery = encodeURIComponent(`${cleanAlbumName} Tamil`);
-    const albumResponse = await axios.get(`https://itunes.apple.com/search?term=${albumQuery}&entity=album&limit=5&country=IN`);
+    const albumResponse = await axios.get(`https://itunes.apple.com/search?term=${albumQuery}&entity=album&limit=15&country=IN`);
     
     let albumInfo = null;
     if (albumResponse.data && albumResponse.data.results && albumResponse.data.results.length > 0) {
-      // Try to find a Tamil album (check collectionName for Tamil or year 2025)
-      albumInfo = albumResponse.data.results.find(r => 
-        r.collectionName.toLowerCase().includes('tamil') || 
-        r.releaseDate?.startsWith('2025')
-      ) || albumResponse.data.results[0];
-      console.log(`Found album: ${albumInfo.collectionName} by ${albumInfo.artistName} (${albumInfo.primaryGenreName})`);
+      // Filter out unofficial uploads and prioritize Tamil/Indian/Soundtrack genres
+      const validAlbums = albumResponse.data.results.filter(r => {
+        const genre = r.primaryGenreName || '';
+        const artist = (r.artistName || '').toLowerCase();
+        const collection = (r.collectionName || '').toLowerCase();
+        
+        return (genre === 'Tamil' || genre === 'Indian' || genre === 'Soundtrack' || genre === 'Pop') &&
+               !artist.includes('vevo') &&
+               !collection.includes('#1trending');
+      });
+      
+      const resultsToUse = validAlbums.length > 0 ? validAlbums : albumResponse.data.results;
+      
+      // Try to find the specific single for this song, or fallback to the general album
+      albumInfo = resultsToUse.find(r => 
+        r.collectionName.toLowerCase().includes(cleanSongName.toLowerCase())
+      ) || resultsToUse.find(r =>
+        r.collectionName.toLowerCase().includes(cleanAlbumName.toLowerCase()) && !r.collectionName.includes('- Single')
+      ) || resultsToUse[0];
+      
+      console.log(`Found album/single: ${albumInfo.collectionName} by ${albumInfo.artistName} (${albumInfo.primaryGenreName})`);
     }
     
     // Now search for the specific song
-    const songQuery = encodeURIComponent(`${cleanSongName} ${cleanAlbumName} Tamil`);
+    // Search directly with the song name and movie name to get the most accurate result
+    const songQuery = encodeURIComponent(`${cleanSongName} ${cleanAlbumName}`);
     console.log(`Searching iTunes API for song: ${cleanSongName}`);
-    const songResponse = await axios.get(`https://itunes.apple.com/search?term=${songQuery}&entity=song&limit=5&country=IN`);
+    const songResponse = await axios.get(`https://itunes.apple.com/search?term=${songQuery}&entity=song&limit=10&country=IN`);
     
     if (songResponse.data && songResponse.data.results && songResponse.data.results.length > 0) {
-      // Find the best match - prefer one that matches the album
-      let track = songResponse.data.results[0];
-      if (albumInfo) {
-        const albumMatch = songResponse.data.results.find(t => t.collectionId === albumInfo.collectionId);
-        if (albumMatch) track = albumMatch;
-      }
+      // Filter out sketchy artists here too
+      const validSongs = songResponse.data.results.filter(r => {
+          const artist = (r.artistName || '').toLowerCase();
+          return !artist.includes('vevo');
+      });
+      const songsToUse = validSongs.length > 0 ? validSongs : songResponse.data.results;
 
+      // Find the best match - prefer exact match of song name or matching album
+      let track = songsToUse.find(t => t.trackName.toLowerCase().includes(cleanSongName.toLowerCase()));
+      if (!track) track = songsToUse[0];
+
+      // Use album year if provided, otherwise fall back to track year
+      const year = albumYear || (track.releaseDate ? track.releaseDate.substring(0, 4) : '');
+      console.log(`iTunes releaseDate for ${cleanSongName}: ${track.releaseDate}, using year: ${year}`);
+      
       return {
         title: track.trackName || cleanSongName,
         artist: track.artistName,
         album: track.collectionName || (albumInfo ? albumInfo.collectionName : cleanAlbumName),
-        year: track.releaseDate ? track.releaseDate.substring(0, 4) : '',
+        year: year,
         genre: track.primaryGenreName,
         composer: track.composer || '',
         trackNumber: track.trackNumber || 0,
@@ -340,9 +611,6 @@ async function main() {
     
     const { downloadUrl, movieInfo } = await scrapeMovieInfoAndDownloadLink();
     
-    // First, get album info from iTunes to determine the folder name
-    let albumFolderName = movieInfo.album.replace(/[^a-zA-Z0-9\s]/g, '').trim();
-    
     // Try to get proper album name from iTunes
     const cleanAlbumName = movieInfo.album
       .replace(/Tamil mp3 songs download.*/i, '')
@@ -350,31 +618,84 @@ async function main() {
       .replace(/MassTamilan.*/i, '')
       .replace(/\.com.*/i, '')
       .trim();
+
+    // Fetch TMDB Movie Data
+    console.log(`Fetching TMDB Data for movie: ${cleanAlbumName}`);
+    const tmdbMovie = await fetchTmdbMovie(cleanAlbumName);
+    
+    if (!tmdbMovie) {
+        console.error('TMDB Movie search failed. TMDB is required for metadata enrichment. Exiting.');
+        process.exit(1);
+    }
+    
+    let tmdbMovieId = null;
+    let tmdbPosterUrl = null;
+    let enrichedStarring = [];
+    let enrichedDirector = [];
+    let enrichedMusic = [];
+    let enrichedLyricist = [];
+    
+    if (tmdbMovie) {
+        tmdbMovieId = tmdbMovie.id;
+        tmdbPosterUrl = tmdbMovie.posterUrl;
+        
+        console.log('Enriching cast and crew with TMDB profiles...');
+        enrichedStarring = await enrichPeopleNames(movieInfo.starring, tmdbMovie, 'Actor');
+        enrichedDirector = await enrichPeopleNames(movieInfo.director, tmdbMovie, 'Directing');
+        enrichedMusic = await enrichPeopleNames(movieInfo.music, tmdbMovie, 'Sound');
+        enrichedLyricist = await enrichPeopleNames(movieInfo.lyricist, tmdbMovie, 'Sound');
+    }
+
+    // First, get album info from iTunes to determine the folder name
+    let albumFolderName = cleanAlbumName;
     
     let albumArtworkBuffer = null;
     let albumInfo = null;
     
+    // Use year from masstamilan as primary source
+    const masstamilanYear = movieInfo.year;
+    console.log(`Year from masstamilan: ${masstamilanYear}`);
+    
     try {
       const albumQuery = encodeURIComponent(`${cleanAlbumName} Tamil`);
-      const albumResponse = await axios.get(`https://itunes.apple.com/search?term=${albumQuery}&entity=album&limit=5&country=IN`);
+      const albumResponse = await axios.get(`https://itunes.apple.com/search?term=${albumQuery}&entity=album&limit=15&country=IN`);
       if (albumResponse.data && albumResponse.data.results && albumResponse.data.results.length > 0) {
-        albumInfo = albumResponse.data.results.find(r => 
-          r.collectionName.toLowerCase().includes('tamil') || 
-          r.releaseDate?.startsWith('2025')
-        ) || albumResponse.data.results[0];
-        albumFolderName = albumInfo.collectionName;
-        console.log(`Using iTunes album name for folder: ${albumFolderName}`);
+        // Filter out sketchy results
+        const validAlbums = albumResponse.data.results.filter(r => {
+            const genre = r.primaryGenreName || '';
+            const artist = (r.artistName || '').toLowerCase();
+            const collection = (r.collectionName || '').toLowerCase();
+            
+            return (genre === 'Tamil' || genre === 'Indian' || genre === 'Soundtrack') &&
+                   !artist.includes('vevo') &&
+                   !collection.includes('#1trending');
+        });
+        const resultsToUse = validAlbums.length > 0 ? validAlbums : albumResponse.data.results;
         
-        // Download artwork once for the entire album
+        // Find the main album (prefer ones without "- Single")
+        albumInfo = resultsToUse.find(r => 
+          !r.collectionName.includes('- Single') &&
+          r.collectionName.toLowerCase().includes(cleanAlbumName.toLowerCase())
+        );
+        
+        // Fallback to the most relevant single if full album is not found
+        if (!albumInfo) {
+            albumInfo = resultsToUse.find(r => r.collectionName.toLowerCase().includes(cleanAlbumName.toLowerCase())) || resultsToUse[0];
+        }
+
+        // Just use the clean movie name for the folder so all singles go into one folder
+        albumFolderName = cleanAlbumName;
+        console.log(`Using folder name: ${albumFolderName}`);
+        
         const artworkUrl = albumInfo.artworkUrl100 ? albumInfo.artworkUrl100.replace('100x100bb', '600x600bb') : null;
         if (artworkUrl) {
           try {
-            console.log(`Downloading album artwork from: ${artworkUrl}`);
+            console.log(`Downloading default album artwork from: ${artworkUrl}`);
             const artResponse = await axios.get(artworkUrl, { responseType: 'arraybuffer' });
             albumArtworkBuffer = Buffer.from(artResponse.data, 'binary');
-            console.log(`Album artwork downloaded successfully (${albumArtworkBuffer.length} bytes)`);
+            console.log(`Default album artwork downloaded successfully (${albumArtworkBuffer.length} bytes)`);
           } catch (e) {
-            console.warn(`Failed to download album artwork: ${e.message}`);
+            console.warn(`Failed to download default album artwork: ${e.message}`);
           }
         }
       }
@@ -392,7 +713,7 @@ async function main() {
     let zipPath = null;
     
     // Check if album is already downloaded
-    if (albumLog && albumLog.downloaded && albumLog.albumFolder === albumFolderName) {
+    if (!OVERWRITE && albumLog && albumLog.downloaded && albumLog.albumFolder === albumFolderName) {
       console.log(`Album already downloaded. Skipping download step.`);
       console.log(`Using existing files from: ${albumDir}`);
       
@@ -405,7 +726,7 @@ async function main() {
         const targetFilePath = path.join(albumDir, fileName);
         
         // Check if already processed
-        if (processLog[fileName] && processLog[fileName].status === 'success') {
+        if (!OVERWRITE && processLog[fileName] && processLog[fileName].status === 'success') {
           console.log(`Skipping ${fileName} - already processed successfully.`);
           continue;
         }
@@ -419,7 +740,7 @@ async function main() {
         const rawSongName = fileName.replace('.mp3', '');
         
         // Fetch metadata from iTunes
-        const itunesMeta = await searchITunes(rawSongName, movieInfo.album);
+        const itunesMeta = await searchITunes(rawSongName, movieInfo.album, masstamilanYear);
         
         // Prepare ID3 tags with fallback to existing tags
         const commentParts = [];
@@ -449,8 +770,29 @@ async function main() {
           tags.discNumber = itunesMeta.discNumber || existingTags.discNumber || 1;
           tags.discCount = itunesMeta.discCount || existingTags.discCount || 1;
           
-          // Use album artwork (downloaded once) or fallback to existing artwork
-          if (albumArtworkBuffer) {
+          // Download specific artwork for this song if available
+          let trackArtworkBuffer = null;
+          const trackArtworkUrl = itunesMeta.artworkUrl100 ? itunesMeta.artworkUrl100.replace('100x100bb', '600x600bb') : null;
+          
+          if (trackArtworkUrl) {
+            try {
+              console.log(`Downloading track-specific artwork from: ${trackArtworkUrl}`);
+              const trackArtResponse = await axios.get(trackArtworkUrl, { responseType: 'arraybuffer' });
+              trackArtworkBuffer = Buffer.from(trackArtResponse.data, 'binary');
+            } catch (e) {
+              console.warn(`Failed to download track artwork, falling back to album artwork: ${e.message}`);
+            }
+          }
+          
+          // Use track artwork, fallback to album artwork, fallback to existing artwork
+          if (trackArtworkBuffer) {
+            tags.image = {
+              mime: "image/jpeg",
+              type: { id: 3, name: "front cover" },
+              description: "Album Art",
+              imageBuffer: trackArtworkBuffer
+            };
+          } else if (albumArtworkBuffer) {
             tags.image = {
               mime: "image/jpeg",
               type: { id: 3, name: "front cover" },
@@ -480,16 +822,41 @@ async function main() {
         }
 
         // Update ID3 tags
-        const success = NodeID3.write(tags, targetFilePath);
+        let finalFileName = fileName;
+        let finalFilePath = targetFilePath;
+        
+        if (tags.title) {
+          // Keep quotes as they are valid on Mac, only replace path separators
+          const sanitizedTitle = tags.title.replace(/[\/\\]/g, '-').trim();
+          finalFileName = `${sanitizedTitle}.mp3`;
+          finalFilePath = path.join(albumDir, finalFileName);
+          
+          if (targetFilePath !== finalFilePath) {
+            // If target file already exists, keep the original filename to avoid conflicts
+            if (fs.existsSync(finalFilePath)) {
+              console.log(`iTunes title conflicts with existing file. Keeping original filename: ${fileName}`);
+              finalFileName = fileName;
+              finalFilePath = targetFilePath;
+            } else {
+              fs.renameSync(targetFilePath, finalFilePath);
+              console.log(`Renamed file to: ${finalFileName}`);
+            }
+          }
+        }
+        
+        const success = NodeID3.write(tags, finalFilePath);
         
         if (success) {
-          console.log(`Successfully updated metadata for ${fileName}`);
+          console.log(`Successfully updated metadata for ${finalFileName}`);
           
-          // Find matching song info from scraped list
+          // Find matching song info from scraped list using original fileName
           const songInfo = movieInfo.songList?.find(s => 
             fileName.toLowerCase().includes(s.name.toLowerCase().replace(/\s+/g, '-')) ||
             s.name.toLowerCase().includes(fileName.toLowerCase().replace('.mp3', '').replace(/-/g, ' '))
           );
+          
+          const rawSingers = songInfo?.singers || tags.artist;
+          const enrichedSingers = await enrichPeopleNames(rawSingers, tmdbMovie, 'Sound');
           
           // Prepare song data for MeiliSearch
           const songDataEntry = {
@@ -504,11 +871,20 @@ async function main() {
             discNumber: tags.discNumber,
             length: songInfo?.length || '',
             downloads: songInfo?.downloads || '',
-            singers: songInfo?.singers || tags.artist,
-            filePath: targetFilePath,
+            singers: rawSingers,
+            filePath: finalFilePath,
             hasArtwork: !!tags.image,
             starring: movieInfo.starring,
             director: movieInfo.director,
+            lyricist: movieInfo.lyricist,
+            // TMDB Enriched Fields
+            movieTmdbId: tmdbMovieId,
+            moviePosterUrl: tmdbPosterUrl,
+            starringEnriched: enrichedStarring,
+            directorEnriched: enrichedDirector,
+            composerEnriched: enrichedMusic,
+            lyricistEnriched: enrichedLyricist,
+            singersEnriched: enrichedSingers,
             createdAt: new Date().toISOString()
           };
           
@@ -520,7 +896,7 @@ async function main() {
             songsData.push(songDataEntry);
           }
           
-          processLog[fileName] = {
+          processLog[finalFileName] = {
             status: 'success',
             timestamp: new Date().toISOString(),
             metadata: {
@@ -533,8 +909,8 @@ async function main() {
             }
           };
         } else {
-          console.error(`Failed to update metadata for ${fileName}`);
-          processLog[fileName] = {
+          console.error(`Failed to update metadata for ${finalFileName}`);
+          processLog[finalFileName] = {
             status: 'error',
             error: 'Failed to write ID3 tags',
             timestamp: new Date().toISOString()
@@ -555,160 +931,261 @@ async function main() {
     const zip = new AdmZip(zipPath);
     const zipEntries = zip.getEntries();
     
+    // Extract all MP3 files first
+    const extractedFiles = [];
     for (const entry of zipEntries) {
       if (!entry.isDirectory && entry.entryName.toLowerCase().endsWith('.mp3')) {
         const fileName = path.basename(entry.entryName);
-        
-        // Check if already processed
-        if (processLog[fileName] && processLog[fileName].status === 'success') {
-          console.log(`Skipping ${fileName} - already processed successfully.`);
-          continue;
-        }
-
-        console.log(`\nProcessing: ${fileName}`);
-        
-        // Extract to album subfolder
         const targetFilePath = path.join(albumDir, fileName);
         fs.writeFileSync(targetFilePath, entry.getData());
-        
-        // Read existing ID3 tags as fallback
-        const existingTags = NodeID3.read(targetFilePath);
-        
-        // Get song name from file
-        const rawSongName = fileName.replace('.mp3', '');
-        
-        // Fetch metadata from iTunes
-        const itunesMeta = await searchITunes(rawSongName, movieInfo.album);
-        
-        // Prepare ID3 tags with fallback to existing tags
-        const commentParts = [];
-        if (movieInfo.starring) commentParts.push(`Starring: ${movieInfo.starring}`);
-        if (movieInfo.director) commentParts.push(`Director: ${movieInfo.director}`);
-        const commentStr = commentParts.join(' | ');
-
-        let tags = {
-          title: rawSongName.replace(/-\s*MassTamilan.*/i, '').trim(),
-          album: albumFolderName,
-          comment: {
-            language: "eng",
-            text: commentStr
-          }
-        };
-
-        // Merge iTunes metadata if available, with fallback to existing tags
-        if (itunesMeta) {
-          tags.title = cleanMetadataString(itunesMeta.title || existingTags.title || tags.title);
-          tags.artist = cleanMetadataString(itunesMeta.artist || existingTags.artist || '');
-          tags.album = cleanMetadataString(itunesMeta.album || albumFolderName);
-          tags.year = itunesMeta.year || existingTags.year || '';
-          tags.genre = itunesMeta.genre || existingTags.genre || '';
-          tags.composer = cleanMetadataString(itunesMeta.composer || existingTags.composer || '');
-          tags.trackNumber = itunesMeta.trackNumber || existingTags.trackNumber || 0;
-          tags.trackCount = itunesMeta.trackCount || existingTags.trackCount || 0;
-          tags.discNumber = itunesMeta.discNumber || existingTags.discNumber || 1;
-          tags.discCount = itunesMeta.discCount || existingTags.discCount || 1;
-          
-          // Use album artwork (downloaded once) or fallback to existing artwork
-          if (albumArtworkBuffer) {
-            tags.image = {
-              mime: "image/jpeg",
-              type: { id: 3, name: "front cover" },
-              description: "Album Art",
-              imageBuffer: albumArtworkBuffer
-            };
-          } else if (existingTags.image) {
-            tags.image = existingTags.image;
-          }
-          
-          console.log(`Successfully mapped iTunes metadata for ${fileName}`);
-        } else {
-          // Fallback to existing tags if iTunes search fails
-          tags.title = cleanMetadataString(existingTags.title || tags.title);
-          tags.artist = cleanMetadataString(existingTags.artist || '');
-          tags.year = existingTags.year || '';
-          tags.genre = existingTags.genre || '';
-          tags.composer = cleanMetadataString(existingTags.composer || '');
-          tags.trackNumber = existingTags.trackNumber || 0;
-          tags.trackCount = existingTags.trackCount || 0;
-          tags.discNumber = existingTags.discNumber || 1;
-          tags.discCount = existingTags.discCount || 1;
-          if (existingTags.image) {
-            tags.image = existingTags.image;
-          }
-          console.log(`Using existing/fallback metadata for ${fileName}`);
-        }
-
-        // Update ID3 tags
-        const success = NodeID3.write(tags, targetFilePath);
-        
-        if (success) {
-          console.log(`Successfully updated metadata for ${fileName}`);
-          
-          // Find matching song info from scraped list
-          const songInfo = movieInfo.songList?.find(s => 
-            fileName.toLowerCase().includes(s.name.toLowerCase().replace(/\s+/g, '-')) ||
-            s.name.toLowerCase().includes(fileName.toLowerCase().replace('.mp3', '').replace(/-/g, ' '))
-          );
-          
-          // Prepare song data for MeiliSearch
-          const songDataEntry = {
-            id: crypto.randomUUID(),
-            title: tags.title,
-            artist: tags.artist,
-            album: tags.album,
-            year: tags.year,
-            genre: tags.genre,
-            composer: tags.composer,
-            trackNumber: tags.trackNumber,
-            discNumber: tags.discNumber,
-            length: songInfo?.length || '',
-            downloads: songInfo?.downloads || '',
-            singers: songInfo?.singers || tags.artist,
-            filePath: targetFilePath,
-            hasArtwork: !!tags.image,
-            starring: movieInfo.starring,
-            director: movieInfo.director,
-            createdAt: new Date().toISOString()
-          };
-          
-          // Add to songs data array (avoid duplicates)
-          const existingIndex = songsData.findIndex(s => s.title === songDataEntry.title && s.album === songDataEntry.album);
-          if (existingIndex >= 0) {
-            songsData[existingIndex] = songDataEntry;
-          } else {
-            songsData.push(songDataEntry);
-          }
-          
-          processLog[fileName] = {
-            status: 'success',
-            timestamp: new Date().toISOString(),
-            metadata: {
-              title: tags.title,
-              artist: tags.artist || null,
-              album: tags.album,
-              hasArtwork: !!tags.image,
-              composer: tags.composer || null,
-              trackNumber: tags.trackNumber || 0
-            }
-          };
-        } else {
-          console.error(`Failed to update metadata for ${fileName}`);
-          processLog[fileName] = {
-            status: 'error',
-            error: 'Failed to write ID3 tags',
-            timestamp: new Date().toISOString()
-          };
-        }
-        
-        saveLog();
-        saveSongsData();
+        extractedFiles.push(fileName);
       }
     }
     
+    console.log(`Extracted ${extractedFiles.length} MP3 files from ZIP`);
+    console.log(`Expected ${movieInfo.songList.length} songs from page`);
+    
+    // Check if any songs are missing
+    if (extractedFiles.length < movieInfo.songList.length) {
+      console.log(`\n⚠️  Missing ${movieInfo.songList.length - extractedFiles.length} song(s). Downloading individually...`);
+      
+      // Get individual song download URLs
+      const songUrls = await getIndividualSongUrls(MOVIE_URL, movieInfo.songList);
+      
+      // Download missing songs
+      for (const song of movieInfo.songList) {
+        const songFileName = song.name.replace(/\s+/g, '-') + '.mp3';
+        const alreadyExists = extractedFiles.some(f => 
+          f.toLowerCase().includes(song.name.toLowerCase().replace(/\s+/g, '-')) ||
+          song.name.toLowerCase().includes(f.toLowerCase().replace('.mp3', '').replace(/-/g, ' '))
+        );
+        
+        if (!alreadyExists && songUrls[song.name]) {
+          try {
+            const downloadedPath = await downloadIndividualSong(songUrls[song.name], song.name);
+            const targetPath = path.join(albumDir, songFileName);
+            fs.copyFileSync(downloadedPath, targetPath);
+            fs.unlinkSync(downloadedPath);
+            extractedFiles.push(songFileName);
+            console.log(`Downloaded and added: ${song.name}`);
+          } catch (error) {
+            console.error(`Failed to download ${song.name}:`, error.message);
+          }
+        }
+      }
+      
+      console.log(`Total files after individual downloads: ${extractedFiles.length}`);
+    }
+    
+    // Process all extracted files
+    for (const fileName of extractedFiles) {
+      const targetFilePath = path.join(albumDir, fileName);
+      
+      // Check if already processed
+      if (!OVERWRITE && processLog[fileName] && processLog[fileName].status === 'success') {
+        console.log(`Skipping ${fileName} - already processed successfully.`);
+        continue;
+      }
+
+      console.log(`\nProcessing: ${fileName}`);
+      
+      // Read existing ID3 tags as fallback
+      const existingTags = NodeID3.read(targetFilePath);
+      
+      // Get song name from file
+      const rawSongName = fileName.replace('.mp3', '');
+      
+      // Fetch metadata from iTunes
+      const itunesMeta = await searchITunes(rawSongName, movieInfo.album, masstamilanYear);
+      
+      // Prepare ID3 tags with fallback to existing tags
+      const commentParts = [];
+      if (movieInfo.starring) commentParts.push(`Starring: ${movieInfo.starring}`);
+      if (movieInfo.director) commentParts.push(`Director: ${movieInfo.director}`);
+      const commentStr = commentParts.join(' | ');
+
+      let tags = {
+        title: rawSongName.replace(/-\s*MassTamilan.*/i, '').trim(),
+        album: albumFolderName,
+        comment: {
+          language: "eng",
+          text: commentStr
+        }
+      };
+
+      // Merge iTunes metadata if available, with fallback to existing tags
+      if (itunesMeta) {
+        tags.title = cleanMetadataString(itunesMeta.title || existingTags.title || tags.title);
+        tags.artist = cleanMetadataString(itunesMeta.artist || existingTags.artist || '');
+        tags.album = cleanMetadataString(itunesMeta.album || albumFolderName);
+        tags.year = itunesMeta.year || existingTags.year || '';
+        tags.genre = itunesMeta.genre || existingTags.genre || '';
+        tags.composer = cleanMetadataString(itunesMeta.composer || existingTags.composer || '');
+        tags.trackNumber = itunesMeta.trackNumber || existingTags.trackNumber || 0;
+        tags.trackCount = itunesMeta.trackCount || existingTags.trackCount || 0;
+        tags.discNumber = itunesMeta.discNumber || existingTags.discNumber || 1;
+        tags.discCount = itunesMeta.discCount || existingTags.discCount || 1;
+        
+        // Download specific artwork for this song if available
+        let trackArtworkBuffer = null;
+        const trackArtworkUrl = itunesMeta.artworkUrl100 ? itunesMeta.artworkUrl100.replace('100x100bb', '600x600bb') : null;
+        
+        if (trackArtworkUrl) {
+          try {
+            console.log(`Downloading track-specific artwork from: ${trackArtworkUrl}`);
+            const trackArtResponse = await axios.get(trackArtworkUrl, { responseType: 'arraybuffer' });
+            trackArtworkBuffer = Buffer.from(trackArtResponse.data, 'binary');
+          } catch (e) {
+            console.warn(`Failed to download track artwork, falling back to album artwork: ${e.message}`);
+          }
+        }
+        
+        // Use track artwork, fallback to album artwork, fallback to existing artwork
+        if (trackArtworkBuffer) {
+          tags.image = {
+            mime: "image/jpeg",
+            type: { id: 3, name: "front cover" },
+            description: "Album Art",
+            imageBuffer: trackArtworkBuffer
+          };
+        } else if (albumArtworkBuffer) {
+          tags.image = {
+            mime: "image/jpeg",
+            type: { id: 3, name: "front cover" },
+            description: "Album Art",
+            imageBuffer: albumArtworkBuffer
+          };
+        } else if (existingTags.image) {
+          tags.image = existingTags.image;
+        }
+        
+        console.log(`Successfully mapped iTunes metadata for ${fileName}`);
+      } else {
+        // Fallback to existing tags if iTunes search fails
+        tags.title = cleanMetadataString(existingTags.title || tags.title);
+        tags.artist = cleanMetadataString(existingTags.artist || '');
+        tags.year = existingTags.year || '';
+        tags.genre = existingTags.genre || '';
+        tags.composer = cleanMetadataString(existingTags.composer || '');
+        tags.trackNumber = existingTags.trackNumber || 0;
+        tags.trackCount = existingTags.trackCount || 0;
+        tags.discNumber = existingTags.discNumber || 1;
+        tags.discCount = existingTags.discCount || 1;
+        if (existingTags.image) {
+          tags.image = existingTags.image;
+        }
+        console.log(`Using existing/fallback metadata for ${fileName}`);
+      }
+
+      // Update ID3 tags
+      let finalFileName = fileName;
+      let finalFilePath = targetFilePath;
+      
+      if (tags.title) {
+        // Keep quotes as they are valid on Mac, only replace path separators
+        const sanitizedTitle = tags.title.replace(/[\/\\]/g, '-').trim();
+        finalFileName = `${sanitizedTitle}.mp3`;
+        finalFilePath = path.join(albumDir, finalFileName);
+        
+        if (targetFilePath !== finalFilePath) {
+          // If target file already exists, keep the original filename to avoid conflicts
+          if (fs.existsSync(finalFilePath)) {
+            console.log(`iTunes title conflicts with existing file. Keeping original filename: ${fileName}`);
+            finalFileName = fileName;
+            finalFilePath = targetFilePath;
+          } else {
+            fs.renameSync(targetFilePath, finalFilePath);
+            console.log(`Renamed file to: ${finalFileName}`);
+          }
+        }
+      }
+      
+      const success = NodeID3.write(tags, finalFilePath);
+      
+      if (success) {
+        console.log(`Successfully updated metadata for ${finalFileName}`);
+        
+        // Find matching song info from scraped list using original fileName
+        const songInfo = movieInfo.songList?.find(s => 
+          fileName.toLowerCase().includes(s.name.toLowerCase().replace(/\s+/g, '-')) ||
+          s.name.toLowerCase().includes(fileName.toLowerCase().replace('.mp3', '').replace(/-/g, ' '))
+        );
+        
+        const rawSingers = songInfo?.singers || tags.artist;
+        const enrichedSingers = await enrichPeopleNames(rawSingers, tmdbMovie, 'Sound');
+        
+        // Prepare song data for MeiliSearch
+        const songDataEntry = {
+          id: crypto.randomUUID(),
+          title: tags.title,
+          artist: tags.artist,
+          album: tags.album,
+          year: tags.year,
+          genre: tags.genre,
+          composer: tags.composer,
+          trackNumber: tags.trackNumber,
+          discNumber: tags.discNumber,
+          length: songInfo?.length || '',
+          downloads: songInfo?.downloads || '',
+          singers: rawSingers,
+          filePath: finalFilePath,
+          hasArtwork: !!tags.image,
+          starring: movieInfo.starring,
+          director: movieInfo.director,
+          lyricist: movieInfo.lyricist,
+          // TMDB Enriched Fields
+          movieTmdbId: tmdbMovieId,
+          moviePosterUrl: tmdbPosterUrl,
+          starringEnriched: enrichedStarring,
+          directorEnriched: enrichedDirector,
+          composerEnriched: enrichedMusic,
+          lyricistEnriched: enrichedLyricist,
+          singersEnriched: enrichedSingers,
+          createdAt: new Date().toISOString()
+        };
+        
+        // Add to songs data array (avoid duplicates)
+        const existingIndex = songsData.findIndex(s => s.title === songDataEntry.title && s.album === songDataEntry.album);
+        if (existingIndex >= 0) {
+          songsData[existingIndex] = songDataEntry;
+        } else {
+          songsData.push(songDataEntry);
+        }
+        
+        processLog[finalFileName] = {
+          status: 'success',
+          timestamp: new Date().toISOString(),
+          metadata: {
+            title: tags.title,
+            artist: tags.artist || null,
+            album: tags.album,
+            hasArtwork: !!tags.image,
+            composer: tags.composer || null,
+            trackNumber: tags.trackNumber || 0
+          }
+        };
+      } else {
+        console.error(`Failed to update metadata for ${finalFileName}`);
+        processLog[finalFileName] = {
+          status: 'error',
+          error: 'Failed to write ID3 tags',
+          timestamp: new Date().toISOString()
+        };
+      }
+      
+      saveLog();
+      saveSongsData();
+    }
+    
     // Cleanup
-    console.log('\nCleaning up temporary files...');
-    if (zipPath && fs.existsSync(zipPath)) {
-      fs.unlinkSync(zipPath);
+    if (DELETE_ZIP_AFTER_EXTRACT) {
+      console.log('\nCleaning up temporary files...');
+      if (zipPath && fs.existsSync(zipPath)) {
+        fs.unlinkSync(zipPath);
+        console.log(`Deleted ZIP file: ${zipPath}`);
+      }
+    } else {
+      console.log(`\nKept ZIP file at: ${zipPath}`);
     }
     
     // Mark album as downloaded

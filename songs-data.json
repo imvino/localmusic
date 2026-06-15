@@ -1,44 +1,258 @@
 [
   {
-    "id": "fa6b36d6-ab32-49ef-8c99-1c04764c8839",
-    "title": "Oorum Blood Unplugged",
-    "artist": "Sai Abhyankkar",
+    "id": "5b7af81b-2a5f-4af7-a214-d5d67a012121",
+    "title": "Chella Magale (From \"Jana Nayagan\")",
+    "artist": "Anirudh Ravichander, Vijay & Vivek",
+    "album": "Chella Magale (From \"Jana Nayagan\") - Single",
+    "year": "2025",
+    "genre": "Tamil",
+    "composer": "Anirudh Ravichander",
+    "trackNumber": 1,
+    "discNumber": 1,
+    "length": "03:52",
+    "downloads": "6,77,738",
+    "singers": "Vijay, Anirudh Ravichander",
+    "filePath": "/Users/vino/Documents/songs/Jana Nayagan/Chella Magale (From \"Jana Nayagan\").mp3",
+    "hasArtwork": true,
+    "starring": "Vijay, Pooja Hegde, Bobby Deol, Mamitha Baiju, Gautham Vasudev Menon, Prakash Raj",
+    "director": "H. Vinoth",
+    "createdAt": "2026-06-14T20:11:40.423Z"
+  },
+  {
+    "id": "0c55b7b2-6960-42de-a0db-a60492fb14cf",
+    "title": "Oru Pere Varalaaru (From \"Jana Nayagan\")",
+    "artist": "Anirudh Ravichander, Vishal Mishra & Vivek",
+    "album": "Oru Pere Varalaaru (From \"Jana Nayagan\") - Single",
+    "year": "2025",
+    "genre": "Tamil",
+    "composer": "Anirudh Ravichander",
+    "trackNumber": 1,
+    "discNumber": 1,
+    "length": "03:54",
+    "downloads": "9,66,087",
+    "singers": "Vishal Mishra, Anirudh Ravichander",
+    "filePath": "/Users/vino/Documents/songs/Jana Nayagan/Oru Pere Varalaaru (From \"Jana Nayagan\").mp3",
+    "hasArtwork": true,
+    "starring": "Vijay, Pooja Hegde, Bobby Deol, Mamitha Baiju, Gautham Vasudev Menon, Prakash Raj",
+    "director": "H. Vinoth",
+    "createdAt": "2026-06-14T20:11:40.652Z"
+  },
+  {
+    "id": "bf69497e-6200-4c49-bb5d-ec6fd92e0c4b",
+    "title": "Raavana Mavandaa (From \"Jana Nayagan\")",
+    "artist": "Anirudh Ravichander & Vivek",
+    "album": "Raavana Mavandaa (From \"Jana Nayagan\") - Single",
+    "year": "2026",
+    "genre": "Tamil",
+    "composer": "Anirudh Ravichander",
+    "trackNumber": 1,
+    "discNumber": 1,
+    "length": "01:47",
+    "downloads": "9,91,513",
+    "singers": "Anirudh Ravichander",
+    "filePath": "/Users/vino/Documents/songs/Jana Nayagan/Raavana Mavandaa (From \"Jana Nayagan\").mp3",
+    "hasArtwork": true,
+    "starring": "Vijay, Pooja Hegde, Bobby Deol, Mamitha Baiju, Gautham Vasudev Menon, Prakash Raj",
+    "director": "H. Vinoth",
+    "createdAt": "2026-06-14T20:11:40.776Z"
+  },
+  {
+    "id": "a3f99749-acd1-4bb5-9ddb-ceaac34897ce",
+    "title": "Oorum Blood",
+    "artist": "Sai Abhyankkar, bebhumika, Deepthi Suresh & Paal Dabba",
     "album": "Dude (Original Motion Picture Soundtrack)",
     "year": "2025",
     "genre": "Tamil",
     "composer": "Sai Abhyankkar",
-    "trackNumber": 9,
+    "trackNumber": 1,
     "discNumber": 1,
-    "length": "01:20",
-    "downloads": "6,59,881",
-    "singers": "Sai Abhyankkar",
-    "filePath": "/Users/vino/Documents/songs/Dude (Original Motion Picture Soundtrack)/Oorum Blood Unplugged.mp3",
+    "length": "04:00",
+    "downloads": "23,51,996",
+    "singers": "Sai Abhyankkar, Bebhumika, Deepthi Suresh",
+    "filePath": "/Users/vino/Documents/songs/Dude/Oorum Blood.mp3",
     "hasArtwork": true,
     "starring": "Pradeep Ranganathan, Mamitha Baiju, R.Sarath Kumar, Hridhu Haroon",
     "director": "Keerthiswaran",
-    "createdAt": "2026-06-14T18:29:18.447Z"
+    "lyricist": "Vivek, Adesh Krishna, Paal Dabba, Sanjay Semvi",
+    "movieTmdbId": 1321108,
+    "moviePosterUrl": "https://image.tmdb.org/t/p/w500/rugcfeI5Z9qYTeYXUCKdKmNmATE.jpg",
+    "starringEnriched": [
+      {
+        "id": "2274937",
+        "name": "Pradeep Ranganathan",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/yfATc50b77UwlNxz9OrokPYnwRj.jpg"
+      },
+      {
+        "id": "2191938",
+        "name": "Mamitha Baiju",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/tGEFW7uGdYrvZ2f3FP8JH5Yh5L2.jpg"
+      },
+      {
+        "id": "237683",
+        "name": "R. Sarathkumar",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/x2Bx2mxOvgvRzaLFlpKNGmKYkK2.jpg"
+      },
+      {
+        "id": "2918872",
+        "name": "Hridhu Haroon",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/9Dz4Liv3a4EcQkNk3fCfIGheZCB.jpg"
+      }
+    ],
+    "directorEnriched": [
+      {
+        "id": "3904109",
+        "name": "Keerthiswaran",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/bRIfql74hpdLoX4HqaycK3eR0FC.jpg"
+      }
+    ],
+    "composerEnriched": [
+      {
+        "id": "5040583",
+        "name": "Sai Abhyankkar",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/qcFxJm7fKOdcpcBpjHwVTP6hGq2.jpg"
+      }
+    ],
+    "lyricistEnriched": [
+      {
+        "id": "85523",
+        "name": "Vivek",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/z4fZ22hnBz6W8mBNDvhtFbJErmK.jpg"
+      },
+      {
+        "id": "4799569",
+        "name": "Adesh Krishna",
+        "profileUrl": null
+      },
+      {
+        "id": "4646577",
+        "name": "Paal Dabba",
+        "profileUrl": null
+      },
+      {
+        "id": "5741385",
+        "name": "Sanjay Semvi",
+        "profileUrl": null
+      }
+    ],
+    "singersEnriched": [
+      {
+        "id": "5040583",
+        "name": "Sai Abhyankkar",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/qcFxJm7fKOdcpcBpjHwVTP6hGq2.jpg"
+      },
+      {
+        "id": "c79c0c34-b60a-49ad-b895-130582122b53",
+        "name": "Bebhumika",
+        "profileUrl": null,
+        "isLocal": true
+      },
+      {
+        "id": "2252806",
+        "name": "Deepthi Suresh",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/vdjzdPOUL6ss7CjZbp59upG3ltm.jpg"
+      }
+    ],
+    "createdAt": "2026-06-15T03:24:02.090Z"
   },
   {
-    "id": "fda64fd8-55b0-470a-b0e6-fc6e3e49c340",
-    "title": "Singari",
-    "artist": "Sai Abhyankkar, Pradeep Ranganathan & Sai Smriti",
-    "album": "Dude (Original Motion Picture Soundtrack)",
+    "id": "cc6d875e-e453-4661-870d-9df848ed55f0",
+    "title": "Singari (From \"Dude\")",
+    "artist": "Sai Abhyankkar, Pradeep Ranganathan, Sai Smriti & Semv.iii",
+    "album": "Singari (From \"Dude\") - Single",
     "year": "2025",
     "genre": "Tamil",
     "composer": "Sai Abhyankkar",
-    "trackNumber": 2,
+    "trackNumber": 1,
     "discNumber": 1,
     "length": "03:28",
-    "downloads": "11,76,690",
+    "downloads": "11,76,993",
     "singers": "Sai Abhyankkar, Pradeep Ranganathan, Sai Smriti",
-    "filePath": "/Users/vino/Documents/songs/Dude (Original Motion Picture Soundtrack)/Singari.mp3",
+    "filePath": "/Users/vino/Documents/songs/Dude/Singari.mp3",
     "hasArtwork": true,
     "starring": "Pradeep Ranganathan, Mamitha Baiju, R.Sarath Kumar, Hridhu Haroon",
     "director": "Keerthiswaran",
-    "createdAt": "2026-06-14T18:29:16.460Z"
+    "lyricist": "Vivek, Adesh Krishna, Paal Dabba, Sanjay Semvi",
+    "movieTmdbId": 1321108,
+    "moviePosterUrl": "https://image.tmdb.org/t/p/w500/rugcfeI5Z9qYTeYXUCKdKmNmATE.jpg",
+    "starringEnriched": [
+      {
+        "id": "2274937",
+        "name": "Pradeep Ranganathan",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/yfATc50b77UwlNxz9OrokPYnwRj.jpg"
+      },
+      {
+        "id": "2191938",
+        "name": "Mamitha Baiju",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/tGEFW7uGdYrvZ2f3FP8JH5Yh5L2.jpg"
+      },
+      {
+        "id": "237683",
+        "name": "R. Sarathkumar",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/x2Bx2mxOvgvRzaLFlpKNGmKYkK2.jpg"
+      },
+      {
+        "id": "2918872",
+        "name": "Hridhu Haroon",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/9Dz4Liv3a4EcQkNk3fCfIGheZCB.jpg"
+      }
+    ],
+    "directorEnriched": [
+      {
+        "id": "3904109",
+        "name": "Keerthiswaran",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/bRIfql74hpdLoX4HqaycK3eR0FC.jpg"
+      }
+    ],
+    "composerEnriched": [
+      {
+        "id": "5040583",
+        "name": "Sai Abhyankkar",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/qcFxJm7fKOdcpcBpjHwVTP6hGq2.jpg"
+      }
+    ],
+    "lyricistEnriched": [
+      {
+        "id": "85523",
+        "name": "Vivek",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/z4fZ22hnBz6W8mBNDvhtFbJErmK.jpg"
+      },
+      {
+        "id": "4799569",
+        "name": "Adesh Krishna",
+        "profileUrl": null
+      },
+      {
+        "id": "4646577",
+        "name": "Paal Dabba",
+        "profileUrl": null
+      },
+      {
+        "id": "5741385",
+        "name": "Sanjay Semvi",
+        "profileUrl": null
+      }
+    ],
+    "singersEnriched": [
+      {
+        "id": "5040583",
+        "name": "Sai Abhyankkar",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/qcFxJm7fKOdcpcBpjHwVTP6hGq2.jpg"
+      },
+      {
+        "id": "2274937",
+        "name": "Pradeep Ranganathan",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/yfATc50b77UwlNxz9OrokPYnwRj.jpg"
+      },
+      {
+        "id": "5605424",
+        "name": "Sai Smriti",
+        "profileUrl": null
+      }
+    ],
+    "createdAt": "2026-06-15T03:24:02.430Z"
   },
   {
-    "id": "41a4c43e-df0f-477b-93da-a682e4d4d534",
+    "id": "3c5d4bab-0bad-45c5-86cd-d868a2c79610",
     "title": "Yumabaibesa",
     "artist": "Sai Abhyankkar",
     "album": "Dude (Original Motion Picture Soundtrack)",
@@ -48,16 +262,84 @@
     "trackNumber": 5,
     "discNumber": 1,
     "length": "02:34",
-    "downloads": "5,20,512",
+    "downloads": "5,20,720",
     "singers": "Sai Abhyankkar",
-    "filePath": "/Users/vino/Documents/songs/Dude (Original Motion Picture Soundtrack)/Yumabaibesa.mp3",
+    "filePath": "/Users/vino/Documents/songs/Dude/Yumabaibesa.mp3",
     "hasArtwork": true,
     "starring": "Pradeep Ranganathan, Mamitha Baiju, R.Sarath Kumar, Hridhu Haroon",
     "director": "Keerthiswaran",
-    "createdAt": "2026-06-14T18:29:16.619Z"
+    "lyricist": "Vivek, Adesh Krishna, Paal Dabba, Sanjay Semvi",
+    "movieTmdbId": 1321108,
+    "moviePosterUrl": "https://image.tmdb.org/t/p/w500/rugcfeI5Z9qYTeYXUCKdKmNmATE.jpg",
+    "starringEnriched": [
+      {
+        "id": "2274937",
+        "name": "Pradeep Ranganathan",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/yfATc50b77UwlNxz9OrokPYnwRj.jpg"
+      },
+      {
+        "id": "2191938",
+        "name": "Mamitha Baiju",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/tGEFW7uGdYrvZ2f3FP8JH5Yh5L2.jpg"
+      },
+      {
+        "id": "237683",
+        "name": "R. Sarathkumar",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/x2Bx2mxOvgvRzaLFlpKNGmKYkK2.jpg"
+      },
+      {
+        "id": "2918872",
+        "name": "Hridhu Haroon",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/9Dz4Liv3a4EcQkNk3fCfIGheZCB.jpg"
+      }
+    ],
+    "directorEnriched": [
+      {
+        "id": "3904109",
+        "name": "Keerthiswaran",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/bRIfql74hpdLoX4HqaycK3eR0FC.jpg"
+      }
+    ],
+    "composerEnriched": [
+      {
+        "id": "5040583",
+        "name": "Sai Abhyankkar",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/qcFxJm7fKOdcpcBpjHwVTP6hGq2.jpg"
+      }
+    ],
+    "lyricistEnriched": [
+      {
+        "id": "85523",
+        "name": "Vivek",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/z4fZ22hnBz6W8mBNDvhtFbJErmK.jpg"
+      },
+      {
+        "id": "4799569",
+        "name": "Adesh Krishna",
+        "profileUrl": null
+      },
+      {
+        "id": "4646577",
+        "name": "Paal Dabba",
+        "profileUrl": null
+      },
+      {
+        "id": "5741385",
+        "name": "Sanjay Semvi",
+        "profileUrl": null
+      }
+    ],
+    "singersEnriched": [
+      {
+        "id": "5040583",
+        "name": "Sai Abhyankkar",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/qcFxJm7fKOdcpcBpjHwVTP6hGq2.jpg"
+      }
+    ],
+    "createdAt": "2026-06-15T03:24:02.649Z"
   },
   {
-    "id": "3a3d1881-494e-4c69-a175-845545df5325",
+    "id": "5fb0f2e3-6490-488a-b3d3-5ab200bb0a52",
     "title": "Blud Is On His Way",
     "artist": "Sai Abhyankkar",
     "album": "Dude (Original Motion Picture Soundtrack)",
@@ -67,16 +349,84 @@
     "trackNumber": 8,
     "discNumber": 1,
     "length": "01:17",
-    "downloads": "10,90,191",
+    "downloads": "10,90,419",
     "singers": "Sai Abhyankkar",
-    "filePath": "/Users/vino/Documents/songs/Dude (Original Motion Picture Soundtrack)/Blud Is On His Way.mp3",
+    "filePath": "/Users/vino/Documents/songs/Dude/Blud Is On His Way.mp3",
     "hasArtwork": true,
     "starring": "Pradeep Ranganathan, Mamitha Baiju, R.Sarath Kumar, Hridhu Haroon",
     "director": "Keerthiswaran",
-    "createdAt": "2026-06-14T18:29:16.737Z"
+    "lyricist": "Vivek, Adesh Krishna, Paal Dabba, Sanjay Semvi",
+    "movieTmdbId": 1321108,
+    "moviePosterUrl": "https://image.tmdb.org/t/p/w500/rugcfeI5Z9qYTeYXUCKdKmNmATE.jpg",
+    "starringEnriched": [
+      {
+        "id": "2274937",
+        "name": "Pradeep Ranganathan",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/yfATc50b77UwlNxz9OrokPYnwRj.jpg"
+      },
+      {
+        "id": "2191938",
+        "name": "Mamitha Baiju",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/tGEFW7uGdYrvZ2f3FP8JH5Yh5L2.jpg"
+      },
+      {
+        "id": "237683",
+        "name": "R. Sarathkumar",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/x2Bx2mxOvgvRzaLFlpKNGmKYkK2.jpg"
+      },
+      {
+        "id": "2918872",
+        "name": "Hridhu Haroon",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/9Dz4Liv3a4EcQkNk3fCfIGheZCB.jpg"
+      }
+    ],
+    "directorEnriched": [
+      {
+        "id": "3904109",
+        "name": "Keerthiswaran",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/bRIfql74hpdLoX4HqaycK3eR0FC.jpg"
+      }
+    ],
+    "composerEnriched": [
+      {
+        "id": "5040583",
+        "name": "Sai Abhyankkar",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/qcFxJm7fKOdcpcBpjHwVTP6hGq2.jpg"
+      }
+    ],
+    "lyricistEnriched": [
+      {
+        "id": "85523",
+        "name": "Vivek",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/z4fZ22hnBz6W8mBNDvhtFbJErmK.jpg"
+      },
+      {
+        "id": "4799569",
+        "name": "Adesh Krishna",
+        "profileUrl": null
+      },
+      {
+        "id": "4646577",
+        "name": "Paal Dabba",
+        "profileUrl": null
+      },
+      {
+        "id": "5741385",
+        "name": "Sanjay Semvi",
+        "profileUrl": null
+      }
+    ],
+    "singersEnriched": [
+      {
+        "id": "5040583",
+        "name": "Sai Abhyankkar",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/qcFxJm7fKOdcpcBpjHwVTP6hGq2.jpg"
+      }
+    ],
+    "createdAt": "2026-06-15T03:24:02.757Z"
   },
   {
-    "id": "1e664b7f-f87f-4ae6-b578-4fa9c14971cc",
+    "id": "a3e253ff-4886-4629-8de9-26e9f68fdbc1",
     "title": "Nallaru Po",
     "artist": "Sai Abhyankkar & Tippu",
     "album": "Dude (Original Motion Picture Soundtrack)",
@@ -86,16 +436,94 @@
     "trackNumber": 3,
     "discNumber": 1,
     "length": "03:56",
-    "downloads": "10,61,836",
+    "downloads": "10,62,417",
     "singers": "Sai Abhyankkar, Tippu, Mohit Chauhan",
-    "filePath": "/Users/vino/Documents/songs/Dude (Original Motion Picture Soundtrack)/Nallaru Po.mp3",
+    "filePath": "/Users/vino/Documents/songs/Dude/Nallaru Po.mp3",
     "hasArtwork": true,
     "starring": "Pradeep Ranganathan, Mamitha Baiju, R.Sarath Kumar, Hridhu Haroon",
     "director": "Keerthiswaran",
-    "createdAt": "2026-06-14T18:29:16.945Z"
+    "lyricist": "Vivek, Adesh Krishna, Paal Dabba, Sanjay Semvi",
+    "movieTmdbId": 1321108,
+    "moviePosterUrl": "https://image.tmdb.org/t/p/w500/rugcfeI5Z9qYTeYXUCKdKmNmATE.jpg",
+    "starringEnriched": [
+      {
+        "id": "2274937",
+        "name": "Pradeep Ranganathan",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/yfATc50b77UwlNxz9OrokPYnwRj.jpg"
+      },
+      {
+        "id": "2191938",
+        "name": "Mamitha Baiju",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/tGEFW7uGdYrvZ2f3FP8JH5Yh5L2.jpg"
+      },
+      {
+        "id": "237683",
+        "name": "R. Sarathkumar",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/x2Bx2mxOvgvRzaLFlpKNGmKYkK2.jpg"
+      },
+      {
+        "id": "2918872",
+        "name": "Hridhu Haroon",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/9Dz4Liv3a4EcQkNk3fCfIGheZCB.jpg"
+      }
+    ],
+    "directorEnriched": [
+      {
+        "id": "3904109",
+        "name": "Keerthiswaran",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/bRIfql74hpdLoX4HqaycK3eR0FC.jpg"
+      }
+    ],
+    "composerEnriched": [
+      {
+        "id": "5040583",
+        "name": "Sai Abhyankkar",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/qcFxJm7fKOdcpcBpjHwVTP6hGq2.jpg"
+      }
+    ],
+    "lyricistEnriched": [
+      {
+        "id": "85523",
+        "name": "Vivek",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/z4fZ22hnBz6W8mBNDvhtFbJErmK.jpg"
+      },
+      {
+        "id": "4799569",
+        "name": "Adesh Krishna",
+        "profileUrl": null
+      },
+      {
+        "id": "4646577",
+        "name": "Paal Dabba",
+        "profileUrl": null
+      },
+      {
+        "id": "5741385",
+        "name": "Sanjay Semvi",
+        "profileUrl": null
+      }
+    ],
+    "singersEnriched": [
+      {
+        "id": "5040583",
+        "name": "Sai Abhyankkar",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/qcFxJm7fKOdcpcBpjHwVTP6hGq2.jpg"
+      },
+      {
+        "id": "2081011",
+        "name": "Tippu",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/6WYtvgbvTWNAMtVYdXGzRWHA2z3.jpg"
+      },
+      {
+        "id": "1430631",
+        "name": "Mohit Chauhan",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/olwXSLxlsEyyA1rEoGxEcfWQf6e.jpg"
+      }
+    ],
+    "createdAt": "2026-06-15T03:24:03.327Z"
   },
   {
-    "id": "edb5cf03-6b8d-485a-8ed9-489db84e9fad",
+    "id": "49b18439-7412-42ba-979a-c1f444a96377",
     "title": "Dude Trailer Blast (Theme)",
     "artist": "Sai Abhyankkar",
     "album": "Dude (Original Motion Picture Soundtrack)",
@@ -105,16 +533,84 @@
     "trackNumber": 7,
     "discNumber": 1,
     "length": "02:41",
-    "downloads": "4,98,398",
+    "downloads": "4,98,574",
     "singers": "Sai Abhyankkar",
-    "filePath": "/Users/vino/Documents/songs/Dude (Original Motion Picture Soundtrack)/Dude Trailer Blast (Theme).mp3",
+    "filePath": "/Users/vino/Documents/songs/Dude/Dude Trailer Blast (Theme).mp3",
     "hasArtwork": true,
     "starring": "Pradeep Ranganathan, Mamitha Baiju, R.Sarath Kumar, Hridhu Haroon",
     "director": "Keerthiswaran",
-    "createdAt": "2026-06-14T18:29:17.554Z"
+    "lyricist": "Vivek, Adesh Krishna, Paal Dabba, Sanjay Semvi",
+    "movieTmdbId": 1321108,
+    "moviePosterUrl": "https://image.tmdb.org/t/p/w500/rugcfeI5Z9qYTeYXUCKdKmNmATE.jpg",
+    "starringEnriched": [
+      {
+        "id": "2274937",
+        "name": "Pradeep Ranganathan",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/yfATc50b77UwlNxz9OrokPYnwRj.jpg"
+      },
+      {
+        "id": "2191938",
+        "name": "Mamitha Baiju",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/tGEFW7uGdYrvZ2f3FP8JH5Yh5L2.jpg"
+      },
+      {
+        "id": "237683",
+        "name": "R. Sarathkumar",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/x2Bx2mxOvgvRzaLFlpKNGmKYkK2.jpg"
+      },
+      {
+        "id": "2918872",
+        "name": "Hridhu Haroon",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/9Dz4Liv3a4EcQkNk3fCfIGheZCB.jpg"
+      }
+    ],
+    "directorEnriched": [
+      {
+        "id": "3904109",
+        "name": "Keerthiswaran",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/bRIfql74hpdLoX4HqaycK3eR0FC.jpg"
+      }
+    ],
+    "composerEnriched": [
+      {
+        "id": "5040583",
+        "name": "Sai Abhyankkar",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/qcFxJm7fKOdcpcBpjHwVTP6hGq2.jpg"
+      }
+    ],
+    "lyricistEnriched": [
+      {
+        "id": "85523",
+        "name": "Vivek",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/z4fZ22hnBz6W8mBNDvhtFbJErmK.jpg"
+      },
+      {
+        "id": "4799569",
+        "name": "Adesh Krishna",
+        "profileUrl": null
+      },
+      {
+        "id": "4646577",
+        "name": "Paal Dabba",
+        "profileUrl": null
+      },
+      {
+        "id": "5741385",
+        "name": "Sanjay Semvi",
+        "profileUrl": null
+      }
+    ],
+    "singersEnriched": [
+      {
+        "id": "5040583",
+        "name": "Sai Abhyankkar",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/qcFxJm7fKOdcpcBpjHwVTP6hGq2.jpg"
+      }
+    ],
+    "createdAt": "2026-06-15T03:24:03.454Z"
   },
   {
-    "id": "9f9b1a4e-e5a4-4128-a6c2-645978353643",
+    "id": "42978492-3b05-40d8-ab99-76c6a881d7bb",
     "title": "Kannukulla (Reprise)",
     "artist": "Sai Abhyankkar",
     "album": "Dude (Original Motion Picture Soundtrack)",
@@ -124,12 +620,1379 @@
     "trackNumber": 6,
     "discNumber": 1,
     "length": "04:34",
-    "downloads": "11,38,382",
+    "downloads": "11,38,810",
     "singers": "Sai Abhyankkar, Jonita Gandhi",
-    "filePath": "/Users/vino/Documents/songs/Dude (Original Motion Picture Soundtrack)/Kannukulla.mp3",
+    "filePath": "/Users/vino/Documents/songs/Dude/Kannukulla.mp3",
     "hasArtwork": true,
     "starring": "Pradeep Ranganathan, Mamitha Baiju, R.Sarath Kumar, Hridhu Haroon",
     "director": "Keerthiswaran",
-    "createdAt": "2026-06-14T18:29:18.366Z"
+    "lyricist": "Vivek, Adesh Krishna, Paal Dabba, Sanjay Semvi",
+    "movieTmdbId": 1321108,
+    "moviePosterUrl": "https://image.tmdb.org/t/p/w500/rugcfeI5Z9qYTeYXUCKdKmNmATE.jpg",
+    "starringEnriched": [
+      {
+        "id": "2274937",
+        "name": "Pradeep Ranganathan",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/yfATc50b77UwlNxz9OrokPYnwRj.jpg"
+      },
+      {
+        "id": "2191938",
+        "name": "Mamitha Baiju",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/tGEFW7uGdYrvZ2f3FP8JH5Yh5L2.jpg"
+      },
+      {
+        "id": "237683",
+        "name": "R. Sarathkumar",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/x2Bx2mxOvgvRzaLFlpKNGmKYkK2.jpg"
+      },
+      {
+        "id": "2918872",
+        "name": "Hridhu Haroon",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/9Dz4Liv3a4EcQkNk3fCfIGheZCB.jpg"
+      }
+    ],
+    "directorEnriched": [
+      {
+        "id": "3904109",
+        "name": "Keerthiswaran",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/bRIfql74hpdLoX4HqaycK3eR0FC.jpg"
+      }
+    ],
+    "composerEnriched": [
+      {
+        "id": "5040583",
+        "name": "Sai Abhyankkar",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/qcFxJm7fKOdcpcBpjHwVTP6hGq2.jpg"
+      }
+    ],
+    "lyricistEnriched": [
+      {
+        "id": "85523",
+        "name": "Vivek",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/z4fZ22hnBz6W8mBNDvhtFbJErmK.jpg"
+      },
+      {
+        "id": "4799569",
+        "name": "Adesh Krishna",
+        "profileUrl": null
+      },
+      {
+        "id": "4646577",
+        "name": "Paal Dabba",
+        "profileUrl": null
+      },
+      {
+        "id": "5741385",
+        "name": "Sanjay Semvi",
+        "profileUrl": null
+      }
+    ],
+    "singersEnriched": [
+      {
+        "id": "5040583",
+        "name": "Sai Abhyankkar",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/qcFxJm7fKOdcpcBpjHwVTP6hGq2.jpg"
+      },
+      {
+        "id": "1909092",
+        "name": "Jonita Gandhi",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/6iJMJ3vteATOYkAE3dyVnoJHdUr.jpg"
+      }
+    ],
+    "createdAt": "2026-06-15T03:24:03.875Z"
+  },
+  {
+    "id": "87851a5b-27c1-4088-9fdf-6e975aa5ce1f",
+    "title": "Oorum Blood Unplugged",
+    "artist": "Sai Abhyankkar",
+    "album": "Dude (Original Motion Picture Soundtrack)",
+    "year": "2025",
+    "genre": "Tamil",
+    "composer": "Sai Abhyankkar",
+    "trackNumber": 9,
+    "discNumber": 1,
+    "length": "01:20",
+    "downloads": "6,60,114",
+    "singers": "Sai Abhyankkar",
+    "filePath": "/Users/vino/Documents/songs/Dude/Oorum Blood Unplugged.mp3",
+    "hasArtwork": true,
+    "starring": "Pradeep Ranganathan, Mamitha Baiju, R.Sarath Kumar, Hridhu Haroon",
+    "director": "Keerthiswaran",
+    "lyricist": "Vivek, Adesh Krishna, Paal Dabba, Sanjay Semvi",
+    "movieTmdbId": 1321108,
+    "moviePosterUrl": "https://image.tmdb.org/t/p/w500/rugcfeI5Z9qYTeYXUCKdKmNmATE.jpg",
+    "starringEnriched": [
+      {
+        "id": "2274937",
+        "name": "Pradeep Ranganathan",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/yfATc50b77UwlNxz9OrokPYnwRj.jpg"
+      },
+      {
+        "id": "2191938",
+        "name": "Mamitha Baiju",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/tGEFW7uGdYrvZ2f3FP8JH5Yh5L2.jpg"
+      },
+      {
+        "id": "237683",
+        "name": "R. Sarathkumar",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/x2Bx2mxOvgvRzaLFlpKNGmKYkK2.jpg"
+      },
+      {
+        "id": "2918872",
+        "name": "Hridhu Haroon",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/9Dz4Liv3a4EcQkNk3fCfIGheZCB.jpg"
+      }
+    ],
+    "directorEnriched": [
+      {
+        "id": "3904109",
+        "name": "Keerthiswaran",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/bRIfql74hpdLoX4HqaycK3eR0FC.jpg"
+      }
+    ],
+    "composerEnriched": [
+      {
+        "id": "5040583",
+        "name": "Sai Abhyankkar",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/qcFxJm7fKOdcpcBpjHwVTP6hGq2.jpg"
+      }
+    ],
+    "lyricistEnriched": [
+      {
+        "id": "85523",
+        "name": "Vivek",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/z4fZ22hnBz6W8mBNDvhtFbJErmK.jpg"
+      },
+      {
+        "id": "4799569",
+        "name": "Adesh Krishna",
+        "profileUrl": null
+      },
+      {
+        "id": "4646577",
+        "name": "Paal Dabba",
+        "profileUrl": null
+      },
+      {
+        "id": "5741385",
+        "name": "Sanjay Semvi",
+        "profileUrl": null
+      }
+    ],
+    "singersEnriched": [
+      {
+        "id": "5040583",
+        "name": "Sai Abhyankkar",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/qcFxJm7fKOdcpcBpjHwVTP6hGq2.jpg"
+      }
+    ],
+    "createdAt": "2026-06-15T03:24:03.981Z"
+  },
+  {
+    "id": "ed57c5dd-9340-4830-8bad-90b95bf781c3",
+    "title": "Thalapathy Kacheri (From \"Jana Nayagan\")",
+    "artist": "Anirudh Ravichander, Vijay & Arivu",
+    "album": "Thalapathy Kacheri (From \"Jana Nayagan\") - Single",
+    "year": "2025",
+    "genre": "Tamil",
+    "composer": "",
+    "trackNumber": 1,
+    "discNumber": 1,
+    "length": "03:06",
+    "downloads": "0",
+    "singers": "Anirudh Ravichander, Vijay & Arivu",
+    "filePath": "/Users/vino/Documents/songs/Jana Nayagan/Thalapathy Kacheri (From \"Jana Nayagan\").mp3",
+    "hasArtwork": true,
+    "starring": "",
+    "director": "",
+    "lyricist": "",
+    "movieTmdbId": 1235877,
+    "moviePosterUrl": "https://image.tmdb.org/t/p/w500/jt8pfSIdi47YpFMMWVRr8w5u2S0.jpg",
+    "starringEnriched": [],
+    "directorEnriched": [],
+    "composerEnriched": [],
+    "lyricistEnriched": [],
+    "singersEnriched": [
+      {
+        "id": "1081464",
+        "name": "Anirudh Ravichander",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/4RqfmPhND0cKe83kCohjCW06Q02.jpg"
+      },
+      {
+        "id": "91547",
+        "name": "Vijay",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/zbQ1sDRVRHkroWwvrnqYKMerl66.jpg"
+      },
+      {
+        "id": "2273453",
+        "name": "Arivu",
+        "profileUrl": null
+      }
+    ],
+    "createdAt": "2026-06-15T16:17:06.080Z"
+  },
+  {
+    "id": "0863873e-5bfe-428f-83a7-33f4a487a7f0",
+    "title": "Ambikapathy",
+    "artist": "A.R. Rahman & Naresh Iyer",
+    "album": "Ambikapathy (Original Motion Picture Soundtrack)",
+    "year": "2013",
+    "genre": "Tamil",
+    "composer": "A.R.Rahman",
+    "trackNumber": 1,
+    "discNumber": 1,
+    "length": "04:15",
+    "downloads": "11,67,250",
+    "singers": "Naresh Iyer",
+    "filePath": "/Users/vino/Documents/songs/Ambikapathy/Ambikapathy.mp3",
+    "hasArtwork": true,
+    "starring": "Dhanush, Sonam Kapoor, Abhay Deol",
+    "director": "Anand L. Rai",
+    "lyricist": "Vairamuthu",
+    "movieTmdbId": 513160,
+    "moviePosterUrl": "https://image.tmdb.org/t/p/w500/p7qdgJQkNxMW4zmf88QmCjJiQmu.jpg",
+    "starringEnriched": [
+      {
+        "id": "550165",
+        "name": "Dhanush",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/7bI9oy1BXIk58hsOK8WfN5g0i1P.jpg"
+      },
+      {
+        "id": "85040",
+        "name": "Sonam Kapoor Ahuja",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/p5A2rzbCs9ZlgxVgJ6zGtHNUzaq.jpg"
+      },
+      {
+        "id": "79003",
+        "name": "Abhay Deol",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/l5bV9hKbTLJLY9vYjcEz9BOo5Xr.jpg"
+      }
+    ],
+    "directorEnriched": [
+      {
+        "id": "591123",
+        "name": "Aanand L. Rai",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/7SSh0FR3KX0T326iH8MOHDS28ns.jpg"
+      }
+    ],
+    "composerEnriched": [
+      {
+        "id": "5288",
+        "name": "A.R. Rahman",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/3po8IwdtONY72BuXr7ZhZZ0ugxQ.jpg"
+      }
+    ],
+    "lyricistEnriched": [
+      {
+        "id": "1420094",
+        "name": "Vairamuthu",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/lAQLpZL54CNs3RZMzExn5BDaquc.jpg"
+      }
+    ],
+    "singersEnriched": [
+      {
+        "id": "2231082",
+        "name": "Naresh Iyer",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/94AQ394skWEb8ZnsdRU2H4vvu1F.jpg"
+      }
+    ],
+    "createdAt": "2026-06-15T17:30:34.981Z"
+  },
+  {
+    "id": "e1f97ae9-2fd8-4f54-b1d8-c5458d85f0f0",
+    "title": "The Land of Shiva",
+    "artist": "A.R. Rahman",
+    "album": "Ambikapathy (Original Motion Picture Soundtrack)",
+    "year": "2013",
+    "genre": "Tamil",
+    "composer": "A.R.Rahman",
+    "trackNumber": 8,
+    "discNumber": 1,
+    "length": "01:09",
+    "downloads": "1,60,724",
+    "singers": "Instrumental",
+    "filePath": "/Users/vino/Documents/songs/Ambikapathy/The Land of Shiva.mp3",
+    "hasArtwork": true,
+    "starring": "Dhanush, Sonam Kapoor, Abhay Deol",
+    "director": "Anand L. Rai",
+    "lyricist": "Vairamuthu",
+    "movieTmdbId": 513160,
+    "moviePosterUrl": "https://image.tmdb.org/t/p/w500/p7qdgJQkNxMW4zmf88QmCjJiQmu.jpg",
+    "starringEnriched": [
+      {
+        "id": "550165",
+        "name": "Dhanush",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/7bI9oy1BXIk58hsOK8WfN5g0i1P.jpg"
+      },
+      {
+        "id": "85040",
+        "name": "Sonam Kapoor Ahuja",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/p5A2rzbCs9ZlgxVgJ6zGtHNUzaq.jpg"
+      },
+      {
+        "id": "79003",
+        "name": "Abhay Deol",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/l5bV9hKbTLJLY9vYjcEz9BOo5Xr.jpg"
+      }
+    ],
+    "directorEnriched": [
+      {
+        "id": "591123",
+        "name": "Aanand L. Rai",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/7SSh0FR3KX0T326iH8MOHDS28ns.jpg"
+      }
+    ],
+    "composerEnriched": [
+      {
+        "id": "5288",
+        "name": "A.R. Rahman",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/3po8IwdtONY72BuXr7ZhZZ0ugxQ.jpg"
+      }
+    ],
+    "lyricistEnriched": [
+      {
+        "id": "1420094",
+        "name": "Vairamuthu",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/lAQLpZL54CNs3RZMzExn5BDaquc.jpg"
+      }
+    ],
+    "singersEnriched": [
+      {
+        "id": "d0f4aaea-e0ca-41b8-9d91-4a6a1a0bfb33",
+        "name": "Instrumental",
+        "profileUrl": null,
+        "isLocal": true
+      }
+    ],
+    "createdAt": "2026-06-15T17:30:35.319Z"
+  },
+  {
+    "id": "5aaab866-dc25-4a75-a948-5e4413c1fdd3",
+    "title": "Solvadhai Seidhu Mudippom",
+    "artist": "A.R. Rahman & Mohd. Rafi",
+    "album": "Ambikapathy (Original Motion Picture Soundtrack)",
+    "year": "2013",
+    "genre": "Tamil",
+    "composer": "A.R.Rahman",
+    "trackNumber": 6,
+    "discNumber": 1,
+    "length": "04:23",
+    "downloads": "1,58,813",
+    "singers": "A.R.Rahman, Mohammed Rafi",
+    "filePath": "/Users/vino/Documents/songs/Ambikapathy/Solvadhai Seidhu Mudippom.mp3",
+    "hasArtwork": true,
+    "starring": "Dhanush, Sonam Kapoor, Abhay Deol",
+    "director": "Anand L. Rai",
+    "lyricist": "Vairamuthu",
+    "movieTmdbId": 513160,
+    "moviePosterUrl": "https://image.tmdb.org/t/p/w500/p7qdgJQkNxMW4zmf88QmCjJiQmu.jpg",
+    "starringEnriched": [
+      {
+        "id": "550165",
+        "name": "Dhanush",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/7bI9oy1BXIk58hsOK8WfN5g0i1P.jpg"
+      },
+      {
+        "id": "85040",
+        "name": "Sonam Kapoor Ahuja",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/p5A2rzbCs9ZlgxVgJ6zGtHNUzaq.jpg"
+      },
+      {
+        "id": "79003",
+        "name": "Abhay Deol",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/l5bV9hKbTLJLY9vYjcEz9BOo5Xr.jpg"
+      }
+    ],
+    "directorEnriched": [
+      {
+        "id": "591123",
+        "name": "Aanand L. Rai",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/7SSh0FR3KX0T326iH8MOHDS28ns.jpg"
+      }
+    ],
+    "composerEnriched": [
+      {
+        "id": "5288",
+        "name": "A.R. Rahman",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/3po8IwdtONY72BuXr7ZhZZ0ugxQ.jpg"
+      }
+    ],
+    "lyricistEnriched": [
+      {
+        "id": "1420094",
+        "name": "Vairamuthu",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/lAQLpZL54CNs3RZMzExn5BDaquc.jpg"
+      }
+    ],
+    "singersEnriched": [
+      {
+        "id": "5288",
+        "name": "A.R. Rahman",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/3po8IwdtONY72BuXr7ZhZZ0ugxQ.jpg"
+      },
+      {
+        "id": "1608034",
+        "name": "Mohammed Rafi",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/yJxR84bzya3W8N6aezj8iu0aQmI.jpg"
+      }
+    ],
+    "createdAt": "2026-06-15T17:30:35.650Z"
+  },
+  {
+    "id": "93f58bbf-f658-4cd0-b45e-e6e452750e94",
+    "title": "Kalaarasiga",
+    "artist": "A.R. Rahman & Shweta Mohan",
+    "album": "Ambikapathy (Original Motion Picture Soundtrack)",
+    "year": "2013",
+    "genre": "Tamil",
+    "composer": "A.R.Rahman",
+    "trackNumber": 2,
+    "discNumber": 1,
+    "length": "04:49",
+    "downloads": "5,46,442",
+    "singers": "Shweta Mohan, Sharanya Srinivas",
+    "filePath": "/Users/vino/Documents/songs/Ambikapathy/Kalaarasiga.mp3",
+    "hasArtwork": true,
+    "starring": "Dhanush, Sonam Kapoor, Abhay Deol",
+    "director": "Anand L. Rai",
+    "lyricist": "Vairamuthu",
+    "movieTmdbId": 513160,
+    "moviePosterUrl": "https://image.tmdb.org/t/p/w500/p7qdgJQkNxMW4zmf88QmCjJiQmu.jpg",
+    "starringEnriched": [
+      {
+        "id": "550165",
+        "name": "Dhanush",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/7bI9oy1BXIk58hsOK8WfN5g0i1P.jpg"
+      },
+      {
+        "id": "85040",
+        "name": "Sonam Kapoor Ahuja",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/p5A2rzbCs9ZlgxVgJ6zGtHNUzaq.jpg"
+      },
+      {
+        "id": "79003",
+        "name": "Abhay Deol",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/l5bV9hKbTLJLY9vYjcEz9BOo5Xr.jpg"
+      }
+    ],
+    "directorEnriched": [
+      {
+        "id": "591123",
+        "name": "Aanand L. Rai",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/7SSh0FR3KX0T326iH8MOHDS28ns.jpg"
+      }
+    ],
+    "composerEnriched": [
+      {
+        "id": "5288",
+        "name": "A.R. Rahman",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/3po8IwdtONY72BuXr7ZhZZ0ugxQ.jpg"
+      }
+    ],
+    "lyricistEnriched": [
+      {
+        "id": "1420094",
+        "name": "Vairamuthu",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/lAQLpZL54CNs3RZMzExn5BDaquc.jpg"
+      }
+    ],
+    "singersEnriched": [
+      {
+        "id": "2079072",
+        "name": "Shweta Mohan",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/5H0BjWHYK4aQA5YtH1Hm9q8NZ6Y.jpg"
+      },
+      {
+        "id": "2265583",
+        "name": "Sharanya Srinivas",
+        "profileUrl": null
+      }
+    ],
+    "createdAt": "2026-06-15T17:30:36.213Z"
+  },
+  {
+    "id": "b05455f7-1c5c-40fb-b14f-6c7671172b1b",
+    "title": "Oliyaaga Vandhaai",
+    "artist": "A.R. Rahman, Javed Ali & KMMC Sufi Ensemble",
+    "album": "Ambikapathy (Original Motion Picture Soundtrack)",
+    "year": "2013",
+    "genre": "Tamil",
+    "composer": "A.R.Rahman",
+    "trackNumber": 3,
+    "discNumber": 1,
+    "length": "05:56",
+    "downloads": "3,08,717",
+    "singers": "Javed Ali, KMMC Sufi Ensemble",
+    "filePath": "/Users/vino/Documents/songs/Ambikapathy/Oliyaaga Vandhaai.mp3",
+    "hasArtwork": true,
+    "starring": "Dhanush, Sonam Kapoor, Abhay Deol",
+    "director": "Anand L. Rai",
+    "lyricist": "Vairamuthu",
+    "movieTmdbId": 513160,
+    "moviePosterUrl": "https://image.tmdb.org/t/p/w500/p7qdgJQkNxMW4zmf88QmCjJiQmu.jpg",
+    "starringEnriched": [
+      {
+        "id": "550165",
+        "name": "Dhanush",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/7bI9oy1BXIk58hsOK8WfN5g0i1P.jpg"
+      },
+      {
+        "id": "85040",
+        "name": "Sonam Kapoor Ahuja",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/p5A2rzbCs9ZlgxVgJ6zGtHNUzaq.jpg"
+      },
+      {
+        "id": "79003",
+        "name": "Abhay Deol",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/l5bV9hKbTLJLY9vYjcEz9BOo5Xr.jpg"
+      }
+    ],
+    "directorEnriched": [
+      {
+        "id": "591123",
+        "name": "Aanand L. Rai",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/7SSh0FR3KX0T326iH8MOHDS28ns.jpg"
+      }
+    ],
+    "composerEnriched": [
+      {
+        "id": "5288",
+        "name": "A.R. Rahman",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/3po8IwdtONY72BuXr7ZhZZ0ugxQ.jpg"
+      }
+    ],
+    "lyricistEnriched": [
+      {
+        "id": "1420094",
+        "name": "Vairamuthu",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/lAQLpZL54CNs3RZMzExn5BDaquc.jpg"
+      }
+    ],
+    "singersEnriched": [
+      {
+        "id": "4550999",
+        "name": "Javed Ali",
+        "profileUrl": null
+      },
+      {
+        "id": "5d30d8dc-843b-4267-882c-2dda9b0ff59d",
+        "name": "KMMC Sufi Ensemble",
+        "profileUrl": null,
+        "isLocal": true
+      }
+    ],
+    "createdAt": "2026-06-15T17:30:36.936Z"
+  },
+  {
+    "id": "3523e9fe-7665-44b4-a4dd-b43c9b2e8b6e",
+    "title": "Paarkaadhey Oru Madhiri",
+    "artist": "A.R. Rahman",
+    "album": "Ambikapathy (Original Motion Picture Soundtrack)",
+    "year": "2013",
+    "genre": "Tamil",
+    "composer": "A.R.Rahman",
+    "trackNumber": 7,
+    "discNumber": 1,
+    "length": "04:16",
+    "downloads": "2,45,354",
+    "singers": "A.R. Rahman, Vocals : Karthik",
+    "filePath": "/Users/vino/Documents/songs/Ambikapathy/Paarkaadhey Oru Madhiri.mp3",
+    "hasArtwork": true,
+    "starring": "Dhanush, Sonam Kapoor, Abhay Deol",
+    "director": "Anand L. Rai",
+    "lyricist": "Vairamuthu",
+    "movieTmdbId": 513160,
+    "moviePosterUrl": "https://image.tmdb.org/t/p/w500/p7qdgJQkNxMW4zmf88QmCjJiQmu.jpg",
+    "starringEnriched": [
+      {
+        "id": "550165",
+        "name": "Dhanush",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/7bI9oy1BXIk58hsOK8WfN5g0i1P.jpg"
+      },
+      {
+        "id": "85040",
+        "name": "Sonam Kapoor Ahuja",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/p5A2rzbCs9ZlgxVgJ6zGtHNUzaq.jpg"
+      },
+      {
+        "id": "79003",
+        "name": "Abhay Deol",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/l5bV9hKbTLJLY9vYjcEz9BOo5Xr.jpg"
+      }
+    ],
+    "directorEnriched": [
+      {
+        "id": "591123",
+        "name": "Aanand L. Rai",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/7SSh0FR3KX0T326iH8MOHDS28ns.jpg"
+      }
+    ],
+    "composerEnriched": [
+      {
+        "id": "5288",
+        "name": "A.R. Rahman",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/3po8IwdtONY72BuXr7ZhZZ0ugxQ.jpg"
+      }
+    ],
+    "lyricistEnriched": [
+      {
+        "id": "1420094",
+        "name": "Vairamuthu",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/lAQLpZL54CNs3RZMzExn5BDaquc.jpg"
+      }
+    ],
+    "singersEnriched": [
+      {
+        "id": "5288",
+        "name": "A.R. Rahman",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/3po8IwdtONY72BuXr7ZhZZ0ugxQ.jpg"
+      },
+      {
+        "id": "b8b30341-256e-423c-a65d-bf0805a38905",
+        "name": "Vocals : Karthik",
+        "profileUrl": null,
+        "isLocal": true
+      }
+    ],
+    "createdAt": "2026-06-15T17:30:37.607Z"
+  },
+  {
+    "id": "4e3d3523-8248-4e3e-b39a-d6f64c98cf81",
+    "title": "Unnaal Unnaal",
+    "artist": "A.R. Rahman, Hariharan, Haricharan & Pooja",
+    "album": "Ambikapathy (Original Motion Picture Soundtrack)",
+    "year": "2013",
+    "genre": "Tamil",
+    "composer": "A.R.Rahman",
+    "trackNumber": 9,
+    "discNumber": 1,
+    "length": "05:03",
+    "downloads": "5,84,921",
+    "singers": "Hariharan, Haricharan, Pooja",
+    "filePath": "/Users/vino/Documents/songs/Ambikapathy/Unnaal Unnaal.mp3",
+    "hasArtwork": true,
+    "starring": "Dhanush, Sonam Kapoor, Abhay Deol",
+    "director": "Anand L. Rai",
+    "lyricist": "Vairamuthu",
+    "movieTmdbId": 513160,
+    "moviePosterUrl": "https://image.tmdb.org/t/p/w500/p7qdgJQkNxMW4zmf88QmCjJiQmu.jpg",
+    "starringEnriched": [
+      {
+        "id": "550165",
+        "name": "Dhanush",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/7bI9oy1BXIk58hsOK8WfN5g0i1P.jpg"
+      },
+      {
+        "id": "85040",
+        "name": "Sonam Kapoor Ahuja",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/p5A2rzbCs9ZlgxVgJ6zGtHNUzaq.jpg"
+      },
+      {
+        "id": "79003",
+        "name": "Abhay Deol",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/l5bV9hKbTLJLY9vYjcEz9BOo5Xr.jpg"
+      }
+    ],
+    "directorEnriched": [
+      {
+        "id": "591123",
+        "name": "Aanand L. Rai",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/7SSh0FR3KX0T326iH8MOHDS28ns.jpg"
+      }
+    ],
+    "composerEnriched": [
+      {
+        "id": "5288",
+        "name": "A.R. Rahman",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/3po8IwdtONY72BuXr7ZhZZ0ugxQ.jpg"
+      }
+    ],
+    "lyricistEnriched": [
+      {
+        "id": "1420094",
+        "name": "Vairamuthu",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/lAQLpZL54CNs3RZMzExn5BDaquc.jpg"
+      }
+    ],
+    "singersEnriched": [
+      {
+        "id": "2060064",
+        "name": "Hariharan",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/uuIitARpqW9tQyeN9YdS1SQ8cww.jpg"
+      },
+      {
+        "id": "4184303",
+        "name": "Haricharan",
+        "profileUrl": null
+      },
+      {
+        "id": "1526603",
+        "name": "Pooja",
+        "profileUrl": null
+      }
+    ],
+    "createdAt": "2026-06-15T17:30:38.639Z"
+  },
+  {
+    "id": "34843bf6-b4ae-4752-a234-f9328a94f84d",
+    "title": "Parakka Seivaai",
+    "artist": "A.R. Rahman, Karthik & Mili Nair",
+    "album": "Ambikapathy (Original Motion Picture Soundtrack)",
+    "year": "2013",
+    "genre": "Tamil",
+    "composer": "A.R.Rahman",
+    "trackNumber": 5,
+    "discNumber": 1,
+    "length": "03:53",
+    "downloads": "1,82,962",
+    "singers": "Karthik, Mili Nair",
+    "filePath": "/Users/vino/Documents/songs/Ambikapathy/Parakka Seivaai.mp3",
+    "hasArtwork": true,
+    "starring": "Dhanush, Sonam Kapoor, Abhay Deol",
+    "director": "Anand L. Rai",
+    "lyricist": "Vairamuthu",
+    "movieTmdbId": 513160,
+    "moviePosterUrl": "https://image.tmdb.org/t/p/w500/p7qdgJQkNxMW4zmf88QmCjJiQmu.jpg",
+    "starringEnriched": [
+      {
+        "id": "550165",
+        "name": "Dhanush",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/7bI9oy1BXIk58hsOK8WfN5g0i1P.jpg"
+      },
+      {
+        "id": "85040",
+        "name": "Sonam Kapoor Ahuja",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/p5A2rzbCs9ZlgxVgJ6zGtHNUzaq.jpg"
+      },
+      {
+        "id": "79003",
+        "name": "Abhay Deol",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/l5bV9hKbTLJLY9vYjcEz9BOo5Xr.jpg"
+      }
+    ],
+    "directorEnriched": [
+      {
+        "id": "591123",
+        "name": "Aanand L. Rai",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/7SSh0FR3KX0T326iH8MOHDS28ns.jpg"
+      }
+    ],
+    "composerEnriched": [
+      {
+        "id": "5288",
+        "name": "A.R. Rahman",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/3po8IwdtONY72BuXr7ZhZZ0ugxQ.jpg"
+      }
+    ],
+    "lyricistEnriched": [
+      {
+        "id": "1420094",
+        "name": "Vairamuthu",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/lAQLpZL54CNs3RZMzExn5BDaquc.jpg"
+      }
+    ],
+    "singersEnriched": [
+      {
+        "id": "2035738",
+        "name": "Karthik",
+        "profileUrl": null
+      },
+      {
+        "id": "2412284",
+        "name": "Mili Nair",
+        "profileUrl": null
+      }
+    ],
+    "createdAt": "2026-06-15T17:30:39.168Z"
+  },
+  {
+    "id": "08e6fa2c-b84f-434e-9908-4c5b868c5973",
+    "title": "Kanaave Kanaave",
+    "artist": "A.R. Rahman, Madhushree, Vaishali, Chinmayi Sripada, Pooja, Sharanya Srinivas & Aanchal Sethi",
+    "album": "Ambikapathy (Original Motion Picture Soundtrack)",
+    "year": "2013",
+    "genre": "Tamil",
+    "composer": "A.R.Rahman",
+    "trackNumber": 4,
+    "discNumber": 1,
+    "length": "04:06",
+    "downloads": "3,47,603",
+    "singers": "Madhushree, Vaishali, Chinmayi, Pooja, Sharanya Srinivasan, Aanchal Sethi",
+    "filePath": "/Users/vino/Documents/songs/Ambikapathy/Kanaave Kanaave.mp3",
+    "hasArtwork": true,
+    "starring": "Dhanush, Sonam Kapoor, Abhay Deol",
+    "director": "Anand L. Rai",
+    "lyricist": "Vairamuthu",
+    "movieTmdbId": 513160,
+    "moviePosterUrl": "https://image.tmdb.org/t/p/w500/p7qdgJQkNxMW4zmf88QmCjJiQmu.jpg",
+    "starringEnriched": [
+      {
+        "id": "550165",
+        "name": "Dhanush",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/7bI9oy1BXIk58hsOK8WfN5g0i1P.jpg"
+      },
+      {
+        "id": "85040",
+        "name": "Sonam Kapoor Ahuja",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/p5A2rzbCs9ZlgxVgJ6zGtHNUzaq.jpg"
+      },
+      {
+        "id": "79003",
+        "name": "Abhay Deol",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/l5bV9hKbTLJLY9vYjcEz9BOo5Xr.jpg"
+      }
+    ],
+    "directorEnriched": [
+      {
+        "id": "591123",
+        "name": "Aanand L. Rai",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/7SSh0FR3KX0T326iH8MOHDS28ns.jpg"
+      }
+    ],
+    "composerEnriched": [
+      {
+        "id": "5288",
+        "name": "A.R. Rahman",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/3po8IwdtONY72BuXr7ZhZZ0ugxQ.jpg"
+      }
+    ],
+    "lyricistEnriched": [
+      {
+        "id": "1420094",
+        "name": "Vairamuthu",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/lAQLpZL54CNs3RZMzExn5BDaquc.jpg"
+      }
+    ],
+    "singersEnriched": [
+      {
+        "id": "2079074",
+        "name": "Madhushree",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/tBfKnbG6cQk4TepC0RQWzK2RXGX.jpg"
+      },
+      {
+        "id": "1319172",
+        "name": "Vaishali",
+        "profileUrl": null
+      },
+      {
+        "id": "2720116",
+        "name": "Mahesh Chinmayi",
+        "profileUrl": null
+      },
+      {
+        "id": "1526603",
+        "name": "Pooja",
+        "profileUrl": null
+      },
+      {
+        "id": "8f9ba262-df4f-40e2-9128-1e428f68fd67",
+        "name": "Sharanya Srinivasan",
+        "profileUrl": null,
+        "isLocal": true
+      },
+      {
+        "id": "93b6d0a0-826e-4443-8849-7b4ba9813655",
+        "name": "Aanchal Sethi",
+        "profileUrl": null,
+        "isLocal": true
+      }
+    ],
+    "createdAt": "2026-06-15T17:30:40.326Z"
+  },
+  {
+    "id": "15fdd54d-9883-48ff-9926-3a7935e40d35",
+    "title": "Showkali",
+    "artist": "A.R. Rahman, Aditya Rao, Aaryan Dinesh Kanagaratnam & Sri Rascol",
+    "album": "Achcham Yenbadhu Madamaiyada (Original Motion Picture Soundtrack) - EP",
+    "year": "2016",
+    "genre": "Tamil",
+    "composer": "A.R.Rahman",
+    "trackNumber": 1,
+    "discNumber": 1,
+    "length": "04:38",
+    "downloads": "11,71,494",
+    "singers": "Aditya Rao, Aaryan Dinesh Kanagaratnam, Sri Rascol",
+    "filePath": "/Users/vino/Documents/songs/Achcham Yenbadhu Madamaiyada (AYM)/Showkali.mp3",
+    "hasArtwork": true,
+    "starring": "Silambarasan, Manjima Mohan, Baba Sehgal",
+    "director": "Gautham Vasudev Menon",
+    "lyricist": "Thamarai, Madhan Karky, Vignesh Shivan, ADK, Sri Raskol & Pavendhar Bharathidasan",
+    "movieTmdbId": 330417,
+    "moviePosterUrl": "https://image.tmdb.org/t/p/w500/lxTQc8uFNroe5CaFXho4uK9tuHk.jpg",
+    "starringEnriched": [
+      {
+        "id": "222760",
+        "name": "Silambarasan",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/1T35CiKVldfxElZfQqaoN6GhvuU.jpg"
+      },
+      {
+        "id": "1446246",
+        "name": "Manjima Mohan",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/zSu0ipSTCKLCtgZ9tW6mgjGjsOq.jpg"
+      },
+      {
+        "id": "1320081",
+        "name": "Baba Sehgal",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/aOaCHYujt9ZzG2o9DJ1D0hNNwSI.jpg"
+      }
+    ],
+    "directorEnriched": [
+      {
+        "id": "120953",
+        "name": "Gautham Vasudev Menon",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/qOFycWPpr3Hi4kVXKWnTTKCAnGk.jpg"
+      }
+    ],
+    "composerEnriched": [
+      {
+        "id": "5288",
+        "name": "A.R. Rahman",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/3po8IwdtONY72BuXr7ZhZZ0ugxQ.jpg"
+      }
+    ],
+    "lyricistEnriched": [
+      {
+        "id": "1839163",
+        "name": "Thamarai",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/1WwkOKYzyJrAks3r5RMe3mOBfEV.jpg"
+      },
+      {
+        "id": "581908",
+        "name": "Madhan Karky",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/6zwJAtDi6ScjmsL8qwnTwJto70I.jpg"
+      },
+      {
+        "id": "1118774",
+        "name": "Vignesh Shivan",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/axVrHgQD1089EyFvfdYP4VX1Tgi.jpg"
+      },
+      {
+        "id": "78110",
+        "name": "Scott Adkins",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/9NRr2a1riIn5CWn5McZLJlk4vxR.jpg"
+      },
+      {
+        "id": "9885d89c-2360-40e3-afeb-93df67143480",
+        "name": "Sri Raskol",
+        "profileUrl": null,
+        "isLocal": true
+      },
+      {
+        "id": "1772063",
+        "name": "Bharathidasan",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/jx68iqX3zCAWIsDdN4LcyyykImM.jpg"
+      }
+    ],
+    "singersEnriched": [
+      {
+        "id": "3495829",
+        "name": "Aditya Rao",
+        "profileUrl": null
+      },
+      {
+        "id": "1672741",
+        "name": "Dinesh Kanagaratnam",
+        "profileUrl": null
+      },
+      {
+        "id": "2313941",
+        "name": "Sri Rascol",
+        "profileUrl": null
+      }
+    ],
+    "createdAt": "2026-06-15T17:52:04.942Z"
+  },
+  {
+    "id": "9668454a-8a1e-4440-b5fd-431239e79441",
+    "title": "Rasaali",
+    "artist": "A.R. Rahman, Sathya Prakash & Shashaa Tirupati",
+    "album": "Achcham Yenbadhu Madamaiyada (Original Motion Picture Soundtrack) - EP",
+    "year": "2016",
+    "genre": "Tamil",
+    "composer": "A.R.Rahman",
+    "trackNumber": 3,
+    "discNumber": 1,
+    "length": "05:38",
+    "downloads": "13,85,221",
+    "singers": "Sathya Prakash, Shasha Tirupati",
+    "filePath": "/Users/vino/Documents/songs/Achcham Yenbadhu Madamaiyada (AYM)/Rasaali.mp3",
+    "hasArtwork": true,
+    "starring": "Silambarasan, Manjima Mohan, Baba Sehgal",
+    "director": "Gautham Vasudev Menon",
+    "lyricist": "Thamarai, Madhan Karky, Vignesh Shivan, ADK, Sri Raskol & Pavendhar Bharathidasan",
+    "movieTmdbId": 330417,
+    "moviePosterUrl": "https://image.tmdb.org/t/p/w500/lxTQc8uFNroe5CaFXho4uK9tuHk.jpg",
+    "starringEnriched": [
+      {
+        "id": "222760",
+        "name": "Silambarasan",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/1T35CiKVldfxElZfQqaoN6GhvuU.jpg"
+      },
+      {
+        "id": "1446246",
+        "name": "Manjima Mohan",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/zSu0ipSTCKLCtgZ9tW6mgjGjsOq.jpg"
+      },
+      {
+        "id": "1320081",
+        "name": "Baba Sehgal",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/aOaCHYujt9ZzG2o9DJ1D0hNNwSI.jpg"
+      }
+    ],
+    "directorEnriched": [
+      {
+        "id": "120953",
+        "name": "Gautham Vasudev Menon",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/qOFycWPpr3Hi4kVXKWnTTKCAnGk.jpg"
+      }
+    ],
+    "composerEnriched": [
+      {
+        "id": "5288",
+        "name": "A.R. Rahman",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/3po8IwdtONY72BuXr7ZhZZ0ugxQ.jpg"
+      }
+    ],
+    "lyricistEnriched": [
+      {
+        "id": "1839163",
+        "name": "Thamarai",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/1WwkOKYzyJrAks3r5RMe3mOBfEV.jpg"
+      },
+      {
+        "id": "581908",
+        "name": "Madhan Karky",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/6zwJAtDi6ScjmsL8qwnTwJto70I.jpg"
+      },
+      {
+        "id": "1118774",
+        "name": "Vignesh Shivan",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/axVrHgQD1089EyFvfdYP4VX1Tgi.jpg"
+      },
+      {
+        "id": "78110",
+        "name": "Scott Adkins",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/9NRr2a1riIn5CWn5McZLJlk4vxR.jpg"
+      },
+      {
+        "id": "9885d89c-2360-40e3-afeb-93df67143480",
+        "name": "Sri Raskol",
+        "profileUrl": null,
+        "isLocal": true
+      },
+      {
+        "id": "1772063",
+        "name": "Bharathidasan",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/jx68iqX3zCAWIsDdN4LcyyykImM.jpg"
+      }
+    ],
+    "singersEnriched": [
+      {
+        "id": "1335263",
+        "name": "Satya Prakash",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/858vQ4NMh89fjjKEIeCh15oW5Y1.jpg"
+      },
+      {
+        "id": "26da9f4b-c1b8-4950-8928-60f62a41019d",
+        "name": "Shasha Tirupati",
+        "profileUrl": null,
+        "isLocal": true
+      }
+    ],
+    "createdAt": "2026-06-15T17:52:06.107Z"
+  },
+  {
+    "id": "3949da1d-580b-4317-9784-d4c3373e3031",
+    "title": "Thalli Pogathey",
+    "artist": "A.R. Rahman, Sid Sriram, Aaryan Dinesh Kanagaratnam & Aparna Narayanan",
+    "album": "Achcham Yenbadhu Madamaiyada (Original Motion Picture Soundtrack) - EP",
+    "year": "2016",
+    "genre": "Tamil",
+    "composer": "A.R.Rahman",
+    "trackNumber": 5,
+    "discNumber": 1,
+    "length": "04:26",
+    "downloads": "28,63,348",
+    "singers": "Sid Sriram, Aaryan Dinesh Kanagaratnam, Aparna Narayanan",
+    "filePath": "/Users/vino/Documents/songs/Achcham Yenbadhu Madamaiyada (AYM)/Thalli Pogathey.mp3",
+    "hasArtwork": true,
+    "starring": "Silambarasan, Manjima Mohan, Baba Sehgal",
+    "director": "Gautham Vasudev Menon",
+    "lyricist": "Thamarai, Madhan Karky, Vignesh Shivan, ADK, Sri Raskol & Pavendhar Bharathidasan",
+    "movieTmdbId": 330417,
+    "moviePosterUrl": "https://image.tmdb.org/t/p/w500/lxTQc8uFNroe5CaFXho4uK9tuHk.jpg",
+    "starringEnriched": [
+      {
+        "id": "222760",
+        "name": "Silambarasan",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/1T35CiKVldfxElZfQqaoN6GhvuU.jpg"
+      },
+      {
+        "id": "1446246",
+        "name": "Manjima Mohan",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/zSu0ipSTCKLCtgZ9tW6mgjGjsOq.jpg"
+      },
+      {
+        "id": "1320081",
+        "name": "Baba Sehgal",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/aOaCHYujt9ZzG2o9DJ1D0hNNwSI.jpg"
+      }
+    ],
+    "directorEnriched": [
+      {
+        "id": "120953",
+        "name": "Gautham Vasudev Menon",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/qOFycWPpr3Hi4kVXKWnTTKCAnGk.jpg"
+      }
+    ],
+    "composerEnriched": [
+      {
+        "id": "5288",
+        "name": "A.R. Rahman",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/3po8IwdtONY72BuXr7ZhZZ0ugxQ.jpg"
+      }
+    ],
+    "lyricistEnriched": [
+      {
+        "id": "1839163",
+        "name": "Thamarai",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/1WwkOKYzyJrAks3r5RMe3mOBfEV.jpg"
+      },
+      {
+        "id": "581908",
+        "name": "Madhan Karky",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/6zwJAtDi6ScjmsL8qwnTwJto70I.jpg"
+      },
+      {
+        "id": "1118774",
+        "name": "Vignesh Shivan",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/axVrHgQD1089EyFvfdYP4VX1Tgi.jpg"
+      },
+      {
+        "id": "78110",
+        "name": "Scott Adkins",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/9NRr2a1riIn5CWn5McZLJlk4vxR.jpg"
+      },
+      {
+        "id": "9885d89c-2360-40e3-afeb-93df67143480",
+        "name": "Sri Raskol",
+        "profileUrl": null,
+        "isLocal": true
+      },
+      {
+        "id": "1772063",
+        "name": "Bharathidasan",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/jx68iqX3zCAWIsDdN4LcyyykImM.jpg"
+      }
+    ],
+    "singersEnriched": [
+      {
+        "id": "2102970",
+        "name": "Sid Sriram",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/fXTMPvgY0v6gw4zjdL6MP2j00HE.jpg"
+      },
+      {
+        "id": "1672741",
+        "name": "Dinesh Kanagaratnam",
+        "profileUrl": null
+      },
+      {
+        "id": "2252691",
+        "name": "Aparna Narayanan",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/ooKTbVcinYBnYVRj3SVj5GMn9TH.jpg"
+      }
+    ],
+    "createdAt": "2026-06-15T17:52:06.572Z"
+  },
+  {
+    "id": "458d9fca-138b-440d-8d89-33f5838acd16",
+    "title": "Avalum Naanum",
+    "artist": "A.R. Rahman & Vijay Yesudas",
+    "album": "Achcham Yenbadhu Madamaiyada (Original Motion Picture Soundtrack) - EP",
+    "year": "2016",
+    "genre": "Tamil",
+    "composer": "A.R.Rahman",
+    "trackNumber": 4,
+    "discNumber": 1,
+    "length": "04:14",
+    "downloads": "13,01,370",
+    "singers": "Vijay Yesudas",
+    "filePath": "/Users/vino/Documents/songs/Achcham Yenbadhu Madamaiyada (AYM)/Avalum Naanum.mp3",
+    "hasArtwork": true,
+    "starring": "Silambarasan, Manjima Mohan, Baba Sehgal",
+    "director": "Gautham Vasudev Menon",
+    "lyricist": "Thamarai, Madhan Karky, Vignesh Shivan, ADK, Sri Raskol & Pavendhar Bharathidasan",
+    "movieTmdbId": 330417,
+    "moviePosterUrl": "https://image.tmdb.org/t/p/w500/lxTQc8uFNroe5CaFXho4uK9tuHk.jpg",
+    "starringEnriched": [
+      {
+        "id": "222760",
+        "name": "Silambarasan",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/1T35CiKVldfxElZfQqaoN6GhvuU.jpg"
+      },
+      {
+        "id": "1446246",
+        "name": "Manjima Mohan",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/zSu0ipSTCKLCtgZ9tW6mgjGjsOq.jpg"
+      },
+      {
+        "id": "1320081",
+        "name": "Baba Sehgal",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/aOaCHYujt9ZzG2o9DJ1D0hNNwSI.jpg"
+      }
+    ],
+    "directorEnriched": [
+      {
+        "id": "120953",
+        "name": "Gautham Vasudev Menon",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/qOFycWPpr3Hi4kVXKWnTTKCAnGk.jpg"
+      }
+    ],
+    "composerEnriched": [
+      {
+        "id": "5288",
+        "name": "A.R. Rahman",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/3po8IwdtONY72BuXr7ZhZZ0ugxQ.jpg"
+      }
+    ],
+    "lyricistEnriched": [
+      {
+        "id": "1839163",
+        "name": "Thamarai",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/1WwkOKYzyJrAks3r5RMe3mOBfEV.jpg"
+      },
+      {
+        "id": "581908",
+        "name": "Madhan Karky",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/6zwJAtDi6ScjmsL8qwnTwJto70I.jpg"
+      },
+      {
+        "id": "1118774",
+        "name": "Vignesh Shivan",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/axVrHgQD1089EyFvfdYP4VX1Tgi.jpg"
+      },
+      {
+        "id": "78110",
+        "name": "Scott Adkins",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/9NRr2a1riIn5CWn5McZLJlk4vxR.jpg"
+      },
+      {
+        "id": "9885d89c-2360-40e3-afeb-93df67143480",
+        "name": "Sri Raskol",
+        "profileUrl": null,
+        "isLocal": true
+      },
+      {
+        "id": "1772063",
+        "name": "Bharathidasan",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/jx68iqX3zCAWIsDdN4LcyyykImM.jpg"
+      }
+    ],
+    "singersEnriched": [
+      {
+        "id": "1399206",
+        "name": "Vijay Yesudas",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/7hcwcV0peBij6mDQG6fDr5QYsze.jpg"
+      }
+    ],
+    "createdAt": "2026-06-15T17:52:07.054Z"
+  },
+  {
+    "id": "84ffaed6-0cc1-4204-a244-b5bce4e348a0",
+    "title": "Idhu Naal",
+    "artist": "A.R. Rahman, Aditya Rao & Jonita Gandhi",
+    "album": "Achcham Yenbadhu Madamaiyada (Original Motion Picture Soundtrack) - EP",
+    "year": "2016",
+    "genre": "Tamil",
+    "composer": "A.R.Rahman",
+    "trackNumber": 2,
+    "discNumber": 1,
+    "length": "03:39",
+    "downloads": "8,46,078",
+    "singers": "Aditya Rao, Jonita Gandhi",
+    "filePath": "/Users/vino/Documents/songs/Achcham Yenbadhu Madamaiyada (AYM)/Idhu Naal.mp3",
+    "hasArtwork": true,
+    "starring": "Silambarasan, Manjima Mohan, Baba Sehgal",
+    "director": "Gautham Vasudev Menon",
+    "lyricist": "Thamarai, Madhan Karky, Vignesh Shivan, ADK, Sri Raskol & Pavendhar Bharathidasan",
+    "movieTmdbId": 330417,
+    "moviePosterUrl": "https://image.tmdb.org/t/p/w500/lxTQc8uFNroe5CaFXho4uK9tuHk.jpg",
+    "starringEnriched": [
+      {
+        "id": "222760",
+        "name": "Silambarasan",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/1T35CiKVldfxElZfQqaoN6GhvuU.jpg"
+      },
+      {
+        "id": "1446246",
+        "name": "Manjima Mohan",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/zSu0ipSTCKLCtgZ9tW6mgjGjsOq.jpg"
+      },
+      {
+        "id": "1320081",
+        "name": "Baba Sehgal",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/aOaCHYujt9ZzG2o9DJ1D0hNNwSI.jpg"
+      }
+    ],
+    "directorEnriched": [
+      {
+        "id": "120953",
+        "name": "Gautham Vasudev Menon",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/qOFycWPpr3Hi4kVXKWnTTKCAnGk.jpg"
+      }
+    ],
+    "composerEnriched": [
+      {
+        "id": "5288",
+        "name": "A.R. Rahman",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/3po8IwdtONY72BuXr7ZhZZ0ugxQ.jpg"
+      }
+    ],
+    "lyricistEnriched": [
+      {
+        "id": "1839163",
+        "name": "Thamarai",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/1WwkOKYzyJrAks3r5RMe3mOBfEV.jpg"
+      },
+      {
+        "id": "581908",
+        "name": "Madhan Karky",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/6zwJAtDi6ScjmsL8qwnTwJto70I.jpg"
+      },
+      {
+        "id": "1118774",
+        "name": "Vignesh Shivan",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/axVrHgQD1089EyFvfdYP4VX1Tgi.jpg"
+      },
+      {
+        "id": "78110",
+        "name": "Scott Adkins",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/9NRr2a1riIn5CWn5McZLJlk4vxR.jpg"
+      },
+      {
+        "id": "9885d89c-2360-40e3-afeb-93df67143480",
+        "name": "Sri Raskol",
+        "profileUrl": null,
+        "isLocal": true
+      },
+      {
+        "id": "1772063",
+        "name": "Bharathidasan",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/jx68iqX3zCAWIsDdN4LcyyykImM.jpg"
+      }
+    ],
+    "singersEnriched": [
+      {
+        "id": "3495829",
+        "name": "Aditya Rao",
+        "profileUrl": null
+      },
+      {
+        "id": "1909092",
+        "name": "Jonita Gandhi",
+        "profileUrl": "https://image.tmdb.org/t/p/w200/6iJMJ3vteATOYkAE3dyVnoJHdUr.jpg"
+      }
+    ],
+    "createdAt": "2026-06-15T17:52:07.598Z"
   }
 ]
