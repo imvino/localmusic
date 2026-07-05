@@ -1,26 +1,80 @@
-import { Search, Mic2, Disc3, Music } from 'lucide-react'
+import { Search, Mic2, Disc3, Music, Radio, ListMusic } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 
-export default function SearchView({ query, songs, albums, artists, onSongClick, onAlbumClick, onArtistClick }) {
+const API_BASE = '/api'
+
+export default function SearchView({ query, onSongClick, onAlbumClick, onArtistClick, selectedLanguages }) {
+  const navigate = useNavigate()
+  const [onlineResults, setOnlineResults] = useState(null)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
+
+  // Fetch online search results when query or languages change
+  useEffect(() => {
+    if (query.trim()) {
+      setLoading(true)
+      setError(null)
+      const langParam = selectedLanguages.length > 0 ? selectedLanguages.join(',') : 'all'
+      fetch(`${API_BASE}/search?q=${encodeURIComponent(query)}&language=${langParam}`)
+        .then(r => r.json())
+        .then(data => {
+          if (data.success) {
+            setOnlineResults(data.data)
+          } else {
+            setError(data.error || 'Search failed')
+          }
+          setLoading(false)
+        })
+        .catch(err => {
+          console.error('Online search error:', err)
+          setError('Failed to fetch online results')
+          setLoading(false)
+        })
+    } else {
+      setOnlineResults(null)
+      setError(null)
+    }
+  }, [query, selectedLanguages])
+
+  // Helper to get best image URL from JioSaavn image array
+  const getBestImageUrl = (imageArray) => {
+    if (!imageArray || !Array.isArray(imageArray) || imageArray.length === 0) return null
+    const sorted = imageArray.sort((a, b) => {
+      const qualityMap = { '50x50': 1, '150x150': 2, '500x500': 3 }
+      return (qualityMap[b.quality] || 0) - (qualityMap[a.quality] || 0)
+    })
+    return sorted[0]?.url || null
+  }
+
+  // Helper to format duration from seconds
+  const formatDuration = (seconds) => {
+    if (!seconds) return '0:00'
+    const mins = Math.floor(seconds / 60)
+    const secs = seconds % 60
+    return `${mins}:${secs.toString().padStart(2, '0')}`
+  }
+
   if (!query.trim()) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-8">
         <Search size={56} className="text-zinc-700 mb-4" />
-        <h2 className="text-xl font-semibold text-white mb-2">Search your library</h2>
-        <p className="text-sm text-zinc-500">Find songs, albums, and artists</p>
+        <h2 className="text-xl font-semibold text-white mb-2">Search JioSaavn</h2>
+        <p className="text-sm text-zinc-500">Find songs, albums, and artists online</p>
       </div>
     )
   }
 
-  const q = query.toLowerCase()
-  const matchedSongs = songs.filter(s =>
-    s.title?.toLowerCase().includes(q) || s.artist?.toLowerCase().includes(q)
+  // Determine if we have results
+  const hasOnlineResults = onlineResults && (
+    onlineResults.topResult ||
+    onlineResults.songs.length ||
+    onlineResults.albums.length ||
+    onlineResults.artists.length ||
+    onlineResults.playlists.length
   )
-  const matchedAlbums = albums.filter(a =>
-    a.name?.toLowerCase().includes(q) || a.composer?.toLowerCase().includes(q)
-  )
-  const matchedArtists = artists.filter(a => a.name?.toLowerCase().includes(q))
 
-  if (!matchedSongs.length && !matchedAlbums.length && !matchedArtists.length) {
+  if (!loading && !hasOnlineResults) {
     return (
       <div className="p-8 flex flex-col items-center justify-center min-h-[40vh] text-center">
         <p className="text-zinc-400">
@@ -32,91 +86,224 @@ export default function SearchView({ query, songs, albums, artists, onSongClick,
 
   return (
     <div className="p-8 pb-32">
-      <h1 className="text-2xl font-bold text-white mb-6">
-        Results for <span className="text-zinc-400 font-normal">"{query}"</span>
-      </h1>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-bold text-white">
+          Results for <span className="text-zinc-400 font-normal">"{query}"</span>
+        </h1>
+      </div>
 
-      {matchedArtists.length > 0 && (
-        <section className="mb-8">
-          <h2 className="flex items-center gap-2 text-lg font-bold text-white mb-4">
-            <Mic2 size={18} className="text-[#fc3c44]" /> Artists
-          </h2>
-          <div className="flex gap-5 flex-wrap">
-            {matchedArtists.slice(0, 6).map(a => (
-              <button
-                key={a.name}
-                onClick={() => onArtistClick(a)}
-                className="flex flex-col items-center gap-2 group w-20"
-              >
-                <div className="w-20 h-20 rounded-full overflow-hidden bg-zinc-800 shadow">
-                  {a.profileUrl ? (
-                    <img src={a.profileUrl} alt={a.name} className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform" onError={e => { e.target.style.display = 'none' }} />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center"><Mic2 size={24} className="text-zinc-500" /></div>
-                  )}
-                </div>
-                <span className="text-xs text-zinc-300 group-hover:text-white transition-colors text-center leading-snug w-full truncate">{a.name}</span>
-              </button>
-            ))}
-          </div>
-        </section>
+      {loading && (
+        <div className="flex items-center justify-center min-h-[40vh]">
+          <p className="text-zinc-400">Searching JioSaavn...</p>
+        </div>
       )}
 
-      {matchedAlbums.length > 0 && (
-        <section className="mb-8">
-          <h2 className="flex items-center gap-2 text-lg font-bold text-white mb-4">
-            <Disc3 size={18} className="text-[#fc3c44]" /> Albums
-          </h2>
-          <div className="flex gap-4 flex-wrap">
-            {matchedAlbums.slice(0, 8).map(a => (
-              <button key={a.name} onClick={() => onAlbumClick(a)} className="flex flex-col gap-2 group w-24">
-                <div className="w-24 h-24 rounded-xl overflow-hidden bg-zinc-800 shadow">
-                  {a.artworkUrl ? (
-                    <img src={a.artworkUrl} alt={a.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform" onError={e => { e.target.style.display = 'none' }} />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center"><Music size={24} className="text-zinc-600" /></div>
-                  )}
-                </div>
-                <span className="text-xs text-zinc-300 group-hover:text-white transition-colors text-left w-24 truncate leading-snug">{a.name}</span>
-              </button>
-            ))}
-          </div>
-        </section>
+      {error && (
+        <div className="p-4 bg-red-900/20 border border-red-800 rounded-lg mb-6">
+          <p className="text-red-400">{error}</p>
+        </div>
       )}
 
-      {matchedSongs.length > 0 && (
-        <section>
-          <h2 className="flex items-center gap-2 text-lg font-bold text-white mb-4">
-            <Music size={18} className="text-[#fc3c44]" /> Songs
-          </h2>
-          <div className="flex flex-col gap-0.5">
-            {matchedSongs.slice(0, 25).map(song => (
+      {/* Online Search Results */}
+      {onlineResults && !loading && (
+        <>
+          {/* TOP RESULT */}
+          {onlineResults.topResult && (
+            <section className="mb-8">
+              <h2 className="flex items-center gap-2 text-lg font-bold text-white mb-4">
+                <Music size={18} className="text-[#fc3c44]" /> Top Result
+              </h2>
               <button
-                key={song.id}
-                onClick={() => onSongClick(song)}
-                className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-zinc-800/60 transition-colors text-left w-full group"
+                className="flex items-center gap-4 p-4 bg-zinc-900 rounded-xl hover:bg-zinc-800 transition-colors w-full group"
+                onClick={() => {
+                  if (onlineResults.topResult.type === 'song') {
+                    onSongClick({
+                      ...onlineResults.topResult,
+                      isStream: true,
+                      streamUrl: onlineResults.topResult.downloadUrl?.[0]?.url
+                    })
+                  } else if (onlineResults.topResult.type === 'album') {
+                    onAlbumClick(onlineResults.topResult)
+                  }
+                }}
               >
-                {(song.artworkUrl || song.moviePosterUrl) ? (
-                  <img
-                    src={song.artworkUrl || song.moviePosterUrl}
-                    alt={song.album}
-                    className="w-10 h-10 rounded-lg object-cover shadow flex-shrink-0"
-                    onError={e => { e.target.style.display = 'none' }}
-                  />
-                ) : (
-                  <div className="w-10 h-10 rounded-lg bg-zinc-800 flex items-center justify-center flex-shrink-0">
-                    <Music size={14} className="text-zinc-600" />
-                  </div>
-                )}
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-white truncate">{song.title}</p>
-                  <p className="text-xs text-zinc-500 truncate">{song.artist} · {song.album}</p>
+                <div className="w-20 h-20 rounded-lg overflow-hidden bg-zinc-800 shadow flex-shrink-0">
+                  {getBestImageUrl(onlineResults.topResult.image) ? (
+                    <img
+                      src={getBestImageUrl(onlineResults.topResult.image)}
+                      alt={onlineResults.topResult.name}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <Music size={24} className="text-zinc-600" />
+                    </div>
+                  )}
                 </div>
-                <span className="text-xs text-zinc-500 flex-shrink-0">{song.length}</span>
+                <div className="flex-1 min-w-0 text-left">
+                  <p className="text-base font-medium text-white truncate">
+                    {onlineResults.topResult.name}
+                  </p>
+                  <p className="text-sm text-zinc-500 truncate">
+                    {onlineResults.topResult.type === 'song'
+                      ? `${onlineResults.topResult.artists?.primary?.map(a => a.name).join(', ')} · ${onlineResults.topResult.album?.name}`
+                      : `${onlineResults.topResult.artists?.primary?.map(a => a.name).join(', ')} · ${onlineResults.topResult.year}`
+                    }
+                  </p>
+                  <p className="text-xs text-zinc-600 mt-1 capitalize">
+                    {onlineResults.topResult.type}
+                  </p>
+                </div>
               </button>
-            ))}
-          </div>
-        </section>
+            </section>
+          )}
+
+          {/* SONGS */}
+          {onlineResults.songs.length > 0 && (
+            <section className="mb-8">
+              <h2 className="flex items-center gap-2 text-lg font-bold text-white mb-4">
+                <Music size={18} className="text-[#fc3c44]" /> Songs
+              </h2>
+              <div className="flex flex-col gap-0.5">
+                {onlineResults.songs.slice(0, 20).map(song => (
+                  <button
+                    key={song.id}
+                    onClick={() => onSongClick({
+                      ...song,
+                      isStream: true,
+                      streamUrl: song.downloadUrl?.[0]?.url
+                    })}
+                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-zinc-800/60 transition-colors text-left w-full group"
+                  >
+                    {getBestImageUrl(song.image) ? (
+                      <img
+                        src={getBestImageUrl(song.image)}
+                        alt={song.name}
+                        className="w-10 h-10 rounded-lg object-cover shadow flex-shrink-0"
+                      />
+                    ) : (
+                      <div className="w-10 h-10 rounded-lg bg-zinc-800 flex items-center justify-center flex-shrink-0">
+                        <Music size={14} className="text-zinc-600" />
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-white truncate">{song.name}</p>
+                      <p className="text-xs text-zinc-500 truncate">
+                        {song.artists?.primary?.map(a => a.name).join(', ')} · {song.album?.name}
+                      </p>
+                    </div>
+                    <span className="text-xs text-zinc-500 flex-shrink-0">{formatDuration(song.duration)}</span>
+                  </button>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* ALBUMS */}
+          {onlineResults.albums.length > 0 && (
+            <section className="mb-8">
+              <h2 className="flex items-center gap-2 text-lg font-bold text-white mb-4">
+                <Disc3 size={18} className="text-[#fc3c44]" /> Albums
+              </h2>
+              <div className="flex gap-4 flex-wrap">
+                {onlineResults.albums.slice(0, 10).map(album => (
+                  <button
+                    key={album.id}
+                    onClick={() => navigate(`/discover/album/${album.id}`, { state: { album } })}
+                    className="flex flex-col gap-2 group w-24"
+                  >
+                    <div className="w-24 h-24 rounded-xl overflow-hidden bg-zinc-800 shadow">
+                      {getBestImageUrl(album.image) ? (
+                        <img
+                          src={getBestImageUrl(album.image)}
+                          alt={album.name}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <Music size={24} className="text-zinc-600" />
+                        </div>
+                      )}
+                    </div>
+                    <span className="text-xs text-zinc-300 group-hover:text-white transition-colors text-left w-24 truncate leading-snug">
+                      {album.name || album.title}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* ARTISTS */}
+          {onlineResults.artists.length > 0 && (
+            <section className="mb-8">
+              <h2 className="flex items-center gap-2 text-lg font-bold text-white mb-4">
+                <Mic2 size={18} className="text-[#fc3c44]" /> Artists
+              </h2>
+              <div className="flex gap-5 flex-wrap">
+                {onlineResults.artists.slice(0, 8).map(artist => (
+                  <button
+                    key={artist.id}
+                    onClick={() => onArtistClick(artist)}
+                    className="flex flex-col items-center gap-2 group w-20"
+                  >
+                    <div className="w-20 h-20 rounded-full overflow-hidden bg-zinc-800 shadow">
+                      {getBestImageUrl(artist.image) ? (
+                        <img
+                          src={getBestImageUrl(artist.image)}
+                          alt={artist.name}
+                          className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <Mic2 size={24} className="text-zinc-500" />
+                        </div>
+                      )}
+                    </div>
+                    <span className="text-xs text-zinc-300 group-hover:text-white transition-colors text-center leading-snug w-full truncate">
+                      {artist.name}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* PLAYLISTS */}
+          {onlineResults.playlists.length > 0 && (
+            <section className="mb-8">
+              <h2 className="flex items-center gap-2 text-lg font-bold text-white mb-4">
+                <ListMusic size={18} className="text-[#fc3c44]" /> Playlists
+              </h2>
+              <div className="flex gap-4 flex-wrap">
+                {onlineResults.playlists.slice(0, 8).map(playlist => (
+                  <button
+                    key={playlist.id}
+                    onClick={() => navigate(`/discover/playlist/${playlist.id}`, { state: { playlist } })}
+                    className="flex flex-col gap-2 group w-24"
+                  >
+                    <div className="w-24 h-24 rounded-xl overflow-hidden bg-zinc-800 shadow">
+                      {getBestImageUrl(playlist.image) ? (
+                        <img
+                          src={getBestImageUrl(playlist.image)}
+                          alt={playlist.name}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <ListMusic size={24} className="text-zinc-600" />
+                        </div>
+                      )}
+                    </div>
+                    <span className="text-xs text-zinc-300 group-hover:text-white transition-colors text-left w-24 truncate leading-snug">
+                      {playlist.name}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </section>
+          )}
+        </>
       )}
     </div>
   )

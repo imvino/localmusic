@@ -1,179 +1,161 @@
-import { useState, useMemo } from 'react'
-import songsData from '@songs-data'
-import { getAlbums, getArtists } from './utils'
+import { useState, useMemo, useEffect, useRef } from 'react'
+import { BrowserRouter, Routes, Route, useParams, useNavigate, useSearchParams } from 'react-router-dom'
+import { getGreeting } from './utils'
 import Sidebar from './Sidebar'
-import HomeView from './HomeView'
-import ArtistsView from './ArtistsView'
-import ArtistDetailView from './ArtistDetailView'
-import AlbumsView from './AlbumsView'
-import AlbumDetailView from './AlbumDetailView'
-import SongsView from './SongsView'
 import SearchView from './SearchView'
-import YearView from './YearView'
+import DiscoverView from './DiscoverView'
+import DiscoverDetailView from './DiscoverDetailView'
 import PlayerBar from './PlayerBar'
+import LanguageFilter from './LanguageFilter'
 
-const albums = getAlbums(songsData)
-const artists = getArtists(songsData)
+const API_BASE = '/api'
 
-function App() {
-  const [view, setView] = useState('home')
-  const [selectedAlbum, setSelectedAlbum] = useState(null)
-  const [selectedArtist, setSelectedArtist] = useState(null)
-  const [selectedYear, setSelectedYear] = useState(null)
-  const [prevView, setPrevView] = useState('albums')
+function AppContent() {
+  const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
   const [currentSong, setCurrentSong] = useState(null)
   const [isPlaying, setIsPlaying] = useState(false)
-  const [searchQuery, setSearchQuery] = useState('')
+  const [volume, setVolume] = useState(0.75)
+  const [shuffle, setShuffle] = useState(false)
+  const [repeat, setRepeat] = useState(false)
+  const [liked, setLiked] = useState(false)
+  const [selectedLanguages, setSelectedLanguages] = useState([])
+  const audioRef = useRef(null)
 
-  const navigate = (viewName, data = null) => {
-    if (viewName === 'album') setSelectedAlbum(data)
-    if (viewName === 'artist') setSelectedArtist(data)
-    if (viewName === 'year') setSelectedYear(data)
-    setView(viewName)
+  // Redirect to discover if on root
+  useEffect(() => {
+    if (window.location.pathname === '/') {
+      navigate('/discover', { replace: true })
+    }
+  }, [navigate])
+
+  // Handle audio playback
+  useEffect(() => {
+    if (!audioRef.current) return
+
+    if (currentSong) {
+      let streamUrl
+      if (currentSong.isStream && currentSong.streamUrl) {
+        streamUrl = currentSong.streamUrl
+      }
+
+      if (streamUrl && audioRef.current.src !== streamUrl) {
+        audioRef.current.src = streamUrl
+        audioRef.current.load()
+      }
+      audioRef.current.volume = volume
+
+      if (isPlaying) {
+        audioRef.current.play().catch(e => console.error('Play error:', e))
+      } else {
+        audioRef.current.pause()
+      }
+    }
+  }, [currentSong, isPlaying, volume])
+
+  // Handle song end / repeat
+  useEffect(() => {
+    if (!audioRef.current) return
+    const el = audioRef.current
+    const onEnded = () => {
+      if (repeat && currentSong) {
+        el.currentTime = 0
+        el.play().catch(e => console.error('Repeat play error:', e))
+      } else {
+        handleNext()
+      }
+    }
+    el.addEventListener('ended', onEnded)
+    return () => el.removeEventListener('ended', onEnded)
+  }, [repeat, currentSong])
+
+  const navigateToView = (viewName, data = null, source = 'discover') => {
+    if (viewName === 'album' && data) {
+      navigate(`/discover/album/${data.id || encodeURIComponent(data.name)}`, { state: { album: data, source } })
+    } else if (viewName === 'artist' && data) {
+      navigate(`/discover/artist/${data.id}`, { state: { artist: data, source } })
+    } else {
+      navigate(`/${viewName}`)
+    }
     window.scrollTo?.(0, 0)
   }
 
   const handleSongSelect = (song) => {
-    setCurrentSong(song)
+    setCurrentSong({
+      ...song,
+      isStream: true
+    })
     setIsPlaying(true)
   }
 
-  const handleAlbumFromSong = (song) => {
-    const album = albums.find(a => a.name === song.album)
-    if (album) navigate('album', album)
-  }
-
-  const handlePersonByName = (name) => {
-    const lower = name.toLowerCase()
-    const person = artists.find(a => a.name.toLowerCase() === lower) ||
-      artists.find(a => a.name.toLowerCase().includes(lower) || lower.includes(a.name.toLowerCase()))
-    if (person) navigate('artist', person)
-  }
-
-  const handleYearClick = (year, from = 'album') => {
-    setPrevView(from)
-    navigate('year', year)
-  }
-
-  const currentIndex = useMemo(
-    () => currentSong ? songsData.findIndex(s => s.id === currentSong.id) : -1,
-    [currentSong]
-  )
-
   const handlePrev = () => {
-    if (currentIndex > 0) handleSongSelect(songsData[currentIndex - 1])
-  }
-
-  const handleNext = () => {
-    if (currentIndex < songsData.length - 1) handleSongSelect(songsData[currentIndex + 1])
-  }
-
-  const renderView = () => {
-    switch (view) {
-      case 'home':
-        return (
-          <HomeView
-            albums={albums}
-            onAlbumClick={a => navigate('album', a)}
-          />
-        )
-      case 'artists':
-        return (
-          <ArtistsView
-            artists={artists}
-            onArtistClick={a => navigate('artist', a)}
-          />
-        )
-      case 'artist':
-        return (
-          <ArtistDetailView
-            artist={selectedArtist}
-            albums={albums}
-            onBack={() => navigate('artists')}
-            onSongClick={handleSongSelect}
-            onAlbumClick={a => navigate('album', a)}
-            currentSong={currentSong}
-          />
-        )
-      case 'albums':
-        return (
-          <AlbumsView
-            albums={albums}
-            onAlbumClick={a => navigate('album', a)}
-          />
-        )
-      case 'album':
-        return (
-          <AlbumDetailView
-            album={selectedAlbum}
-            artists={artists}
-            onBack={() => navigate('albums')}
-            onSongClick={handleSongSelect}
-            onPersonClick={handlePersonByName}
-            onYearClick={year => handleYearClick(year, 'album')}
-            currentSong={currentSong}
-          />
-        )
-      case 'songs':
-        return (
-          <SongsView
-            songs={songsData}
-            onSongClick={handleSongSelect}
-            onAlbumClick={handleAlbumFromSong}
-            onPersonClick={handlePersonByName}
-            currentSong={currentSong}
-          />
-        )
-      case 'search':
-        return (
-          <SearchView
-            query={searchQuery}
-            songs={songsData}
-            albums={albums}
-            artists={artists}
-            onSongClick={handleSongSelect}
-            onAlbumClick={a => navigate('album', a)}
-            onArtistClick={a => navigate('artist', a)}
-          />
-        )
-      case 'year':
-        return (
-          <YearView
-            year={selectedYear}
-            songs={songsData}
-            albums={albums}
-            onBack={() => navigate(prevView)}
-            onSongClick={handleSongSelect}
-            onAlbumClick={a => navigate('album', a)}
-            currentSong={currentSong}
-          />
-        )
-      default:
-        return null
+    // Basic implementation since we don't have a local queue anymore
+    if (audioRef.current) {
+      audioRef.current.currentTime = 0;
     }
   }
 
+  const handleNext = () => {
+    // Without a queue, we just stop playing
+    setIsPlaying(false)
+  }
+
+  const handleTogglePlay = () => {
+    setIsPlaying(p => !p)
+  }
+
+  const searchQuery = searchParams.get('q') || ''
+
   return (
     <div className="flex h-screen bg-black text-white overflow-hidden">
+      <audio ref={audioRef} className="hidden" />
       <Sidebar
-        currentView={view}
-        onNavigate={navigate}
         searchQuery={searchQuery}
-        onSearch={q => { setSearchQuery(q); if (q) setView('search') }}
+        onSearch={q => setSearchParams({ q })}
       />
       <div className="flex-1 overflow-hidden flex flex-col min-w-0">
+        {/* Header with Language Filter */}
+        <div className="flex items-center justify-between px-6 py-3 bg-zinc-950 border-b border-zinc-900 sticky top-0 z-10">
+          <h1 className="text-lg font-bold text-white">LocalMusic</h1>
+          <LanguageFilter
+            selectedLanguages={selectedLanguages}
+            onLanguageChange={setSelectedLanguages}
+          />
+        </div>
         <div className="flex-1 overflow-y-auto bg-zinc-950">
-          {renderView()}
+          <Routes>
+            <Route path="/discover" element={<DiscoverView onSongClick={handleSongSelect} selectedLanguages={selectedLanguages} />} />
+            <Route path="/discover/album/:id" element={<DiscoverDetailView onSongClick={handleSongSelect} />} />
+            <Route path="/discover/playlist/:id" element={<DiscoverDetailView onSongClick={handleSongSelect} />} />
+            <Route path="/discover/artist/:id" element={<DiscoverDetailView onSongClick={handleSongSelect} selectedLanguages={selectedLanguages} />} />
+            <Route path="/search" element={<SearchView query={searchQuery} onSongClick={handleSongSelect} onAlbumClick={a => navigateToView('album', a)} onArtistClick={a => navigateToView('artist', a)} selectedLanguages={selectedLanguages} />} />
+          </Routes>
         </div>
         <PlayerBar
           currentSong={currentSong}
           isPlaying={isPlaying}
-          onTogglePlay={() => setIsPlaying(p => !p)}
+          onTogglePlay={handleTogglePlay}
           onPrev={handlePrev}
           onNext={handleNext}
+          volume={volume}
+          onVolumeChange={setVolume}
+          shuffle={shuffle}
+          onShuffleToggle={() => setShuffle(s => !s)}
+          repeat={repeat}
+          onRepeatToggle={() => setRepeat(r => !r)}
+          liked={liked}
+          onLikeToggle={() => setLiked(l => !l)}
         />
       </div>
     </div>
+  )
+}
+
+function App() {
+  return (
+    <BrowserRouter>
+      <AppContent />
+    </BrowserRouter>
   )
 }
 

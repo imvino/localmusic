@@ -11,12 +11,18 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   resolve: {
     alias: {
-      '@songs-data': resolve(__dirname, '../songs-data.json')
+      '@songs-data': resolve(__dirname, '../music-library.json')
     }
   },
   server: {
     fs: {
       allow: ['..']
+    },
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3001',
+        changeOrigin: true
+      }
     }
   }
 })

@@ -1,6 +1,6 @@
 import { Play, Pause, SkipBack, SkipForward, Volume2, Shuffle, Repeat, Heart, Music } from 'lucide-react'
 
-export default function PlayerBar({ currentSong, isPlaying, onTogglePlay, onPrev, onNext }) {
+export default function PlayerBar({ currentSong, isPlaying, onTogglePlay, onPrev, onNext, volume, onVolumeChange, shuffle, onShuffleToggle, repeat, onRepeatToggle, liked, onLikeToggle }) {
   if (!currentSong) {
     return (
       <div className="h-[72px] bg-black/95 border-t border-zinc-800/60 flex items-center px-6">
@@ -31,15 +31,15 @@ export default function PlayerBar({ currentSong, isPlaying, onTogglePlay, onPrev
           <p className="text-sm font-semibold text-white truncate leading-snug">{currentSong.title}</p>
           <p className="text-xs text-zinc-400 truncate">{currentSong.artist}</p>
         </div>
-        <button className="flex-shrink-0 ml-1">
-          <Heart size={15} className="text-zinc-600 hover:text-[#fc3c44] transition-colors" />
+        <button onClick={onLikeToggle} className="flex-shrink-0 ml-1">
+          <Heart size={15} className={`transition-colors ${liked ? 'text-[#fc3c44] fill-[#fc3c44]' : 'text-zinc-600 hover:text-[#fc3c44]'}`} />
         </button>
       </div>
 
       {/* Controls */}
       <div className="flex-1 flex flex-col items-center gap-1.5 max-w-lg mx-auto">
         <div className="flex items-center gap-5 text-zinc-400">
-          <button className="hover:text-white transition-colors">
+          <button onClick={onShuffleToggle} className={`transition-colors ${shuffle ? 'text-[#fc3c44]' : 'hover:text-white'}`}>
             <Shuffle size={15} />
           </button>
           <button onClick={onPrev} className="hover:text-white transition-colors">
@@ -57,7 +57,7 @@ export default function PlayerBar({ currentSong, isPlaying, onTogglePlay, onPrev
           <button onClick={onNext} className="hover:text-white transition-colors">
             <SkipForward size={20} className="fill-zinc-400 hover:fill-white" />
           </button>
-          <button className="hover:text-white transition-colors">
+          <button onClick={onRepeatToggle} className={`transition-colors ${repeat ? 'text-[#fc3c44]' : 'hover:text-white'}`}>
             <Repeat size={15} />
           </button>
         </div>
@@ -73,9 +73,16 @@ export default function PlayerBar({ currentSong, isPlaying, onTogglePlay, onPrev
       {/* Volume */}
       <div className="w-1/3 flex items-center justify-end gap-2 text-zinc-500">
         <Volume2 size={15} className="hover:text-white cursor-pointer transition-colors" />
-        <div className="w-20 h-1 bg-zinc-800 rounded-full cursor-pointer">
-          <div className="h-full w-3/4 bg-zinc-400 rounded-full" />
-        </div>
+        <input
+          type="range"
+          min={0}
+          max={1}
+          step={0.01}
+          value={volume}
+          onChange={e => onVolumeChange(parseFloat(e.target.value))}
+          className="w-20 h-1 accent-zinc-400 cursor-pointer appearance-none bg-zinc-800 rounded-full"
+          style={{ accentColor: '#a1a1aa' }}
+        />
       </div>
     </div>
   )
