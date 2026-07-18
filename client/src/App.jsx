@@ -564,9 +564,9 @@ function AppContent() {
         <div className="flex-1 overflow-y-auto bg-zinc-950 pb-32 md:pb-0">
           <Routes>
             <Route path="/discover" element={<DiscoverView onSongClick={handleSongSelect} showToast={showToastMessage} />} />
-            <Route path="/discover/album/:id" element={<DiscoverDetailView onSongClick={handleSongSelect} showToast={showToastMessage} currentSong={currentSong} isPlaying={isPlaying} />} />
-            <Route path="/discover/playlist/:id" element={<DiscoverDetailView onSongClick={handleSongSelect} showToast={showToastMessage} currentSong={currentSong} isPlaying={isPlaying} />} />
-            <Route path="/discover/artist/:id" element={<DiscoverDetailView onSongClick={handleSongSelect} showToast={showToastMessage} currentSong={currentSong} isPlaying={isPlaying} />} />
+            <Route path="/discover/album/:id" element={<DiscoverDetailView onSongClick={handleSongSelect} showToast={showToastMessage} currentSong={currentSong} isPlaying={isPlaying} sidebarOpen={sidebarOpen} />} />
+            <Route path="/discover/playlist/:id" element={<DiscoverDetailView onSongClick={handleSongSelect} showToast={showToastMessage} currentSong={currentSong} isPlaying={isPlaying} sidebarOpen={sidebarOpen} />} />
+            <Route path="/discover/artist/:id" element={<DiscoverDetailView onSongClick={handleSongSelect} showToast={showToastMessage} currentSong={currentSong} isPlaying={isPlaying} sidebarOpen={sidebarOpen} />} />
             <Route path="/search" element={<SearchView query={searchQuery} onSongClick={handleSongSelect} onAlbumClick={a => navigateToView('album', a)} onArtistClick={a => navigateToView('artist', a)} showToast={showToastMessage} />} />
             <Route path="/terms" element={<TermsOfService />} />
             <Route path="/privacy" element={<PrivacyPolicy />} />

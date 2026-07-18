@@ -168,6 +168,35 @@ app.get('/api/albums', (req, res) => {
   }
 });
 
+// Get composer albums metadata
+app.get('/api/composer-albums/:composerId', (req, res) => {
+  try {
+    const { composerId } = req.params;
+    
+    // Map composer ID to filename
+    const composerFileMap = {
+      '455243': 'harris-jayaraj-albums-metadata.json'
+    };
+    
+    const filename = composerFileMap[composerId];
+    if (!filename) {
+      return res.status(404).json({ error: 'Composer metadata not found' });
+    }
+    
+    const metadataFile = path.join(__dirname, '../data', filename);
+    
+    if (!fs.existsSync(metadataFile)) {
+      return res.status(404).json({ error: 'Composer metadata file not found' });
+    }
+    
+    const data = JSON.parse(fs.readFileSync(metadataFile, 'utf8'));
+    res.json(data);
+  } catch (error) {
+    console.error('Error reading composer metadata:', error);
+    res.status(500).json({ error: 'Failed to read composer metadata' });
+  }
+});
+
 // Get songs from an album
 app.get('/api/albums/:albumId/songs', (req, res) => {
   try {
