@@ -1,0 +1,371 @@
+{
+  "artistId": "455243",
+  "artistName": "Harris Jayaraj",
+  "source": "Wikipedia + JioSaavn API",
+  "extractedAt": "2026-07-18T21:49:20.293Z",
+  "totalAlbums": 45,
+  "foundAlbums": 43,
+  "notFoundAlbums": 2,
+  "albums": [
+    {
+      "title": "Minnale",
+      "year": 2001,
+      "language": "Tamil",
+      "id": "26737446",
+      "image": "https://c.saavncdn.com/137/Minnalae-Tamil-2001-20210423104146-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Majunu",
+      "year": 2001,
+      "language": "Tamil",
+      "id": "26737445",
+      "image": "https://c.saavncdn.com/144/Majunu-Tamil-2001-20210423104146-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "12B",
+      "year": 2001,
+      "language": "Tamil",
+      "id": "11370538",
+      "image": "https://c.saavncdn.com/229/12-B-Tamil-2001-20201214100153-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Samurai",
+      "year": 2002,
+      "language": "Tamil",
+      "id": "16041129",
+      "image": "https://c.saavncdn.com/002/Samurai-Tamil-2002-20190531160602-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Lesa Lesa",
+      "year": 2002,
+      "language": "Tamil",
+      "id": "2988215",
+      "image": "https://c.saavncdn.com/152/Lesa-Lesa-Tamil-2003-20201214105757-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Saamy",
+      "year": 2003,
+      "language": "Tamil",
+      "id": "31267364",
+      "image": "https://c.saavncdn.com/850/Saamy-Tamil-2003-20251231133405-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Kaakha Kaakha",
+      "year": 2003,
+      "language": "Tamil",
+      "id": "1133748",
+      "image": "https://c.saavncdn.com/748/Kaakha-Kaakha-Tamil-2003-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Kovil",
+      "year": 2003,
+      "language": "Tamil",
+      "id": "1132816",
+      "image": "https://c.saavncdn.com/683/Kovil-2003-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Chellamae",
+      "year": 2004,
+      "language": "Tamil",
+      "id": "16041111",
+      "image": "https://c.saavncdn.com/004/Chellamay-Tamil-2009-20211222233200-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Arasatchi",
+      "year": 2004,
+      "language": "Tamil",
+      "id": "1133691",
+      "image": "https://c.saavncdn.com/691/Arasaktchi-Tamil-2003-20220111104218-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Arul",
+      "year": 2004,
+      "language": "Tamil",
+      "id": "10785946",
+      "image": "https://c.saavncdn.com/507/Arul-Tamil-2004-20201214100400-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Thotti Jaya",
+      "year": 2004,
+      "language": "Tamil",
+      "id": "16041132",
+      "image": "https://c.saavncdn.com/005/Thotti-Jaya-Tamil-2005-20220706004607-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Ullam Ketkumae",
+      "year": 2005,
+      "language": "Tamil",
+      "id": "47173954",
+      "image": "https://c.saavncdn.com/535/Ullam-Ketkume-Tamil-2005-20230801134516-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Anniyan",
+      "year": 2005,
+      "language": "Tamil",
+      "id": "38211294",
+      "image": "https://c.saavncdn.com/184/Anniyan-Tamil-2005-20251230133307-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Ghajini",
+      "year": 2005,
+      "language": "Tamil",
+      "id": "1137173",
+      "image": "https://c.saavncdn.com/644/Ghajini-2005-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Vettaiyaadu Vilaiyaadu",
+      "year": 2006,
+      "language": "Tamil",
+      "id": "38214172",
+      "image": "https://c.saavncdn.com/238/Vettaiyaadu-Vilaiyaadu-Tamil-2006-20251231133203-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Pachaikili Muthucharam",
+      "year": 2007,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Unnale Unnale",
+      "year": 2007,
+      "language": "Tamil",
+      "id": "15920028",
+      "image": "https://c.saavncdn.com/172/Unnale-Unnale-Tamil-2006-20190517115223-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Bheemaa",
+      "year": 2008,
+      "language": "Tamil",
+      "id": "14786790",
+      "image": "https://c.saavncdn.com/100/Bheema-Tamil--Tamil-2007-20190513145804-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Satyam",
+      "year": 2008,
+      "language": "Tamil",
+      "id": "38308504",
+      "image": "https://c.saavncdn.com/037/Sathyam-Tamil-2008-20251231133413-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Dhaam Dhoom",
+      "year": 2008,
+      "language": "Tamil",
+      "id": "31898423",
+      "image": "https://c.saavncdn.com/152/Dhaam-Dhoom-Tamil-2008-20260421163629-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Vaaranam Aayiram",
+      "year": 2008,
+      "language": "Tamil",
+      "id": "12451236",
+      "image": "https://c.saavncdn.com/635/Vaaranam-Aayiram-Tamil-2008-20190629141128-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Ayan",
+      "year": 2009,
+      "language": "Tamil",
+      "id": "34227319",
+      "image": "https://c.saavncdn.com/658/Ayan-Tamil-2022-20220413100432-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Aadhavan",
+      "year": 2009,
+      "language": "Tamil",
+      "id": "2666649",
+      "image": "https://c.saavncdn.com/467/Aadhavan-Tamil-2009-20200620121107-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Engeyum Kadhal",
+      "year": 2011,
+      "language": "Tamil",
+      "id": "2800138",
+      "image": "https://c.saavncdn.com/705/Engeyum-Kadhal-Tamil-2010-20190731133246-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Ko",
+      "year": 2011,
+      "language": "Tamil",
+      "id": "1034968",
+      "image": "https://c.saavncdn.com/653/KO-Tamil-2011-20190731134123-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "7 Aum Arivu",
+      "year": 2011,
+      "language": "Tamil",
+      "id": "12449226",
+      "image": "https://c.saavncdn.com/634/7-Aum-Arivu-Tamil-2011-20190731134128-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Nanban",
+      "year": 2012,
+      "language": "Tamil",
+      "id": "2703707",
+      "image": "https://c.saavncdn.com/961/Nanban-Tamil-2011-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Oru Kal Oru Kannadi",
+      "year": 2012,
+      "language": "Tamil",
+      "id": "12445732",
+      "image": "https://c.saavncdn.com/291/Oru-Kal-Oru-Kannadi-Tamil-2012-20260120201257-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Maattrraan",
+      "year": 2012,
+      "language": "Tamil",
+      "id": "1062252",
+      "image": "https://c.saavncdn.com/103/Maattrraan-Tamil-2012-20260120201332-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Thuppakki",
+      "year": 2012,
+      "language": "Tamil",
+      "id": "2704098",
+      "image": "https://c.saavncdn.com/234/Thuppakki-Tamil-2012-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Endrendrum Punnagai",
+      "year": 2013,
+      "language": "Tamil",
+      "id": "1146376",
+      "image": "https://c.saavncdn.com/584/Endrendrum-Punnagai-Tamil-2013-20190822130940-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Idhu Kathirvelan Kadhal",
+      "year": 2014,
+      "language": "Tamil",
+      "id": "1149683",
+      "image": "https://c.saavncdn.com/223/Ithu-Kathirvelan-Kadhal-Tamil-2014-20190914121117-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Yaan",
+      "year": 2014,
+      "language": "Tamil",
+      "id": "1155786",
+      "image": "https://c.saavncdn.com/042/Yaan-Tamil-2014-20190914121119-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Anegan",
+      "year": 2014,
+      "language": "Tamil",
+      "id": "1204777",
+      "image": "https://c.saavncdn.com/274/Anegan-Tamil-2014-20190822152158-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Nannbenda",
+      "year": 2015,
+      "language": "Tamil",
+      "id": "1216254",
+      "image": "https://c.saavncdn.com/344/Nannbenda-Tamil-2014-20190822151822-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Yennai Arindhaal",
+      "year": 2015,
+      "language": "Tamil",
+      "id": "1217601",
+      "image": "https://c.saavncdn.com/651/Yennai-Arindhaal-Tamil-2015-20200804103154-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Gethu",
+      "year": 2016,
+      "language": "Tamil",
+      "id": "42211514",
+      "image": "https://c.saavncdn.com/312/Gethu-Original-Motion-Picture-Soundtrack-Tamil-2023-20230201184410-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Iru Mugan",
+      "year": 2016,
+      "language": "Tamil",
+      "id": "2494556",
+      "image": "https://c.saavncdn.com/913/Iru-Mugan-Tamil-2016-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Vanamagan",
+      "year": 2017,
+      "language": "Tamil",
+      "id": "10660583",
+      "image": "https://c.saavncdn.com/550/Vanamagan-Tamil-2017-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Kaappaan",
+      "year": 2019,
+      "language": "Tamil",
+      "id": "16685437",
+      "image": "https://c.saavncdn.com/171/Kaappaan-Tamil-2019-20190722053625-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "The Legend",
+      "year": 2022,
+      "language": "Tamil",
+      "id": "34176047",
+      "image": "https://c.saavncdn.com/284/The-Legend-Original-Motion-Picture-Soundtrack-Tamil-2022-20250910153509-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Extra Ordinary Man",
+      "year": 2023,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Brother",
+      "year": 2024,
+      "language": "Tamil",
+      "id": "56365921",
+      "image": "https://c.saavncdn.com/766/Brother-Original-Motion-Picture-Soundtrack-Tamil-2024-20250905071629-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Kadhal Reset Repeat",
+      "year": 2025,
+      "language": "Tamil",
+      "id": "71005446",
+      "image": "https://c.saavncdn.com/415/Unnai-Ninaithu-From-Kadhal-Reset-Repeat-Tamil-2025-20251224231009-150x150.jpg",
+      "found": true
+    }
+  ]
+}

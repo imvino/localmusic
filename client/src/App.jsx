@@ -425,7 +425,13 @@ function AppContent() {
   }
 
   const searchQuery = searchParams.get('q') || ''
+  const [localSearchQuery, setLocalSearchQuery] = useState(searchQuery)
   const inputRef = useRef(null)
+
+  // Sync local state with URL params
+  useEffect(() => {
+    setLocalSearchQuery(searchQuery)
+  }, [searchQuery])
 
   return (
     <div className="flex h-screen bg-black text-white overflow-hidden flex-col md:flex-row">
@@ -491,11 +497,26 @@ function AppContent() {
                 ref={inputRef}
                 type="text"
                 placeholder="What do you want to listen to?"
-                value={searchQuery}
+                value={localSearchQuery}
                 onChange={e => {
                   const next = e.target.value
+                  setLocalSearchQuery(next)
                   setSearchParams({ q: next })
                   if (next && location.pathname !== '/search') {
+                    navigate('/search')
+                  }
+                }}
+                onPaste={e => {
+                  e.preventDefault()
+                  const pastedText = e.clipboardData.getData('text')
+                  const input = e.target
+                  const start = input.selectionStart
+                  const end = input.selectionEnd
+                  const currentValue = input.value
+                  const newValue = currentValue.substring(0, start) + pastedText + currentValue.substring(end)
+                  setLocalSearchQuery(newValue)
+                  setSearchParams({ q: newValue })
+                  if (newValue && location.pathname !== '/search') {
                     navigate('/search')
                   }
                 }}
@@ -509,11 +530,26 @@ function AppContent() {
                   ref={inputRef}
                   type="text"
                   placeholder="What do you want to listen to?"
-                  value={searchQuery}
+                  value={localSearchQuery}
                   onChange={e => {
                     const next = e.target.value
+                    setLocalSearchQuery(next)
                     setSearchParams({ q: next })
                     if (next && location.pathname !== '/search') {
+                      navigate('/search')
+                    }
+                  }}
+                  onPaste={e => {
+                    e.preventDefault()
+                    const pastedText = e.clipboardData.getData('text')
+                    const input = e.target
+                    const start = input.selectionStart
+                    const end = input.selectionEnd
+                    const currentValue = input.value
+                    const newValue = currentValue.substring(0, start) + pastedText + currentValue.substring(end)
+                    setLocalSearchQuery(newValue)
+                    setSearchParams({ q: newValue })
+                    if (newValue && location.pathname !== '/search') {
                       navigate('/search')
                     }
                   }}

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate, useLocation } from 'react-router-dom'
-import { ArrowLeft, Disc, Download, Loader2, ChevronDown } from 'lucide-react'
+import { ArrowLeft, Disc, Download, Loader2, ChevronDown, ChevronUp } from 'lucide-react'
 import { useDownloadStore } from '../stores/downloadStore'
 import MetaTags from '../components/MetaTags'
 import { getiTunesArtwork, decodeHtmlEntities, getArtistImageUrl } from '../utils'
@@ -8,6 +8,7 @@ import { useAlbum, useArtist, usePlaylist } from '../hooks/useApi'
 import { queryClient } from '../App'
 
 const API_BASE = '/api'
+const HARRIS_JAYARAJ_ID = '455243'
 
 export default function DiscoverDetailView({ onSongClick, showToast, currentSong, isPlaying }) {
   const { id } = useParams()
@@ -21,6 +22,8 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
   const [activeTab, setActiveTab] = useState('overview')
   const [songsSortBy, setSongsSortBy] = useState('popular')
   const [albumsSortBy, setAlbumsSortBy] = useState('popular')
+  const [albumsSortDirection, setAlbumsSortDirection] = useState('desc')
+  const [customAlbums, setCustomAlbums] = useState(null)
   const [iTunesArtwork, setITunesArtwork] = useState(null)
   const isAlbum = location.pathname.includes('/album/')
   const isArtist = location.pathname.includes('/artist/')
@@ -42,7 +45,8 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
     imageUrl: song.image?.find(img => img.quality === '500x500')?.url ||
               song.image?.find(img => img.quality === '150x150')?.url
   }))
-  const albums = data?.topAlbums || []
+  // Use custom albums for Harris Jayaraj, otherwise use API albums
+  const albums = (isArtist && id === HARRIS_JAYARAJ_ID) ? (customAlbums || []) : (data?.topAlbums || [])
 
   // Save scroll position when component unmounts
   useEffect(() => {
@@ -74,6 +78,30 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
       fetchArtwork()
     }
   }, [data, isAlbum, isArtist])
+
+  // Load custom albums for Harris Jayaraj
+  useEffect(() => {
+    if (isArtist && id === HARRIS_JAYARAJ_ID) {
+      fetch('/data/harris-jayaraj-albums-metadata.json')
+        .then(res => res.json())
+        .then(data => {
+          // Transform custom albums to match API format
+          const transformedAlbums = data.albums.map(album => ({
+            id: album.id,
+            name: album.title,
+            year: album.year,
+            image: album.image ? [{ quality: '150x150', url: album.image }] : [],
+            songCount: parseInt(album.songCount) || 0,
+            playCount: album.playCount || 0,
+            isLocal: false
+          }))
+          setCustomAlbums(transformedAlbums)
+        })
+        .catch(err => {
+          console.error('Failed to load custom albums:', err)
+        })
+    }
+  }, [isArtist, id])
 
   const handleDownload = async (song, e) => {
     e.stopPropagation()
@@ -283,22 +311,32 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
     }
   }
 
-  const sortAlbums = (albumsToSort, sortBy) => {
+  const sortAlbums = (albumsToSort, sortBy, direction = 'desc') => {
     const sorted = [...albumsToSort]
+    
     switch (sortBy) {
       case 'popular':
-        return sorted.sort((a, b) => (b.playCount || 0) - (a.playCount || 0))
+        return sorted.sort((a, b) => {
+          const diff = (b.playCount || 0) - (a.playCount || 0)
+          return direction === 'asc' ? -diff : diff
+        })
       case 'date':
-        return sorted.sort((a, b) => (b.year || 0) - (a.year || 0))
+        return sorted.sort((a, b) => {
+          const diff = (b.year || 0) - (a.year || 0)
+          return direction === 'asc' ? -diff : diff
+        })
       case 'name':
-        return sorted.sort((a, b) => a.name.localeCompare(b.name))
+        return sorted.sort((a, b) => {
+          const comparison = a.name.localeCompare(b.name)
+          return direction === 'asc' ? comparison : -comparison
+        })
       default:
         return sorted
     }
   }
 
   const sortedSongs = sortSongs(songs, songsSortBy)
-  const sortedAlbums = sortAlbums(albums, albumsSortBy)
+  const sortedAlbums = sortAlbums(albums, albumsSortBy, albumsSortDirection)
 
   if (loading) {
     return (
@@ -779,17 +817,26 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
               {/* Sort Dropdown */}
               <div className="flex items-center justify-between">
                 <p className="text-zinc-400 text-sm">{sortedAlbums.length} albums</p>
-                <div className="relative">
-                  <select
-                    value={albumsSortBy}
-                    onChange={(e) => setAlbumsSortBy(e.target.value)}
-                    className="appearance-none bg-zinc-800 text-white text-sm px-4 py-2 pr-8 rounded-lg border border-zinc-700 focus:outline-none focus:border-zinc-600 cursor-pointer"
+                <div className="flex items-center gap-2">
+                  <div className="relative">
+                    <select
+                      value={albumsSortBy}
+                      onChange={(e) => setAlbumsSortBy(e.target.value)}
+                      className="appearance-none bg-zinc-800 text-white text-sm px-4 py-2 pr-8 rounded-lg border border-zinc-700 focus:outline-none focus:border-zinc-600 cursor-pointer"
+                    >
+                      <option value="popular">Popular</option>
+                      <option value="date">Date</option>
+                      <option value="name">Name</option>
+                    </select>
+                    <ChevronDown size={16} className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
+                  </div>
+                  <button
+                    onClick={() => setAlbumsSortDirection(prev => prev === 'asc' ? 'desc' : 'asc')}
+                    className="p-2 bg-zinc-800 hover:bg-zinc-700 rounded-lg border border-zinc-700 transition-colors"
+                    title={`Sort ${albumsSortDirection === 'asc' ? 'descending' : 'ascending'}`}
                   >
-                    <option value="popular">Popular</option>
-                    <option value="date">Date</option>
-                    <option value="name">Name</option>
-                  </select>
-                  <ChevronDown size={16} className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
+                    {albumsSortDirection === 'asc' ? <ChevronUp size={16} className="text-zinc-400" /> : <ChevronDown size={16} className="text-zinc-400" />}
+                  </button>
                 </div>
               </div>
 
