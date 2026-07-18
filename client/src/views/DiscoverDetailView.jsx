@@ -1,62 +1,79 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import { ArrowLeft, Disc, Download, Loader2, ChevronDown } from 'lucide-react'
+import { useDownloadStore } from '../stores/downloadStore'
+import MetaTags from '../components/MetaTags'
+import { getiTunesArtwork, decodeHtmlEntities, getArtistImageUrl } from '../utils'
+import { useAlbum, useArtist, usePlaylist } from '../hooks/useApi'
+import { queryClient } from '../App'
 
 const API_BASE = '/api'
 
-export default function DiscoverDetailView({ onSongClick, selectedLanguages }) {
+export default function DiscoverDetailView({ onSongClick, showToast, currentSong, isPlaying }) {
   const { id } = useParams()
   const navigate = useNavigate()
   const location = useLocation()
-  const [data, setData] = useState(null)
-  const [songs, setSongs] = useState([])
-  const [albums, setAlbums] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
+  const { addDownload, updateDownload, removeDownload, getDownloadBySongId } = useDownloadStore()
+  const downloads = useDownloadStore(state => state.downloads)
+  const scrollPositionRef = useRef(0)
   const [downloading, setDownloading] = useState(null)
-  const [downloadingAlbum, setDownloadingAlbum] = useState(false)
+  const [downloadingAlbum, setDownloadingAlbum] = useState({}) // { albumId: boolean }
   const [activeTab, setActiveTab] = useState('overview')
   const [songsSortBy, setSongsSortBy] = useState('popular')
   const [albumsSortBy, setAlbumsSortBy] = useState('popular')
+  const [iTunesArtwork, setITunesArtwork] = useState(null)
   const isAlbum = location.pathname.includes('/album/')
   const isArtist = location.pathname.includes('/artist/')
   const isPlaylist = location.pathname.includes('/playlist/')
   const meta = location.state?.[isAlbum ? 'album' : isArtist ? 'artist' : 'playlist']
 
+  // Use TanStack Query hooks based on route type
+  const { data: albumData, isLoading: albumLoading } = useAlbum(isAlbum ? id : null)
+  const { data: artistData, isLoading: artistLoading } = useArtist(isArtist ? id : null, 50, 'all')
+  const { data: playlistData, isLoading: playlistLoading } = usePlaylist(isPlaylist ? id : null)
+
+  const data = albumData || artistData || playlistData
+  const loading = albumLoading || artistLoading || playlistLoading
+
+  // Process songs with imageUrl
+  const rawSongs = data?.topSongs || data?.songs || []
+  const songs = rawSongs.map(song => ({
+    ...song,
+    imageUrl: song.image?.find(img => img.quality === '500x500')?.url ||
+              song.image?.find(img => img.quality === '150x150')?.url
+  }))
+  const albums = data?.topAlbums || []
+
+  // Save scroll position when component unmounts
   useEffect(() => {
-    async function fetchData() {
-      try {
-        setLoading(true)
-        let endpoint
-        if (isAlbum) {
-          endpoint = `${API_BASE}/album/${id}`
-        } else if (isArtist) {
-          const langParam = selectedLanguages && selectedLanguages.length > 0 ? selectedLanguages.join(',') : 'all'
-          endpoint = `${API_BASE}/artist/${id}?limit=50&language=${langParam}`
-        } else {
-          endpoint = `${API_BASE}/playlist/${id}`
-        }
-        const res = await fetch(endpoint)
-        const result = await res.json()
-
-        if (result.success) {
-          setData(result.data)
-          // For artists, songs are in topSongs or songs array
-          setSongs(result.data.topSongs || result.data.songs || [])
-          setAlbums(result.data.topAlbums || [])
-        } else {
-          setError('Failed to load data')
-        }
-      } catch (err) {
-        console.error('Fetch error:', err)
-        setError('Failed to load data')
-      } finally {
-        setLoading(false)
-      }
+    return () => {
+      scrollPositionRef.current = window.scrollY
     }
+  }, [])
 
-    fetchData()
-  }, [id, isAlbum, isArtist, selectedLanguages])
+  // Restore scroll position when loading completes
+  useEffect(() => {
+    if (!loading && scrollPositionRef.current > 0) {
+      window.scrollTo(0, scrollPositionRef.current)
+      scrollPositionRef.current = 0 // Reset after restoring
+    }
+  }, [loading, id])
+
+  // Fetch iTunes artwork when data is loaded
+  useEffect(() => {
+    if (data && data.name) {
+      const fetchArtwork = async () => {
+        const artistName = isArtist ? data.name : (data.artists?.[0]?.name || data.artist?.name)
+        const albumName = isAlbum ? data.name : (isPlaylist ? data.name : null)
+        
+        if (albumName || artistName) {
+          const artwork = await getiTunesArtwork(albumName || artistName, artistName)
+          setITunesArtwork(artwork)
+        }
+      }
+      fetchArtwork()
+    }
+  }, [data, isAlbum, isArtist])
 
   const handleDownload = async (song, e) => {
     e.stopPropagation()
@@ -67,59 +84,186 @@ export default function DiscoverDetailView({ onSongClick, selectedLanguages }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ songId: song.id })
       })
-      const data = await res.json()
-      if (data.success) {
-        alert(`Song downloaded successfully! Saved as: ${data.filename}`)
+      const resp = await res.json()
+      if (resp.success && resp.downloadId) {
+        // Add to download store
+        const albumDisplayName = (
+          song.album?.name || (isAlbum ? (data?.name || meta?.name) : meta?.name) || resp?.albumName || 'Unknown Album'
+        )
+        addDownload(resp.downloadId, song.id, song.name, albumDisplayName)
+        
+        // Connect to SSE for progress updates
+        const eventSource = new EventSource(`${API_BASE}/download-progress/${resp.downloadId}`)
+        
+        eventSource.onmessage = (event) => {
+          const progress = JSON.parse(event.data)
+          updateDownload(resp.downloadId, progress)
+
+          if (progress.status === 'complete') {
+            eventSource.close()
+            
+            // Invalidate queries to refresh local badge
+            if (isAlbum) {
+              queryClient.invalidateQueries({ queryKey: ['album', id] })
+            } else if (isArtist) {
+              queryClient.invalidateQueries({ queryKey: ['artist', id] })
+            } else if (isPlaylist) {
+              queryClient.invalidateQueries({ queryKey: ['playlist', id] })
+            }
+            
+            // Clear progress after a delay
+            setTimeout(() => {
+              removeDownload(resp.downloadId)
+              setDownloading(null)
+            }, 2000)
+          } else if (progress.status === 'error') {
+            eventSource.close()
+            setDownloading(null)
+          }
+        }
+
+        eventSource.onerror = () => {
+          eventSource.close()
+          removeDownload(resp.downloadId)
+          setDownloading(null)
+        }
       } else {
-        alert('Failed to download: ' + (data.error || 'Unknown error'))
+        alert('Failed to download: ' + (resp.error || 'Unknown error'))
+        setDownloading(null)
       }
     } catch (err) {
       console.error('Download error:', err)
       alert('Failed to download song')
-    } finally {
       setDownloading(null)
     }
   }
 
-  const handleDownloadAlbum = async () => {
+  const handleDownloadAlbum = async (e) => {
+    if (e && e.stopPropagation) e.stopPropagation()
+    if (e && e.preventDefault) e.preventDefault()
     if (!isAlbum) return;
-    
+
     try {
-      setDownloadingAlbum(true)
+      setDownloadingAlbum(prev => ({ ...prev, [id]: true }))
       const res = await fetch(`${API_BASE}/download-album`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ albumId: id })
       })
-      const data = await res.json()
-      if (data.success) {
-        alert('Album download started in background. Check terminal for progress.')
+      const resp = await res.json()
+      if (resp.success && resp.downloadId) {
+        // Add to download store
+        const albumDisplayName = (data?.name || meta?.name || 'Unknown')
+        addDownload(resp.downloadId, id, `Album: ${albumDisplayName}`, albumDisplayName)
+        
+        // Connect to SSE for progress updates
+        const eventSource = new EventSource(`${API_BASE}/download-progress/${resp.downloadId}`)
+
+        eventSource.onmessage = (event) => {
+          const progress = JSON.parse(event.data)
+          updateDownload(resp.downloadId, progress)
+
+          if (progress.status === 'complete') {
+            eventSource.close()
+            // Update local state to mark all songs as downloaded
+            setSongs(prevSongs => 
+              prevSongs.map(s => ({ ...s, isLocal: true }))
+            )
+            // Invalidate album cache to refresh local badge
+            queryClient.invalidateQueries({ queryKey: ['album', id] })
+            // Clear progress after a delay
+            setTimeout(() => {
+              removeDownload(resp.downloadId)
+              setDownloadingAlbum(prev => {
+                const newDownloading = { ...prev }
+                delete newDownloading[id]
+                return newDownloading
+              })
+            }, 2000)
+          } else if (progress.status === 'error') {
+            eventSource.close()
+            setDownloadingAlbum(prev => {
+              const newDownloading = { ...prev }
+              delete newDownloading[id]
+              return newDownloading
+            })
+          }
+        }
+
+        eventSource.onerror = () => {
+          eventSource.close()
+          removeDownload(resp.downloadId)
+          setDownloadingAlbum(prev => {
+            const newDownloading = { ...prev }
+            delete newDownloading[id]
+            return newDownloading
+          })
+        }
       } else {
-        alert('Failed to start album download: ' + (data.error || 'Unknown error'))
+        alert('Failed to start album download: ' + (resp.error || 'Unknown error'))
+        setDownloadingAlbum(prev => {
+          const newDownloading = { ...prev }
+          delete newDownloading[id]
+          return newDownloading
+        })
       }
     } catch (err) {
       console.error('Download error:', err)
       alert('Failed to start album download')
-    } finally {
-      // Keep it showing as downloading for a bit since it's in background
-      setTimeout(() => setDownloadingAlbum(false), 5000)
+      setDownloadingAlbum(prev => {
+        const newDownloading = { ...prev }
+        delete newDownloading[id]
+        return newDownloading
+      })
     }
   }
 
-  const handlePlay = (song) => {
-    if (onSongClick && song.downloadUrl) {
-      const streamUrl = song.downloadUrl?.find(d => d.quality === '320kbps')?.url ||
-                       song.downloadUrl?.find(d => d.quality === '160kbps')?.url
-      if (streamUrl) {
-        onSongClick({
-          id: song.id,
-          name: song.name,
-          album: song.album?.name || meta?.name,
-          artist: song.artists?.primary?.[0]?.name,
-          streamUrl: streamUrl,
-          imageUrl: song.image?.find(img => img.quality === '500x500')?.url ||
-                     song.image?.find(img => img.quality === '150x150')?.url
-        })
+  const handlePlay = async (song, index) => {
+    try {
+      console.log('Fetching song details for:', song.id)
+      // Fetch the song details to get the playable stream URL
+      const res = await fetch(`${API_BASE}/song/${song.id}`)
+      const result = await res.json()
+      
+      console.log('Song API response:', result)
+      
+      if (result.success && result.data) {
+        // Try to use the stream URL if available
+        if (result.data.streamUrl) {
+          console.log('Playing with stream URL:', result.data.streamUrl)
+          // Use the displayed songs order (songs) instead of sorted order for the queue
+          const displayIndex = index !== undefined ? index : songs.findIndex(s => s.id === song.id)
+          onSongClick({
+            id: song.id,
+            name: song.name,
+            album: song.album?.name || meta?.name,
+            albumId: result.data.albumId || song.album?.id || (isAlbum ? id : null),
+            artist: song.artists?.primary?.[0]?.name,
+            streamUrl: result.data.streamUrl,
+            imageUrl: song.image?.find(img => img.quality === '500x500')?.url ||
+                       song.image?.find(img => img.quality === '150x150')?.url,
+            isStream: true
+          }, songs, displayIndex)
+        } else if (result.data.previewUrl) {
+          console.log('Opening preview URL:', result.data.previewUrl)
+          // Fallback: open preview page in new tab
+          window.open(result.data.previewUrl, '_blank')
+        } else {
+          console.log('No stream URL or preview URL available')
+          if (showToast) {
+            showToast('Audio streaming not available. Please use the download button instead.', 'warning')
+          }
+        }
+      } else {
+        console.log('API returned error:', result)
+        if (showToast) {
+          showToast('Failed to load song. API rate limit exceeded.', 'error')
+        }
+      }
+    } catch (err) {
+      console.error('Failed to fetch song stream URL:', err)
+      if (showToast) {
+        showToast('Failed to load song. Please try again.', 'error')
       }
     }
   }
@@ -164,32 +308,91 @@ export default function DiscoverDetailView({ onSongClick, selectedLanguages }) {
     )
   }
 
-  if (error) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <p className="text-zinc-500">{error}</p>
-      </div>
-    )
-  }
-
   const imageUrl = data?.image?.find(img => img.quality === '500x500')?.url ||
                    data?.image?.find(img => img.quality === '150x150')?.url ||
                    meta?.image?.find(img => img.quality === '500x500')?.url ||
                    meta?.image?.find(img => img.quality === '150x150')?.url
 
+    const metaTitle = data?.name || meta?.name;
+  const metaDescription = data?.description || `Listen to ${metaTitle} on Torsongs.`;
+  const metaImage = iTunesArtwork || imageUrl;
+  const metaUrl = window.location.href;
+  const metaType = isAlbum ? 'music.album' : isArtist ? 'music.musician' : 'music.playlist';
+
+  let structuredData = null;
+  if (data) {
+    if (isAlbum) {
+      structuredData = {
+        '@context': 'https://schema.org',
+        '@type': 'MusicAlbum',
+        'name': data.name,
+        'byArtist': Array.isArray(data.artists) ? data.artists.map(a => ({ '@type': 'MusicGroup', 'name': a.name })) : (data.artists ? [{ '@type': 'MusicGroup', 'name': data.artists.name }] : []),
+        'image': imageUrl,
+        'numTracks': data.songCount,
+        'track': {
+          '@type': 'ItemList',
+          'itemListElement': songs.map((song, index) => ({
+            '@type': 'ListItem',
+            'position': index + 1,
+            'item': {
+              '@type': 'MusicRecording',
+              'name': song.name,
+              'duration': `PT${Math.floor(song.duration / 60)}M${song.duration % 60}S`,
+            }
+          }))
+        }
+      };
+    } else if (isArtist) {
+      structuredData = {
+        '@context': 'https://schema.org',
+        '@type': 'MusicGroup',
+        'name': data.name,
+        'description': data.bio,
+        'image': imageUrl,
+      };
+    } else if (isPlaylist) {
+      structuredData = {
+        '@context': 'https://schema.org',
+        '@type': 'MusicPlaylist',
+        'name': data.name,
+        'numTracks': data.songCount,
+        'image': imageUrl,
+        'track': {
+          '@type': 'ItemList',
+          'itemListElement': songs.map((song, index) => ({
+            '@type': 'ListItem',
+            'position': index + 1,
+            'item': {
+              '@type': 'MusicRecording',
+              'name': song.name,
+              'duration': `PT${Math.floor(song.duration / 60)}M${song.duration % 60}S`,
+            }
+          }))
+        }
+      };
+    }
+  }
+
   return (
-    <div className="p-8 pb-32">
+    <div className="p-4 md:p-8 pb-32">
+      <MetaTags
+        title={metaTitle}
+        description={metaDescription}
+        image={metaImage}
+        url={metaUrl}
+        type={metaType}
+        structuredData={structuredData}
+      />
       <button
         onClick={() => navigate(-1)}
         className="flex items-center gap-2 text-zinc-400 hover:text-white transition-colors mb-6"
       >
         <ArrowLeft size={20} />
-        Back
       </button>
 
       {/* Header */}
-      <div className="flex items-center gap-6 mb-8">
-        <div className="w-48 h-48 rounded-lg overflow-hidden bg-zinc-800 flex-shrink-0 shadow-lg">
+      <div className="flex flex-col md:flex-row items-center md:items-start gap-4 md:gap-6 mb-8">
+        <div className="w-32 md:w-48 h-32 md:h-48 rounded-lg overflow-hidden bg-zinc-800 flex-shrink-0 shadow-lg">
           {imageUrl ? (
             <img src={imageUrl} alt={data?.name || meta?.name} className="w-full h-full object-cover" />
           ) : (
@@ -198,8 +401,15 @@ export default function DiscoverDetailView({ onSongClick, selectedLanguages }) {
             </div>
           )}
         </div>
-        <div className="flex-1 min-w-0">
-          <h1 className="text-3xl font-bold text-white mb-2">{data?.name || meta?.name}</h1>
+        <div className="flex-1 min-w-0 text-center md:text-left">
+          <div className="flex items-center justify-center md:justify-start gap-2 mb-2">
+            <h1 className="text-2xl md:text-3xl font-bold text-white">{data?.name || meta?.name}</h1>
+            {isAlbum && data?.isLocal && (
+              <span className="hidden md:inline bg-green-500 text-white text-xs px-2 py-1 rounded font-medium">
+                LOCAL
+              </span>
+            )}
+          </div>
           <p className="text-zinc-400 mb-2">{isAlbum ? 'Album' : isArtist ? 'Artist' : 'Playlist'}</p>
           
           {isAlbum && (
@@ -262,21 +472,28 @@ export default function DiscoverDetailView({ onSongClick, selectedLanguages }) {
           
           {isAlbum && (
             <button
-              onClick={handleDownloadAlbum}
-              disabled={downloadingAlbum || songs.length === 0}
-              className="flex items-center gap-2 px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-full text-sm font-medium transition-colors disabled:opacity-50"
+              onClick={(e) => handleDownloadAlbum(e)}
+              disabled={downloadingAlbum[id] || songs.length === 0}
+              className="hidden md:flex items-center gap-2 px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-full text-sm font-medium transition-colors disabled:opacity-50"
             >
-              {downloadingAlbum ? (
-                <>
-                  <Loader2 size={16} className="animate-spin" />
-                  Downloading...
-                </>
-              ) : (
-                <>
-                  <Download size={16} />
-                  Download Album
-                </>
-              )}
+              {(() => {
+                const albumDl = Object.values(downloads).find(dl => dl.songId === id && dl.songName.startsWith('Album:'))
+                return downloadingAlbum[id] && albumDl ? (
+                  <>
+                    <Loader2 size={16} className="animate-spin" />
+                    {albumDl.currentSong && albumDl.totalSongs ? (
+                      <span>{albumDl.currentSong}/{albumDl.totalSongs} songs ({albumDl.progress}%)</span>
+                    ) : (
+                      <span>{albumDl.progress}% - {albumDl.current}</span>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <Download size={16} />
+                    Download Album
+                  </>
+                )
+              })()}
             </button>
           )}
         </div>
@@ -330,8 +547,12 @@ export default function DiscoverDetailView({ onSongClick, selectedLanguages }) {
                   {songs.slice(0, 10).map((song, index) => (
                     <div
                       key={song.id}
-                      onClick={() => handlePlay(song)}
-                      className="flex items-center gap-4 p-3 rounded-lg hover:bg-zinc-800/50 transition-colors cursor-pointer group"
+                      onClick={() => handlePlay(song, index)}
+                      className={`flex items-center gap-4 p-3 rounded-lg transition-colors cursor-pointer group ${
+                        currentSong?.id === song.id && isPlaying
+                          ? 'bg-zinc-800/80 border border-[#fc3c44]/30'
+                          : 'hover:bg-zinc-800/50'
+                      }`}
                     >
                       <span className="text-zinc-500 w-6 text-center">{index + 1}</span>
                       <div className="w-12 h-12 rounded overflow-hidden bg-zinc-800 flex-shrink-0">
@@ -344,7 +565,7 @@ export default function DiscoverDetailView({ onSongClick, selectedLanguages }) {
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h3 className="text-white font-medium truncate">{song.name}</h3>
+                        <h3 className="text-white font-medium truncate">{decodeHtmlEntities(song.name)}</h3>
                         <p className="text-zinc-400 text-sm truncate">
                           {song.artists?.primary?.map((a, idx) => (
                             <span key={idx}>
@@ -367,8 +588,22 @@ export default function DiscoverDetailView({ onSongClick, selectedLanguages }) {
                         </p>
                       </div>
                       <div className="flex items-center gap-3">
+                        {(() => {
+                          const dl = getDownloadBySongId(song.id)
+                          return dl && dl.status !== 'complete' && (
+                            <div className="flex items-center gap-2">
+                              <div className="w-16 bg-zinc-700 rounded-full h-1.5">
+                                <div 
+                                  className="bg-[#fc3c44] h-1.5 rounded-full transition-all duration-300"
+                                  style={{ width: `${dl.progress}%` }}
+                                />
+                              </div>
+                              <span className="text-xs text-zinc-400">{dl.progress}%</span>
+                            </div>
+                          )
+                        })()}
                         {song.isLocal && (
-                          <span className="bg-green-500 text-white text-xs px-2 py-0.5 rounded font-medium">
+                          <span className="hidden md:inline bg-green-500 text-white text-xs px-2 py-0.5 rounded font-medium">
                             LOCAL
                           </span>
                         )}
@@ -376,11 +611,11 @@ export default function DiscoverDetailView({ onSongClick, selectedLanguages }) {
                       </div>
                       <button
                         onClick={(e) => handleDownload(song, e)}
-                        disabled={downloading === song.id}
-                        className="opacity-0 group-hover:opacity-100 transition-opacity p-2 hover:bg-zinc-700 rounded-full disabled:opacity-50 text-zinc-400 hover:text-white"
+                        disabled={downloading === song.id || getDownloadBySongId(song.id)?.status === 'downloading'}
+                        className="hidden md:block opacity-0 group-hover:opacity-100 transition-opacity p-2 hover:bg-zinc-700 rounded-full disabled:opacity-50 text-zinc-400 hover:text-white cursor-pointer"
                         title="Download 320kbps MP3"
                       >
-                        {downloading === song.id ? (
+                        {downloading === song.id || getDownloadBySongId(song.id)?.status === 'downloading' ? (
                           <Loader2 size={16} className="animate-spin text-[#fc3c44]" />
                         ) : (
                           <Download size={16} />
@@ -411,9 +646,9 @@ export default function DiscoverDetailView({ onSongClick, selectedLanguages }) {
                         className="flex flex-col items-center gap-2 group w-20"
                       >
                         <div className="w-20 h-20 rounded-full overflow-hidden bg-zinc-800 shadow">
-                          {artist.image?.[0]?.url ? (
+                          {getArtistImageUrl(artist.image) ? (
                             <img
-                              src={artist.image[0].url}
+                              src={getArtistImageUrl(artist.image)}
                               alt={artist.name}
                               className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform"
                             />
@@ -458,8 +693,12 @@ export default function DiscoverDetailView({ onSongClick, selectedLanguages }) {
                 {sortedSongs.map((song, index) => (
                   <div
                     key={song.id}
-                    onClick={() => handlePlay(song)}
-                    className="flex items-center gap-4 p-3 rounded-lg hover:bg-zinc-800/50 transition-colors cursor-pointer group"
+                    onClick={() => handlePlay(song, index)}
+                    className={`flex items-center gap-4 p-3 rounded-lg transition-colors cursor-pointer group ${
+                      currentSong?.id === song.id && isPlaying
+                        ? 'bg-zinc-800/80 border border-[#fc3c44]/30'
+                        : 'hover:bg-zinc-800/50'
+                    }`}
                   >
                     <span className="text-zinc-500 w-6 text-center">{index + 1}</span>
                     <div className="w-12 h-12 rounded overflow-hidden bg-zinc-800 flex-shrink-0">
@@ -472,7 +711,7 @@ export default function DiscoverDetailView({ onSongClick, selectedLanguages }) {
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h3 className="text-white font-medium truncate">{song.name}</h3>
+                      <h3 className="text-white font-medium truncate">{decodeHtmlEntities(song.name)}</h3>
                       <p className="text-zinc-400 text-sm truncate">
                         {song.artists?.primary?.map((a, idx) => (
                           <span key={idx}>
@@ -495,8 +734,22 @@ export default function DiscoverDetailView({ onSongClick, selectedLanguages }) {
                       </p>
                     </div>
                     <div className="flex items-center gap-3">
+                      {(() => {
+                        const dl = getDownloadBySongId(song.id)
+                        return dl && dl.status !== 'complete' && (
+                          <div className="flex items-center gap-2">
+                            <div className="w-16 bg-zinc-700 rounded-full h-1.5">
+                              <div 
+                                className="bg-[#fc3c44] h-1.5 rounded-full transition-all duration-300"
+                                style={{ width: `${dl.progress}%` }}
+                              />
+                            </div>
+                            <span className="text-xs text-zinc-400">{dl.progress}%</span>
+                          </div>
+                        )
+                      })()}
                       {song.isLocal && (
-                        <span className="bg-green-500 text-white text-xs px-2 py-0.5 rounded font-medium">
+                        <span className="hidden md:inline bg-green-500 text-white text-xs px-2 py-0.5 rounded font-medium">
                           LOCAL
                         </span>
                       )}
@@ -504,11 +757,11 @@ export default function DiscoverDetailView({ onSongClick, selectedLanguages }) {
                     </div>
                     <button
                       onClick={(e) => handleDownload(song, e)}
-                      disabled={downloading === song.id}
-                      className="opacity-0 group-hover:opacity-100 transition-opacity p-2 hover:bg-zinc-700 rounded-full disabled:opacity-50 text-zinc-400 hover:text-white"
+                      disabled={downloading === song.id || getDownloadBySongId(song.id)?.status === 'downloading'}
+                      className="hidden md:block opacity-0 group-hover:opacity-100 transition-opacity p-2 hover:bg-zinc-700 rounded-full disabled:opacity-50 text-zinc-400 hover:text-white"
                       title="Download 320kbps MP3"
                     >
-                      {downloading === song.id ? (
+                      {downloading === song.id || getDownloadBySongId(song.id)?.status === 'downloading' ? (
                         <Loader2 size={16} className="animate-spin text-[#fc3c44]" />
                       ) : (
                         <Download size={16} />
@@ -561,7 +814,7 @@ export default function DiscoverDetailView({ onSongClick, selectedLanguages }) {
                         </div>
                       )}
                       {album.isLocal && (
-                        <div className="absolute top-2 left-2 bg-green-500 text-white text-xs px-2 py-1 rounded font-medium">
+                        <div className="hidden md:block absolute top-2 left-2 bg-green-500 text-white text-xs px-2 py-1 rounded font-medium">
                           LOCAL
                         </div>
                       )}
@@ -583,7 +836,11 @@ export default function DiscoverDetailView({ onSongClick, selectedLanguages }) {
             <div
               key={song.id}
               onClick={() => handlePlay(song)}
-              className="flex items-center gap-4 p-3 rounded-lg hover:bg-zinc-800/50 transition-colors cursor-pointer group"
+              className={`flex items-center gap-4 p-3 rounded-lg transition-colors cursor-pointer group ${
+                currentSong?.id === song.id && isPlaying
+                  ? 'bg-zinc-800/80 border border-[#fc3c44]/30'
+                  : 'hover:bg-zinc-800/50'
+              }`}
             >
               <span className="text-zinc-500 w-6 text-center">{index + 1}</span>
               <div className="w-12 h-12 rounded overflow-hidden bg-zinc-800 flex-shrink-0">
@@ -596,7 +853,7 @@ export default function DiscoverDetailView({ onSongClick, selectedLanguages }) {
                 )}
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="text-white font-medium truncate">{song.name}</h3>
+                <h3 className="text-white font-medium truncate">{decodeHtmlEntities(song.name)}</h3>
                 <p className="text-zinc-400 text-sm truncate">
                   {song.artists?.primary?.map((a, idx) => (
                     <span key={idx}>
@@ -619,8 +876,22 @@ export default function DiscoverDetailView({ onSongClick, selectedLanguages }) {
                 </p>
               </div>
               <div className="flex items-center gap-3">
+                {(() => {
+                  const dl = getDownloadBySongId(song.id)
+                  return dl && dl.status !== 'complete' && (
+                    <div className="flex items-center gap-2">
+                      <div className="w-16 bg-zinc-700 rounded-full h-1.5">
+                        <div 
+                          className="bg-[#fc3c44] h-1.5 rounded-full transition-all duration-300"
+                          style={{ width: `${dl.progress}%` }}
+                        />
+                      </div>
+                      <span className="text-xs text-zinc-400">{dl.progress}%</span>
+                    </div>
+                  )
+                })()}
                 {song.isLocal && (
-                  <span className="bg-green-500 text-white text-xs px-2 py-0.5 rounded font-medium">
+                  <span className="hidden md:inline bg-green-500 text-white text-xs px-2 py-0.5 rounded font-medium">
                     LOCAL
                   </span>
                 )}
@@ -628,11 +899,11 @@ export default function DiscoverDetailView({ onSongClick, selectedLanguages }) {
               </div>
               <button
                 onClick={(e) => handleDownload(song, e)}
-                disabled={downloading === song.id}
-                className="opacity-0 group-hover:opacity-100 transition-opacity p-2 hover:bg-zinc-700 rounded-full disabled:opacity-50 text-zinc-400 hover:text-white"
+                disabled={downloading === song.id || getDownloadBySongId(song.id)?.status === 'downloading'}
+                className="hidden md:block opacity-0 group-hover:opacity-100 transition-opacity p-2 hover:bg-zinc-700 rounded-full disabled:opacity-50 text-zinc-400 hover:text-white"
                 title="Download 320kbps MP3"
               >
-                {downloading === song.id ? (
+                {downloading === song.id || getDownloadBySongId(song.id)?.status === 'downloading' ? (
                   <Loader2 size={16} className="animate-spin text-[#fc3c44]" />
                 ) : (
                   <Download size={16} />

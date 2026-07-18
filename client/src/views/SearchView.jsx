@@ -1,65 +1,25 @@
 import { Search, Mic2, Disc3, Music, Radio, ListMusic } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import MetaTags from '../components/MetaTags'
+import { useSearch } from '../hooks/useApi'
+import { decodeHtmlEntities, getBestImageUrl, getArtistImageUrl, formatDuration } from '../utils'
 
 const API_BASE = '/api'
 
-export default function SearchView({ query, onSongClick, onAlbumClick, onArtistClick, selectedLanguages }) {
+export default function SearchView({ query, onSongClick, onAlbumClick, onArtistClick }) {
   const navigate = useNavigate()
-  const [onlineResults, setOnlineResults] = useState(null)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState(null)
+  const appUrl = import.meta.env.VITE_APP_URL
 
-  // Fetch online search results when query or languages change
-  useEffect(() => {
-    if (query.trim()) {
-      setLoading(true)
-      setError(null)
-      const langParam = selectedLanguages.length > 0 ? selectedLanguages.join(',') : 'all'
-      fetch(`${API_BASE}/search?q=${encodeURIComponent(query)}&language=${langParam}`)
-        .then(r => r.json())
-        .then(data => {
-          if (data.success) {
-            setOnlineResults(data.data)
-          } else {
-            setError(data.error || 'Search failed')
-          }
-          setLoading(false)
-        })
-        .catch(err => {
-          console.error('Online search error:', err)
-          setError('Failed to fetch online results')
-          setLoading(false)
-        })
-    } else {
-      setOnlineResults(null)
-      setError(null)
-    }
-  }, [query, selectedLanguages])
+  // Use TanStack Query for search
+  const { data: onlineResults, isLoading: loading, error } = useSearch(query)
 
-  // Helper to get best image URL from JioSaavn image array
-  const getBestImageUrl = (imageArray) => {
-    if (!imageArray || !Array.isArray(imageArray) || imageArray.length === 0) return null
-    const sorted = imageArray.sort((a, b) => {
-      const qualityMap = { '50x50': 1, '150x150': 2, '500x500': 3 }
-      return (qualityMap[b.quality] || 0) - (qualityMap[a.quality] || 0)
-    })
-    return sorted[0]?.url || null
-  }
-
-  // Helper to format duration from seconds
-  const formatDuration = (seconds) => {
-    if (!seconds) return '0:00'
-    const mins = Math.floor(seconds / 60)
-    const secs = seconds % 60
-    return `${mins}:${secs.toString().padStart(2, '0')}`
-  }
 
   if (!query.trim()) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-8">
         <Search size={56} className="text-zinc-700 mb-4" />
-        <h2 className="text-xl font-semibold text-white mb-2">Search JioSaavn</h2>
+        <h2 className="text-xl font-semibold text-white mb-2">Search Music</h2>
         <p className="text-sm text-zinc-500">Find songs, albums, and artists online</p>
       </div>
     )
@@ -68,13 +28,13 @@ export default function SearchView({ query, onSongClick, onAlbumClick, onArtistC
   // Determine if we have results
   const hasOnlineResults = onlineResults && (
     onlineResults.topResult ||
-    onlineResults.songs.length ||
-    onlineResults.albums.length ||
-    onlineResults.artists.length ||
-    onlineResults.playlists.length
+    onlineResults.songs?.length ||
+    onlineResults.albums?.length ||
+    onlineResults.artists?.length ||
+    onlineResults.playlists?.length
   )
 
-  if (!loading && !hasOnlineResults) {
+  if (!loading && !hasOnlineResults && !error) {
     return (
       <div className="p-8 flex flex-col items-center justify-center min-h-[40vh] text-center">
         <p className="text-zinc-400">
@@ -84,8 +44,26 @@ export default function SearchView({ query, onSongClick, onAlbumClick, onArtistC
     )
   }
 
+    const metaTitle = query ? `Search results for "${query}"` : 'Search';
+
   return (
-    <div className="p-8 pb-32">
+    <div className="p-4 md:p-8 pb-32">
+      <MetaTags
+        title={metaTitle}
+        description={`Search for songs, albums, artists, and playlists on Torsongs.`}
+        url={window.location.href}
+        structuredData={{
+          '@context': 'https://schema.org',
+          '@type': 'WebSite',
+          'url': appUrl,
+          'potentialAction': {
+            '@type': 'SearchAction',
+            'target': `${appUrl}/search?q={search_term_string}`,
+            'query-input': 'required name=search_term_string',
+          },
+        }}
+      />
+
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-white">
           Results for <span className="text-zinc-400 font-normal">"{query}"</span>
@@ -94,7 +72,7 @@ export default function SearchView({ query, onSongClick, onAlbumClick, onArtistC
 
       {loading && (
         <div className="flex items-center justify-center min-h-[40vh]">
-          <p className="text-zinc-400">Searching JioSaavn...</p>
+          <p className="text-zinc-400">Searching...</p>
         </div>
       )}
 
@@ -114,7 +92,7 @@ export default function SearchView({ query, onSongClick, onAlbumClick, onArtistC
                 <Music size={18} className="text-[#fc3c44]" /> Top Result
               </h2>
               <button
-                className="flex items-center gap-4 p-4 bg-zinc-900 rounded-xl hover:bg-zinc-800 transition-colors w-full group"
+                className="flex flex-col md:flex-row items-center md:items-start gap-4 p-4 bg-zinc-900 rounded-xl hover:bg-zinc-800 transition-colors w-full group"
                 onClick={() => {
                   if (onlineResults.topResult.type === 'song') {
                     onSongClick({
@@ -127,7 +105,7 @@ export default function SearchView({ query, onSongClick, onAlbumClick, onArtistC
                   }
                 }}
               >
-                <div className="w-20 h-20 rounded-lg overflow-hidden bg-zinc-800 shadow flex-shrink-0">
+                <div className="w-16 h-16 md:w-20 md:h-20 rounded-lg overflow-hidden bg-zinc-800 shadow flex-shrink-0">
                   {getBestImageUrl(onlineResults.topResult.image) ? (
                     <img
                       src={getBestImageUrl(onlineResults.topResult.image)}
@@ -159,35 +137,35 @@ export default function SearchView({ query, onSongClick, onAlbumClick, onArtistC
           )}
 
           {/* SONGS */}
-          {onlineResults.songs.length > 0 && (
+          {onlineResults?.songs?.length > 0 && (
             <section className="mb-8">
               <h2 className="flex items-center gap-2 text-lg font-bold text-white mb-4">
                 <Music size={18} className="text-[#fc3c44]" /> Songs
               </h2>
               <div className="flex flex-col gap-0.5">
-                {onlineResults.songs.slice(0, 20).map(song => (
+                {onlineResults.songs.slice(0, 20).map((song, index) => (
                   <button
                     key={song.id}
                     onClick={() => onSongClick({
                       ...song,
                       isStream: true,
                       streamUrl: song.downloadUrl?.[0]?.url
-                    })}
-                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-zinc-800/60 transition-colors text-left w-full group"
+                    }, onlineResults.songs, index)}
+                    className="flex items-center gap-2 md:gap-3 px-2 md:px-3 py-2 md:py-2.5 rounded-xl hover:bg-zinc-800/60 transition-colors text-left w-full group"
                   >
                     {getBestImageUrl(song.image) ? (
                       <img
                         src={getBestImageUrl(song.image)}
                         alt={song.name}
-                        className="w-10 h-10 rounded-lg object-cover shadow flex-shrink-0"
+                        className="w-8 md:w-10 h-8 md:h-10 rounded-lg object-cover shadow flex-shrink-0"
                       />
                     ) : (
-                      <div className="w-10 h-10 rounded-lg bg-zinc-800 flex items-center justify-center flex-shrink-0">
+                      <div className="w-8 md:w-10 h-8 md:h-10 rounded-lg bg-zinc-800 flex items-center justify-center flex-shrink-0">
                         <Music size={14} className="text-zinc-600" />
                       </div>
                     )}
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-white truncate">{song.name}</p>
+                      <p className="text-sm font-medium text-white truncate">{decodeHtmlEntities(song.name)}</p>
                       <p className="text-xs text-zinc-500 truncate">
                         {song.artists?.primary?.map(a => a.name).join(', ')} · {song.album?.name}
                       </p>
@@ -200,19 +178,19 @@ export default function SearchView({ query, onSongClick, onAlbumClick, onArtistC
           )}
 
           {/* ALBUMS */}
-          {onlineResults.albums.length > 0 && (
+          {onlineResults?.albums?.length > 0 && (
             <section className="mb-8">
               <h2 className="flex items-center gap-2 text-lg font-bold text-white mb-4">
                 <Disc3 size={18} className="text-[#fc3c44]" /> Albums
               </h2>
-              <div className="flex gap-4 flex-wrap">
+              <div className="flex gap-3 md:gap-4 flex-wrap">
                 {onlineResults.albums.slice(0, 10).map(album => (
                   <button
                     key={album.id}
                     onClick={() => navigate(`/discover/album/${album.id}`, { state: { album } })}
-                    className="flex flex-col gap-2 group w-24"
+                    className="flex flex-col gap-2 group w-20 md:w-24"
                   >
-                    <div className="w-24 h-24 rounded-xl overflow-hidden bg-zinc-800 shadow">
+                    <div className="w-20 md:w-24 h-20 md:h-24 rounded-xl overflow-hidden bg-zinc-800 shadow">
                       {getBestImageUrl(album.image) ? (
                         <img
                           src={getBestImageUrl(album.image)}
@@ -235,22 +213,22 @@ export default function SearchView({ query, onSongClick, onAlbumClick, onArtistC
           )}
 
           {/* ARTISTS */}
-          {onlineResults.artists.length > 0 && (
+          {onlineResults?.artists?.length > 0 && (
             <section className="mb-8">
               <h2 className="flex items-center gap-2 text-lg font-bold text-white mb-4">
                 <Mic2 size={18} className="text-[#fc3c44]" /> Artists
               </h2>
-              <div className="flex gap-5 flex-wrap">
+              <div className="flex gap-3 md:gap-5 flex-wrap">
                 {onlineResults.artists.slice(0, 8).map(artist => (
                   <button
                     key={artist.id}
                     onClick={() => onArtistClick(artist)}
-                    className="flex flex-col items-center gap-2 group w-20"
+                    className="flex flex-col items-center gap-2 group w-16 md:w-20"
                   >
-                    <div className="w-20 h-20 rounded-full overflow-hidden bg-zinc-800 shadow">
-                      {getBestImageUrl(artist.image) ? (
+                    <div className="w-16 md:w-20 h-16 md:h-20 rounded-full overflow-hidden bg-zinc-800 shadow">
+                      {getArtistImageUrl(artist.image) ? (
                         <img
-                          src={getBestImageUrl(artist.image)}
+                          src={getArtistImageUrl(artist.image)}
                           alt={artist.name}
                           className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform"
                         />
@@ -270,19 +248,19 @@ export default function SearchView({ query, onSongClick, onAlbumClick, onArtistC
           )}
 
           {/* PLAYLISTS */}
-          {onlineResults.playlists.length > 0 && (
+          {onlineResults?.playlists?.length > 0 && (
             <section className="mb-8">
               <h2 className="flex items-center gap-2 text-lg font-bold text-white mb-4">
                 <ListMusic size={18} className="text-[#fc3c44]" /> Playlists
               </h2>
-              <div className="flex gap-4 flex-wrap">
+              <div className="flex gap-3 md:gap-4 flex-wrap">
                 {onlineResults.playlists.slice(0, 8).map(playlist => (
                   <button
                     key={playlist.id}
                     onClick={() => navigate(`/discover/playlist/${playlist.id}`, { state: { playlist } })}
-                    className="flex flex-col gap-2 group w-24"
+                    className="flex flex-col gap-2 group w-20 md:w-24"
                   >
-                    <div className="w-24 h-24 rounded-xl overflow-hidden bg-zinc-800 shadow">
+                    <div className="w-20 md:w-24 h-20 md:h-24 rounded-xl overflow-hidden bg-zinc-800 shadow">
                       {getBestImageUrl(playlist.image) ? (
                         <img
                           src={getBestImageUrl(playlist.image)}
