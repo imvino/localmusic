@@ -6,6 +6,7 @@ import HorizontalScroll from '../components/HorizontalScroll'
 import { getiTunesArtwork, decodeHtmlEntities } from '../utils'
 import { useJioFooterDetails, useJioFeaturedPlaylists, useJioNewReleases } from '../hooks/useApi'
 
+const API_BASE = import.meta.env.VITE_API_URL
 const isProduction = import.meta.env.MODE === 'production'
 
 // Helper to format play counts

@@ -7,7 +7,7 @@ import { getiTunesArtwork, decodeHtmlEntities, getArtistImageUrl } from '../util
 import { useAlbum, useArtist, usePlaylist } from '../hooks/useApi'
 import { queryClient } from '../App'
 
-const API_BASE = import.meta.env.VITE_API_URL || '/api'
+const API_BASE = import.meta.env.VITE_API_URL
 const HARRIS_JAYARAJ_ID = '455243'
 const isProduction = import.meta.env.MODE === 'production'
 

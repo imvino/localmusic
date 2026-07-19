@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 
-const API_BASE = import.meta.env.VITE_API_URL || '/api'
+const API_BASE = import.meta.env.VITE_API_URL
 
 // Helper function for fetch with error handling
 async function fetchAPI(endpoint, options = {}) {
