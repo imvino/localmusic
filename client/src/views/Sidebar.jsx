@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom'
 import { useState, useRef } from 'react'
 import { useAuth } from '@clerk/react'
 
+const API_BASE = import.meta.env.VITE_API_URL
 const isProduction = import.meta.env.MODE === 'production'
 
 const NAV_ITEMS = [
@@ -19,7 +20,7 @@ export default function Sidebar({ searchQuery, onSearch, showToast, onClose }) {
   const handleScan = async () => {
     setIsScanning(true)
     try {
-      const response = await fetch('/api/scan', { method: 'POST' })
+      const response = await fetch(`${API_BASE}/scan`, { method: 'POST' })
       const data = await response.json()
       if (data.success) {
         const removedAlbums = Number.isFinite(data.removedAlbums) ? data.removedAlbums : 0

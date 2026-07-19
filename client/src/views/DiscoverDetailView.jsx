@@ -84,7 +84,7 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
   // Load custom albums for Harris Jayaraj
   useEffect(() => {
     if (isHarrisJayaraj) {
-      fetch(`/api/composer-albums/${HARRIS_JAYARAJ_ID}`)
+      fetch(`${API_BASE}/composer-albums/${HARRIS_JAYARAJ_ID}`)
         .then(res => res.json())
         .then(data => {
           // Transform custom albums to match API format, filtering out not-found albums
