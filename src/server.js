@@ -6,7 +6,7 @@ const path = require('path');
 const axios = require('axios');
 const { exec } = require('child_process');
 const { decodeHtmlEntities, loadLibrary: loadLibraryUtil, detectComposerFromSongs, getBestImage, fetchFromMusicServiceOfficial } = require('./utils');
-const { clerkClient, clerkExpressRequireAuth } = require('@clerk/backend');
+// const { clerkClient, clerkExpressRequireAuth } = require('@clerk/backend');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -377,12 +377,8 @@ const streamHandler = async (req, res) => {
   }
 };
 
-// Register stream endpoint with conditional authentication
-if (isProduction) {
-  app.get('/api/stream/:songId', clerkExpressRequireAuth, streamHandler);
-} else {
-  app.get('/api/stream/:songId', streamHandler);
-}
+// Register stream endpoint (auth temporarily disabled for deployment)
+app.get('/api/stream/:songId', streamHandler);
 
 // Get artwork (only in development)
 if (!isProduction) {
