@@ -182,8 +182,7 @@ app.get('/api/albums', (req, res) => {
   });
 }
 
-// Get composer albums metadata (only in development)
-if (!isProduction) {
+// Get composer albums metadata
 app.get('/api/composer-albums/:composerId', (req, res) => {
   try {
     const { composerId } = req.params;
@@ -223,8 +222,7 @@ app.get('/api/composer-albums/:composerId', (req, res) => {
     console.error('Error reading composer metadata:', error);
     res.status(500).json({ error: 'Failed to read composer metadata' });
   }
-  });
-}
+});
 
 // Get songs from an album (only in development)
 if (!isProduction) {
