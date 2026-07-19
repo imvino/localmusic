@@ -36,9 +36,6 @@ function applyComposerAlias(composerName) {
   const aliases = getComposerAliases();
   const normalized = composerName.trim();
   const result = aliases[normalized] || aliases[composerName] || normalized;
-  if (result !== normalized) {
-    console.log(`[ALIAS] "${normalized}" -> "${result}"`);
-  }
   return result;
 }
 
@@ -148,7 +145,6 @@ async function fetchTmdbMovie(title, year = null) {
       return result;
     }
   } catch (e) {
-    console.warn(`TMDB Movie search failed for ${title}:`, e.message);
   }
   return null;
 }
@@ -175,7 +171,6 @@ async function getComposerFromTmdb(title, year) {
 }
 
 async function determineBestComposer(albumData, year) {
-  console.log(`[COMPOSER] Determining composer for album: ${albumData.name}`);
   
   // 0. Check overrides first
   const overrides = getComposerOverrides();
@@ -187,10 +182,8 @@ async function determineBestComposer(albumData, year) {
   
   // 1. Get composer from music service API data (highest priority)
   const musicServiceComposer = getComposerFromMusicService(albumData);
-  console.log(`[COMPOSER] Raw from music service: "${musicServiceComposer}"`);
   if (musicServiceComposer) {
     const aliased = applyComposerAlias(musicServiceComposer);
-    console.log(`[COMPOSER] After alias: "${aliased}"`);
     composerCandidates.push({ source: 'music_service', composer: aliased, priority: 3 });
   }
   
@@ -373,7 +366,6 @@ async function writeID3Tags(songPath, songData, albumData, composer, artworkBuff
     NodeID3.write(tags, songPath);
     return true;
   } catch (e) {
-    console.warn(`Failed to write ID3 tags: ${e.message}`);
     return false;
   }
 }

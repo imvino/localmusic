@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const axios = require('axios');
 
 // Helper to decode HTML entities
 function decodeHtmlEntities(text) {
@@ -118,6 +119,58 @@ function parseDuration(duration) {
   return 0;
 }
 
+// Helper: Fetch from official music service API
+async function fetchFromMusicServiceOfficial(__call, params = {}) {
+  try {
+    const allParams = {
+      __call,
+      _format: 'json',
+      _marker: 0,
+      api_version: 4,
+      ctx: 'web6dot0',
+      ...params
+    };
+    const response = await axios.get('https://www.jiosaavn.com/api.php', {
+      params: allParams,
+      headers: { 'User-Agent': 'Mozilla/5.0' }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching from music service:', error.message);
+    return null;
+  }
+}
+
+// Fuzzy match function for album names
+function fuzzyMatchAlbumName(searchName, apiName) {
+  const searchLower = searchName.toLowerCase().replace(/[^a-z0-9]/g, '');
+  const apiLower = apiName.toLowerCase().replace(/[^a-z0-9]/g, '');
+  
+  // Exact match
+  if (searchLower === apiLower) return true;
+  
+  // Check if API name contains search name (or vice versa)
+  if (searchLower.includes(apiLower) || apiLower.includes(searchLower)) return true;
+  
+  // Normalize common Tamil/English spelling variations
+  const normalizeSpelling = (str) => {
+    return str
+      .replace(/th/g, 't')
+      .replace(/aa/g, 'a')
+      .replace(/ii/g, 'i')
+      .replace(/ee/g, 'e')
+      .replace(/oo/g, 'o');
+  };
+  
+  const normalizedSearch = normalizeSpelling(searchLower);
+  const normalizedApi = normalizeSpelling(apiLower);
+  
+  if (normalizedSearch === normalizedApi) return true;
+  if (normalizedSearch.includes(normalizedApi) || normalizedApi.includes(normalizedSearch)) return true;
+  
+  return false;
+}
+
 module.exports = {
   decodeHtmlEntities,
   loadLibrary,
@@ -127,5 +180,7 @@ module.exports = {
   get320kbpsUrl,
   extractYearFromCopyright,
   sanitizeFilename,
-  parseDuration
+  parseDuration,
+  fetchFromMusicServiceOfficial,
+  fuzzyMatchAlbumName
 };

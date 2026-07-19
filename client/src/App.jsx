@@ -1,22 +1,30 @@
-import { useState, useMemo, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { BrowserRouter, Routes, Route, useParams, useNavigate, useSearchParams, useLocation } from 'react-router-dom'
-import { Compass, Search, Menu, X, ArrowLeft } from 'lucide-react'
+import { Compass, Search, Menu, X, ArrowLeft, User } from 'lucide-react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { persistQueryClient } from '@tanstack/query-persist-client-core'
 import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister'
-import { getGreeting } from './utils'
+import { ClerkProvider, UserButton, useAuth, SignInButton } from '@clerk/react'
+import { dark } from '@clerk/themes'
 import { useHealthCheck } from './hooks/useApi'
 import Sidebar from './views/Sidebar'
 import SearchView from './views/SearchView'
 import DiscoverView from './views/DiscoverView'
 import DiscoverDetailView from './views/DiscoverDetailView'
 import PlayerBar from './views/PlayerBar'
+import FullScreenPlayer from './views/FullScreenPlayer'
 import DownloadManager from './views/DownloadManager'
 import TermsOfService from './pages/TermsOfService'
 import PrivacyPolicy from './pages/PrivacyPolicy'
 import DMCA from './pages/DMCA'
 
 const API_BASE = '/api'
+
+// Check if we're in production mode
+const isProduction = import.meta.env.MODE === 'production'
+
+// Clerk publishable key (will be set via environment variable)
+const clerkPublishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY || ''
 
 // Configure QueryClient with 5-minute cache
 export const queryClient = new QueryClient({
@@ -44,6 +52,7 @@ function AppContent() {
   const navigate = useNavigate()
   const location = useLocation()
   const [searchParams, setSearchParams] = useSearchParams()
+  const { isSignedIn } = useAuth()
   const [currentSong, setCurrentSong] = useState(null)
   const [isPlaying, setIsPlaying] = useState(false)
   const [volume, setVolume] = useState(0.75)
@@ -63,6 +72,7 @@ function AppContent() {
   const [toastType, setToastType] = useState('error') // 'error', 'success', 'warning'
   const [isSearchingAlbum, setIsSearchingAlbum] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [showFullScreenPlayer, setShowFullScreenPlayer] = useState(false)
   const audioRef = useRef(null)
 
   // Use TanStack Query for health check
@@ -116,6 +126,34 @@ function AppContent() {
         })
       } else {
         audio.pause()
+      }
+
+      // Set Media Session API metadata for lock screen/controls
+      if ('mediaSession' in navigator && currentSong) {
+        const artwork = currentSong.artworkUrl || currentSong.moviePosterUrl || currentSong.imageUrl
+        
+        navigator.mediaSession.metadata = new MediaMetadata({
+          title: currentSong.name,
+          artist: currentSong.artist,
+          album: currentSong.album || 'Unknown Album',
+          artwork: artwork ? [{ src: artwork, sizes: '600x600', type: 'image/jpeg' }] : []
+        })
+        
+        navigator.mediaSession.setActionHandler('play', handleTogglePlay)
+        navigator.mediaSession.setActionHandler('pause', handleTogglePlay)
+        navigator.mediaSession.setActionHandler('previoustrack', handlePrev)
+        navigator.mediaSession.setActionHandler('nexttrack', handleNext)
+        navigator.mediaSession.setActionHandler('seekto', (details) => {
+          if (details.seekTime && audioRef.current) {
+            audioRef.current.currentTime = details.seekTime
+            setCurrentTime(details.seekTime)
+          }
+        })
+      }
+    } else {
+      // Clear media session when no song is playing
+      if ('mediaSession' in navigator) {
+        navigator.mediaSession.metadata = null
       }
     }
 
@@ -242,6 +280,7 @@ function AppContent() {
     el.addEventListener('ended', onEnded)
     return () => el.removeEventListener('ended', onEnded)
   }, [repeat, currentSong, queue, queueIndex, shuffle])
+
 
   const navigateToView = (viewName, data = null, source = 'discover') => {
     if (viewName === 'album' && data) {
@@ -463,7 +502,7 @@ function AppContent() {
       
       <div className="flex-1 overflow-hidden flex flex-col min-w-0">
         {/* Header with search bar (Spotify-style) */}
-        <div className="flex items-center justify-between px-4 md:px-6 py-3 bg-zinc-950 border-b border-zinc-900 sticky top-0 z-10">
+        <div className="flex items-center justify-between px-4 md:px-6 py-3 bg-zinc-950 md:border-b md:border-zinc-900 sticky top-0 z-10">
           <div className={`flex items-center flex-1 ${location.pathname === '/search' ? 'gap-2' : 'gap-4'}`}>
             {location.pathname === '/search' ? (
               <button
@@ -476,19 +515,37 @@ function AppContent() {
             ) : (
               <button
                 onClick={() => setSidebarOpen(!sidebarOpen)}
-                className="text-zinc-400 hover:text-white transition-colors"
+                className="md:hidden text-zinc-400 hover:text-white transition-colors"
                 title="Toggle sidebar"
               >
                 {sidebarOpen ? <X size={24} /> : <Menu size={24} />}
               </button>
             )}
             {!sidebarOpen && (
+              <>
+                <button
+                  onClick={() => navigate('/discover')}
+                  className="hidden md:flex items-center gap-2.5 text-white font-bold text-lg hover:opacity-80 transition-opacity cursor-pointer"
+                  title="Go to Discover"
+                >
+                  <img src="/logo.svg" alt="Torsongs" className="w-7 h-7 flex-shrink-0" />
+                </button>
+                <button
+                  onClick={() => setSidebarOpen(!sidebarOpen)}
+                  className="hidden md:flex text-zinc-400 hover:text-white transition-colors"
+                  title="Toggle sidebar"
+                >
+                  <Menu size={24} />
+                </button>
+              </>
+            )}
+            {sidebarOpen && (
               <button
-                onClick={() => navigate('/discover')}
-                className="hidden md:flex items-center gap-2.5 text-white font-bold text-lg hover:opacity-80 transition-opacity cursor-pointer"
-                title="Go to Discover"
+                onClick={() => setSidebarOpen(false)}
+                className="hidden md:flex text-zinc-400 hover:text-white transition-colors"
+                title="Close sidebar"
               >
-                <img src="/logo.svg" alt="Torsongs" className="w-7 h-7 flex-shrink-0" />
+                <X size={24} />
               </button>
             )}
             <div className="relative hidden md:block">
@@ -522,6 +579,18 @@ function AppContent() {
                 }}
                 className="w-80 bg-zinc-800/70 text-sm text-white placeholder-zinc-500 rounded-full pl-10 pr-4 py-2 outline-none border border-transparent focus:border-zinc-600 transition-colors"
               />
+            </div>
+            {/* Clerk Authentication - Desktop - Far right corner */}
+            <div className="hidden md:flex items-center gap-2 ml-auto">
+              {isSignedIn ? (
+                <UserButton afterSignOutUrl="/" />
+              ) : (
+                <SignInButton mode="modal">
+                  <button className="flex items-center justify-center p-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-full transition-colors">
+                    <User size={20} />
+                  </button>
+                </SignInButton>
+              )}
             </div>
             {location.pathname === '/search' && (
               <div className="relative md:hidden flex-1">
@@ -602,31 +671,34 @@ function AppContent() {
       </div>
       
       {/* Mobile Mini Player - Visible only on mobile */}
-      <div className="fixed bottom-16 left-0 right-0 md:hidden bg-zinc-900 border-t border-zinc-800 z-30">
-        <PlayerBar
-          currentSong={currentSong}
-          isPlaying={isPlaying}
-          onTogglePlay={handleTogglePlay}
-          onPrev={handlePrev}
-          onNext={handleNext}
-          volume={volume}
-          onVolumeChange={setVolume}
-          muted={muted}
-          onMuteToggle={handleMuteToggle}
-          shuffle={shuffle}
-          onShuffleToggle={() => setShuffle(s => !s)}
-          repeat={repeat}
-          onRepeatToggle={() => setRepeat(r => !r)}
-          liked={currentSong ? likedSongs.has(currentSong.id) : false}
-          onLikeToggle={() => currentSong && handleLikeToggle(currentSong.id)}
-          currentTime={currentTime}
-          duration={duration}
-          onSeek={handleSeek}
-          onArtworkClick={handleArtworkClick}
-          isSearchingAlbum={isSearchingAlbum}
-          isMobileMiniplayer={true}
-        />
-      </div>
+      {!showFullScreenPlayer && (
+        <div className="fixed bottom-16 left-0 right-0 md:hidden bg-zinc-900 border-t border-zinc-800 z-30">
+          <PlayerBar
+            currentSong={currentSong}
+            isPlaying={isPlaying}
+            onTogglePlay={handleTogglePlay}
+            onPrev={handlePrev}
+            onNext={handleNext}
+            volume={volume}
+            onVolumeChange={setVolume}
+            muted={muted}
+            onMuteToggle={handleMuteToggle}
+            shuffle={shuffle}
+            onShuffleToggle={() => setShuffle(s => !s)}
+            repeat={repeat}
+            onRepeatToggle={() => setRepeat(r => !r)}
+            liked={currentSong ? likedSongs.has(currentSong.id) : false}
+            onLikeToggle={() => currentSong && handleLikeToggle(currentSong.id)}
+            currentTime={currentTime}
+            duration={duration}
+            onSeek={handleSeek}
+            onArtworkClick={handleArtworkClick}
+            isSearchingAlbum={isSearchingAlbum}
+            isMobileMiniplayer={true}
+            onOpenFullScreen={() => setShowFullScreenPlayer(true)}
+          />
+        </div>
+      )}
       
       {/* Mobile Bottom Navigation - Visible only on mobile */}
       <div className="fixed bottom-0 left-0 right-0 md:hidden bg-zinc-950 border-t border-zinc-900 flex items-center justify-around h-16 z-40 safe-area-inset-bottom">
@@ -650,10 +722,44 @@ function AppContent() {
           <Search size={24} />
           <span className="text-xs mt-1">Search</span>
         </button>
+        <div className="flex flex-col items-center justify-center w-full h-full">
+          {isSignedIn ? (
+            <UserButton afterSignOutUrl="/" />
+          ) : (
+            <SignInButton mode="modal">
+              <button className="flex flex-col items-center justify-center text-zinc-400 hover:text-white">
+                <User size={24} />
+                <span className="text-xs mt-1">Sign In</span>
+              </button>
+            </SignInButton>
+          )}
+        </div>
       </div>
       
-      {/* Download Manager */}
-      <DownloadManager />
+      {/* Full Screen Player - Mobile Only */}
+      {showFullScreenPlayer && (
+        <FullScreenPlayer
+          currentSong={currentSong}
+          isPlaying={isPlaying}
+          onTogglePlay={handleTogglePlay}
+          onPrev={handlePrev}
+          onNext={handleNext}
+          shuffle={shuffle}
+          onShuffleToggle={() => setShuffle(s => !s)}
+          repeat={repeat}
+          onRepeatToggle={() => setRepeat(r => !r)}
+          liked={currentSong ? likedSongs.has(currentSong.id) : false}
+          onLikeToggle={() => currentSong && handleLikeToggle(currentSong.id)}
+          currentTime={currentTime}
+          duration={duration}
+          onSeek={handleSeek}
+          onClose={() => setShowFullScreenPlayer(false)}
+          isSearchingAlbum={isSearchingAlbum}
+        />
+      )}
+      
+      {/* Download Manager - Only in development */}
+      {!isProduction && <DownloadManager />}
       
       {/* Toast Notification - Responsive positioning */}
       {showToast && (
@@ -690,11 +796,26 @@ function AppContent() {
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <AppContent />
-      </BrowserRouter>
-    </QueryClientProvider>
+    <ClerkProvider 
+      publishableKey={clerkPublishableKey} 
+      appearance={{
+        baseTheme: dark,
+        variables: {
+          colorPrimary: '#fc3c44',
+          colorBackground: '#18181b',
+          colorInputBackground: '#27272a',
+          colorText: '#ffffff',
+          colorTextSecondary: '#a1a1aa',
+          borderRadius: '0.5rem'
+        }
+      }}
+    >
+      <QueryClientProvider client={queryClient}>
+        <BrowserRouter>
+          <AppContent />
+        </BrowserRouter>
+      </QueryClientProvider>
+    </ClerkProvider>
   )
 }
 

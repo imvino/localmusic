@@ -1,11 +1,8 @@
-import { Search, Mic2, Disc3, Music, Radio, ListMusic } from 'lucide-react'
-import { useState, useEffect } from 'react'
+import { Search, Mic2, Disc3, Music, ListMusic } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import MetaTags from '../components/MetaTags'
 import { useSearch } from '../hooks/useApi'
 import { decodeHtmlEntities, getBestImageUrl, getArtistImageUrl, formatDuration } from '../utils'
-
-const API_BASE = '/api'
 
 export default function SearchView({ query, onSongClick, onAlbumClick, onArtistClick }) {
   const navigate = useNavigate()

@@ -1,13 +1,9 @@
 import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, Shuffle, Repeat, Heart, Music, Loader2 } from 'lucide-react'
 import { formatTime, decodeHtmlEntities } from '../utils'
 
-export default function PlayerBar({ currentSong, isPlaying, onTogglePlay, onPrev, onNext, volume, onVolumeChange, muted, onMuteToggle, shuffle, onShuffleToggle, repeat, onRepeatToggle, liked, onLikeToggle, currentTime, duration, onSeek, onArtworkClick, isSearchingAlbum, isMobileMiniplayer = false }) {
+export default function PlayerBar({ currentSong, isPlaying, onTogglePlay, onPrev, onNext, volume, onVolumeChange, muted, onMuteToggle, shuffle, onShuffleToggle, repeat, onRepeatToggle, liked, onLikeToggle, currentTime, duration, onSeek, onArtworkClick, isSearchingAlbum, isMobileMiniplayer = false, onOpenFullScreen = null }) {
   if (!currentSong) {
-    return (
-      <div className={`${isMobileMiniplayer ? 'h-16' : 'h-[72px]'} bg-black/95 border-t border-zinc-800/60 flex items-center px-4 md:px-6`}>
-        <p className="text-zinc-600 text-sm">Select a song to play</p>
-      </div>
-    )
+    return null
   }
 
   const artwork = currentSong.artworkUrl || currentSong.moviePosterUrl || currentSong.imageUrl
@@ -18,21 +14,38 @@ export default function PlayerBar({ currentSong, isPlaying, onTogglePlay, onPrev
         {/* Now Playing - Compact */}
         <div className="flex items-center gap-2 flex-1 min-w-0">
           {artwork ? (
-            <img
-              src={artwork}
-              alt={currentSong.album}
-              className="w-10 h-10 rounded object-cover shadow flex-shrink-0"
-              onError={e => { e.target.style.display = 'none' }}
-            />
+            <button
+              onClick={onArtworkClick}
+              className="flex-shrink-0 hover:scale-105 transition-transform relative"
+              disabled={isSearchingAlbum}
+            >
+              <img
+                src={artwork}
+                alt={currentSong.album}
+                className="w-10 h-10 rounded object-cover shadow"
+                onError={e => { e.target.style.display = 'none' }}
+              />
+              {isSearchingAlbum && (
+                <div className="absolute inset-0 bg-black/60 rounded flex items-center justify-center">
+                  <Loader2 size={14} className="text-white animate-spin" />
+                </div>
+              )}
+            </button>
           ) : (
             <div className="w-10 h-10 rounded bg-zinc-800 flex items-center justify-center flex-shrink-0">
               <Music size={16} className="text-zinc-600" />
             </div>
           )}
-          <div className="min-w-0 flex-1">
+          <button
+            onClick={(e) => {
+              e.stopPropagation()
+              onOpenFullScreen()
+            }}
+            className="min-w-0 flex-1 text-left hover:opacity-80 transition-opacity"
+          >
             <p className="text-xs font-semibold text-white truncate">{decodeHtmlEntities(currentSong.name || currentSong.title)}</p>
             <p className="text-xs text-zinc-400 truncate">{currentSong.artist}</p>
-          </div>
+          </button>
         </div>
 
         {/* Compact Controls */}

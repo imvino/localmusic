@@ -1,6 +1,9 @@
-import { Compass, Music, Search, RefreshCw, Keyboard, X } from 'lucide-react'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { Compass, RefreshCw, Keyboard, X, Trash2, Download, ListMusic, Clock } from 'lucide-react'
+import { Link, useLocation } from 'react-router-dom'
 import { useState, useRef } from 'react'
+import { useAuth } from '@clerk/react'
+
+const isProduction = import.meta.env.MODE === 'production'
 
 const NAV_ITEMS = [
   { id: 'discover', label: 'Discover', icon: Compass, path: '/discover' },
@@ -8,11 +11,10 @@ const NAV_ITEMS = [
 
 export default function Sidebar({ searchQuery, onSearch, showToast, onClose }) {
   const location = useLocation()
-  const navigate = useNavigate()
   const currentPath = location.pathname
+  const { isSignedIn } = useAuth()
   const [isScanning, setIsScanning] = useState(false)
   const [showShortcuts, setShowShortcuts] = useState(false)
-  const inputRef = useRef(null)
 
   const handleScan = async () => {
     setIsScanning(true)
@@ -69,6 +71,39 @@ export default function Sidebar({ searchQuery, onSearch, showToast, onClose }) {
     }
   }
 
+  const handleClearCache = async () => {
+    try {
+      // Unregister service worker
+      if ('serviceWorker' in navigator) {
+        const registrations = await navigator.serviceWorker.getRegistrations()
+        for (const registration of registrations) {
+          await registration.unregister()
+        }
+      }
+
+      // Clear all caches
+      if ('caches' in window) {
+        const cacheNames = await caches.keys()
+        await Promise.all(cacheNames.map(name => caches.delete(name)))
+      }
+
+      if (showToast) {
+        showToast('Cache cleared successfully. Reloading...', 'success')
+      }
+
+      // Reload page after short delay
+      setTimeout(() => {
+        window.location.reload()
+      }, 1000)
+    } catch (error) {
+      if (showToast) {
+        showToast('Failed to clear cache: ' + error.message, 'error')
+      } else {
+        console.error('Failed to clear cache:', error.message)
+      }
+    }
+  }
+
   return (
     <div className="w-56 bg-black flex-shrink-0 flex flex-col border-r border-zinc-900 h-full">
       <div className="p-5 flex flex-col gap-6 overflow-y-auto flex-1">
@@ -87,7 +122,6 @@ export default function Sidebar({ searchQuery, onSearch, showToast, onClose }) {
 
         {/* Library nav */}
         <div className="flex flex-col gap-0.5">
-          <div className="text-[10px] font-semibold text-zinc-600 uppercase tracking-widest mb-2 px-2">Library</div>
           {NAV_ITEMS.map(({ id, label, icon: Icon, path }) => (
             <Link
               key={id}
@@ -101,19 +135,21 @@ export default function Sidebar({ searchQuery, onSearch, showToast, onClose }) {
               {label}
             </Link>
           ))}
-          
-          {/* Scan button */}
+
+          {/* Scan button - Only in development */}
+          {!isProduction && (
           <button
             onClick={handleScan}
             disabled={isScanning}
             className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-left w-full
-              ${isScanning 
-                ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed' 
+              ${isScanning
+                ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed'
                 : 'text-zinc-400 hover:text-white hover:bg-zinc-800/40'}`}
           >
             <RefreshCw size={17} className={isScanning ? 'animate-spin' : ''} />
             {isScanning ? 'Scanning...' : 'Scan Library'}
           </button>
+          )}
 
           {/* Shortcuts button - Hidden on mobile */}
           <button
@@ -124,6 +160,55 @@ export default function Sidebar({ searchQuery, onSearch, showToast, onClose }) {
             Shortcuts
           </button>
         </div>
+
+        {/* Registered User Features - Only visible when signed in */}
+        {isSignedIn && (
+          <div className="flex flex-col gap-0.5">
+            <div className="text-[10px] font-semibold text-zinc-600 uppercase tracking-widest mb-2 px-2">Library</div>
+            
+            {/* Clear Cache */}
+            <button
+              onClick={handleClearCache}
+              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-left w-full text-zinc-400 hover:text-white hover:bg-zinc-800/40"
+            >
+              <Trash2 size={17} />
+              Clear Cache
+            </button>
+
+            {/* Offline Music - Coming Soon */}
+            <button
+              className="flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-left w-full text-zinc-400 hover:text-white hover:bg-zinc-800/40"
+            >
+              <div className="flex items-center gap-3">
+                <Download size={17} />
+                Offline Music
+              </div>
+              <span className="text-[10px] text-zinc-500 bg-zinc-800 px-1.5 py-0.5 rounded">Soon</span>
+            </button>
+
+            {/* My Playlist - Coming Soon */}
+            <button
+              className="flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-left w-full text-zinc-400 hover:text-white hover:bg-zinc-800/40"
+            >
+              <div className="flex items-center gap-3">
+                <ListMusic size={17} />
+                My Playlist
+              </div>
+              <span className="text-[10px] text-zinc-500 bg-zinc-800 px-1.5 py-0.5 rounded">Soon</span>
+            </button>
+
+            {/* Recently Played - Coming Soon */}
+            <button
+              className="flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-left w-full text-zinc-400 hover:text-white hover:bg-zinc-800/40"
+            >
+              <div className="flex items-center gap-3">
+                <Clock size={17} />
+                Recently Played
+              </div>
+              <span className="text-[10px] text-zinc-500 bg-zinc-800 px-1.5 py-0.5 rounded">Soon</span>
+            </button>
+          </div>
+        )}
 
         {/* Legal links */}
         <div className="flex flex-col gap-0.5">

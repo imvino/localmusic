@@ -1,10 +1,3 @@
-export function getGreeting() {
-  const h = new Date().getHours()
-  if (h < 12) return 'Good morning'
-  if (h < 17) return 'Good afternoon'
-  return 'Good evening'
-}
-
 export async function getiTunesArtwork(albumName, artistName) {
   try {
     const query = artistName ? `${albumName} ${artistName}` : albumName

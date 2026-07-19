@@ -10,30 +10,46 @@ export default function TermsOfService() {
         <section>
           <h2 className="text-base sm:text-lg font-semibold text-white mb-3">1. Introduction</h2>
           <p>
-            Welcome to Torsongs ("we", "our", or "us"). By using Torsongs, you agree to these Terms of Service. 
-            Torsongs is a hobby project for personal music discovery and streaming.
+            Welcome to Torsongs ("we", "our", or "us"). By using Torsongs, you agree to these Terms of Service.
+            Torsongs is a music streaming service that provides Tamil music discovery and streaming functionality.
           </p>
         </section>
 
         <section>
           <h2 className="text-base sm:text-lg font-semibold text-white mb-3">2. Nature of Service</h2>
           <p>
-            Torsongs is a personal hobby project that provides music discovery, search, and streaming functionality. 
+            Torsongs provides music discovery, search, and streaming functionality through a Progressive Web App (PWA).
             We do not host any content on our servers. All content is accessed through third-party services.
+            The service is available to friends and family for personal, non-commercial use.
           </p>
         </section>
 
         <section>
-          <h2 className="text-base sm:text-lg font-semibold text-white mb-3">3. No Content Hosting</h2>
+          <h2 className="text-base sm:text-lg font-semibold text-white mb-3">3. Authentication and Access</h2>
           <p>
-            Torsongs does not host, store, or distribute any music files. We provide search and indexing services 
-            that help users discover music available through third-party platforms. All content remains the property 
+            Torsongs requires user authentication to access the service. We offer two tiers of access:
+          </p>
+          <ul className="list-disc list-inside space-y-2 ml-4">
+            <li><strong>Free Users:</strong> Limited to 5 minutes of listening per session</li>
+            <li><strong>Registered Users:</strong> Unlimited listening access</li>
+          </ul>
+          <p className="mt-2">
+            Authentication is provided through Clerk, a third-party authentication service. By creating an account,
+            you agree to Clerk's terms of service and privacy policy.
+          </p>
+        </section>
+
+        <section>
+          <h2 className="text-base sm:text-lg font-semibold text-white mb-3">4. No Content Hosting</h2>
+          <p>
+            Torsongs does not host, store, or distribute any music files. We provide search and indexing services
+            that help users discover music available through third-party platforms. All content remains the property
             of their respective copyright holders.
           </p>
         </section>
 
         <section>
-          <h2 className="text-base sm:text-lg font-semibold text-white mb-3">4. User Responsibilities</h2>
+          <h2 className="text-base sm:text-lg font-semibold text-white mb-3">5. User Responsibilities</h2>
           <p>By using Torsongs, you agree to:</p>
           <ul className="list-disc list-inside space-y-2 ml-4">
             <li>Use the service for personal, non-commercial purposes only</li>

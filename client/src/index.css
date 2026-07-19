@@ -79,3 +79,103 @@ input, textarea, select {
     font-size: 16px;
   }
 }
+
+/* Clerk dark theme overrides */
+[class*="cl-"] {
+  color: #ffffff !important;
+}
+
+.cl-internal-b3l6o3,
+.cl-internal-fqc41u,
+[class*="cl-"][class*="rootBox"] {
+  background-color: #18181b !important;
+}
+
+[class*="cl-"][class*="card"] {
+  background-color: #18181b !important;
+}
+
+[class*="cl-"][class*="header"] {
+  color: #ffffff !important;
+}
+
+[class*="cl-"][class*="headerTitle"],
+[class*="cl-"][class*="headerSubtitle"] {
+  color: #ffffff !important;
+}
+
+[class*="cl-"][class*="formField"] {
+  color: #ffffff !important;
+}
+
+[class*="cl-"][class*="formFieldLabel"] {
+  color: #ffffff !important;
+}
+
+[class*="cl-"][class*="input"] {
+  background-color: #27272a !important;
+  color: #ffffff !important;
+  border-color: #3f3f46 !important;
+}
+
+[class*="cl-"][class*="input"]::placeholder {
+  color: #a1a1aa !important;
+}
+
+[class*="cl-"][class*="button"] {
+  background-color: #fc3c44 !important;
+  color: #ffffff !important;
+}
+
+[class*="cl-"][class*="socialButtons"] button {
+  background-color: #eaeaf5 !important;
+  color: #000000 !important;
+  border-color: #3f3f46 !important;
+}
+
+[class*="cl-"][class*="socialButtons"] button span,
+[class*="cl-"][class*="socialButtons"] button svg,
+[class*="cl-"][class*="socialButtons"] button img {
+  color: #000000 !important;
+  fill: #000000 !important;
+}
+
+[class*="cl-"][class*="socialButtons"] button svg path {
+  fill: #000000 !important;
+}
+
+[class*="cl-"][class*="divider"] {
+  color: #a1a1aa !important;
+}
+
+[class*="cl-"][class*="dividerText"] {
+  color: #a1a1aa !important;
+}
+
+[class*="cl-"][class*="footer"] {
+  color: #a1a1aa !important;
+}
+
+[class*="cl-"][class*="footerActionText"] {
+  color: #a1a1aa !important;
+}
+
+[class*="cl-"][class*="actionLink"] {
+  color: #fc3c44 !important;
+}
+
+[class*="cl-"][class*="modalBackdrop"] {
+  background-color: rgba(0, 0, 0, 0.8) !important;
+}
+
+[class*="cl-"] p,
+[class*="cl-"] span,
+[class*="cl-"] div {
+  color: #ffffff !important;
+}
+
+[class*="cl-"] a,
+[class*="cl-"][class*="actionLink"],
+[class*="cl-"][class*="footerActionLink"] {
+  color: #fc3c44 !important;
+}

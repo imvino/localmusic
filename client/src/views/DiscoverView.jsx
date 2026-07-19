@@ -6,7 +6,7 @@ import HorizontalScroll from '../components/HorizontalScroll'
 import { getiTunesArtwork, decodeHtmlEntities } from '../utils'
 import { useJioFooterDetails, useJioFeaturedPlaylists, useJioNewReleases } from '../hooks/useApi'
 
-const API_BASE = '/api'
+const isProduction = import.meta.env.MODE === 'production'
 
 // Helper to format play counts
 function formatPlayCount(count) {
@@ -81,19 +81,6 @@ export default function DiscoverView({ onSongClick }) {
 
   const handlePlaylistClick = (playlist) => {
     navigate(`/discover/playlist/${playlist.id}`, { state: { playlist } })
-  }
-
-  const handleSongClick = (song, queue, index) => {
-    if (onSongClick) {
-      onSongClick({
-        id: song.id,
-        name: song.name,
-        album: song.album,
-        artist: song.artist,
-        streamUrl: '',
-        imageUrl: song.image
-      }, queue, index)
-    }
   }
 
   if (loading) {
@@ -305,6 +292,7 @@ function SongCard({ song, onSongClick, downloadProgress }) {
           >
             <Play size={16} fill="currentColor" />
           </button>
+          {!isProduction && (
           <button
             onClick={handleDownload}
             className="rounded-full p-2 bg-zinc-700 hover:bg-zinc-600 text-white transition-colors cursor-pointer"
@@ -312,6 +300,7 @@ function SongCard({ song, onSongClick, downloadProgress }) {
           >
             {progress?.status === 'downloading' ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
           </button>
+          )}
         </div>
       </div>
       <h3 className="text-xs font-medium text-white truncate">{decodeHtmlEntities(song.name)}</h3>

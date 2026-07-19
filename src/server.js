@@ -5,12 +5,19 @@ const fs = require('fs');
 const path = require('path');
 const axios = require('axios');
 const { exec } = require('child_process');
-const { decodeHtmlEntities, loadLibrary: loadLibraryUtil, detectComposerFromSongs, getBestImage } = require('./utils');
+const { decodeHtmlEntities, loadLibrary: loadLibraryUtil, detectComposerFromSongs, getBestImage, fetchFromMusicServiceOfficial } = require('./utils');
+const { ClerkExpressRequireAuth, clerkClient } = require('@clerk/backend');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 const MUSIC_DIR = process.env.MUSIC_DIR || '/Volumes/samsung/Music';
 const LIBRARY_FILE = path.join(__dirname, '../data/music-library.json');
+
+// Check if we're in production mode
+const isProduction = process.env.NODE_ENV === 'production';
+
+// Clerk configuration
+const CLERK_SECRET_KEY = process.env.CLERK_SECRET_KEY;
 
 // Music Service API Configuration
 const MUSIC_API_BASE = 'https://saavn.sumit.co/api';
@@ -18,19 +25,6 @@ const MUSIC_API_BASE = 'https://saavn.sumit.co/api';
 // YouTube Data API Configuration
 const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY;
 const YOUTUBE_PLAYLIST_ID = 'PL4fGSI1pDJn4WX22qg1Po7qKOwOb4H6Sk'; // YouTube Music Global Charts - Tamil
-
-
-// Helper: Fetch Spotify playlist (requires Spotify API credentials)
-// TODO: Add Spotify API credentials and implement live API call
-async function fetchSpotifyPlaylist() {
-  // Placeholder for Spotify API integration
-  // To implement:
-  // 1. Get Spotify API credentials (client_id, client_secret)
-  // 2. Use Spotify Web API to fetch playlist by ID
-  // 3. Return formatted song data
-  console.warn('Spotify API integration not implemented - requires API credentials');
-  return [];
-}
 
 // Cache for music directory availability and library data
 let musicDirAvailable = null;
@@ -121,7 +115,14 @@ function isAlbumLocal(albumId) {
   return false;
 }
 
-app.use(cors());
+// Configure CORS
+const corsOptions = {
+  origin: isProduction 
+    ? process.env.VITE_APP_URL || 'https://your-vercel-app.vercel.app'
+    : true, // Allow all origins in development
+  credentials: true
+};
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // Health check endpoint
@@ -129,11 +130,14 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: Date.now() })
 });
 
-// Serve music files statically
-app.use('/music', express.static(MUSIC_DIR));
+// Serve music files statically (only in development)
+if (!isProduction) {
+  app.use('/music', express.static(MUSIC_DIR));
+}
 
-// Get full library
-app.get('/api/library', (req, res) => {
+// Get full library (only in development)
+if (!isProduction) {
+  app.get('/api/library', (req, res) => {
   try {
     const data = fs.readFileSync(LIBRARY_FILE, 'utf8');
     const library = JSON.parse(data);
@@ -148,9 +152,11 @@ app.get('/api/library', (req, res) => {
   } catch (error) {
     res.status(500).json({ error: 'Failed to read library' });
   }
-});
+  });
+}
 
-// Get all albums
+// Get all albums (only in development)
+if (!isProduction) {
 app.get('/api/albums', (req, res) => {
   try {
     const data = JSON.parse(fs.readFileSync(LIBRARY_FILE, 'utf8'));
@@ -166,9 +172,11 @@ app.get('/api/albums', (req, res) => {
   } catch (error) {
     res.status(500).json({ error: 'Failed to read albums' });
   }
-});
+  });
+}
 
-// Get composer albums metadata
+// Get composer albums metadata (only in development)
+if (!isProduction) {
 app.get('/api/composer-albums/:composerId', (req, res) => {
   try {
     const { composerId } = req.params;
@@ -190,14 +198,29 @@ app.get('/api/composer-albums/:composerId', (req, res) => {
     }
     
     const data = JSON.parse(fs.readFileSync(metadataFile, 'utf8'));
+    
+    // Check which albums are in the local library
+    const library = loadLibrary();
+    const albums = data.albums || [];
+    
+    albums.forEach(album => {
+      if (album.id && albumIdIndex.has(album.id)) {
+        album.isLocal = true;
+      } else {
+        album.isLocal = false;
+      }
+    });
+    
     res.json(data);
   } catch (error) {
     console.error('Error reading composer metadata:', error);
     res.status(500).json({ error: 'Failed to read composer metadata' });
   }
-});
+  });
+}
 
-// Get songs from an album
+// Get songs from an album (only in development)
+if (!isProduction) {
 app.get('/api/albums/:albumId/songs', (req, res) => {
   try {
     const data = JSON.parse(fs.readFileSync(LIBRARY_FILE, 'utf8'));
@@ -214,11 +237,12 @@ app.get('/api/albums/:albumId/songs', (req, res) => {
   } catch (error) {
     res.status(500).json({ error: 'Failed to read songs' });
   }
-});
+  });
+}
 
-// Scan music library endpoint
+// Scan music library endpoint (only in development)
+if (!isProduction) {
 app.post('/api/scan', (req, res) => {
-  console.log('Starting library validation...');
   
   exec('node scripts/scan-library.js', { cwd: path.join(__dirname, '..') }, (error, stdout, stderr) => {
     if (error) {
@@ -253,10 +277,9 @@ app.post('/api/scan', (req, res) => {
       sizeWarning = fileSizeMB > 5; // 5MB threshold
     }
     
-    console.log('Validation complete:', stdout.trim());
     
-    res.json({ 
-      success: true, 
+    res.json({
+      success: true,
       message: stdout.trim(),
       albums: albums,
       songs: songs,
@@ -266,10 +289,12 @@ app.post('/api/scan', (req, res) => {
       sizeWarning: sizeWarning
     });
   });
-});
+  });
+}
 
 // Stream a song with range support (local or proxied)
-app.get('/api/stream/:songId', async (req, res) => {
+// In production, require authentication
+const streamHandler = async (req, res) => {
   try {
     // Build indexes if not available
     if (!songIdIndex || !albumIdIndex) {
@@ -350,25 +375,34 @@ app.get('/api/stream/:songId', async (req, res) => {
     console.error('Stream error:', error);
     res.status(500).json({ error: 'Failed to stream song' });
   }
-});
+};
 
-// Get artwork
-app.get('/api/artwork/:albumId', (req, res) => {
-  try {
-    // Build indexes if not available
-    if (!songIdIndex || !albumIdIndex) {
-      buildIndexes();
+// Register stream endpoint with conditional authentication
+if (isProduction) {
+  app.get('/api/stream/:songId', ClerkExpressRequireAuth(), streamHandler);
+} else {
+  app.get('/api/stream/:songId', streamHandler);
+}
+
+// Get artwork (only in development)
+if (!isProduction) {
+  app.get('/api/artwork/:albumId', (req, res) => {
+    try {
+      // Build indexes if not available
+      if (!songIdIndex || !albumIdIndex) {
+        buildIndexes();
+      }
+
+      const album = albumIdIndex.get(req.params.albumId);
+      if (!album || !album.localArtworkPath) {
+        return res.status(404).json({ error: 'Artwork not found' });
+      }
+      res.sendFile(album.localArtworkPath);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to get artwork' });
     }
-    
-    const album = albumIdIndex.get(req.params.albumId);
-    if (!album || !album.localArtworkPath) {
-      return res.status(404).json({ error: 'Artwork not found' });
-    }
-    res.sendFile(album.localArtworkPath);
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to get artwork' });
-  }
-});
+  });
+}
 
 // Helper: Fetch from music service API (for discover endpoints)
 async function fetchFromMusicService(endpoint, params = {}) {
@@ -382,34 +416,6 @@ async function fetchFromMusicService(endpoint, params = {}) {
     console.error('Error fetching from music service:', error.message);
     return null;
   }
-}
-
-// Helper: Fetch from official music service API
-async function fetchFromMusicServiceOfficial(__call, params = {}) {
-  try {
-    const allParams = {
-      __call,
-      _format: 'json',
-      _marker: 0,
-      api_version: 4,
-      ctx: 'web6dot0',
-      ...params
-    };
-    console.log('Fetching official API:', __call, 'params:', allParams);
-    const response = await axios.get('https://www.jiosaavn.com/api.php', {
-      params: allParams,
-      headers: { 'User-Agent': 'Mozilla/5.0' }
-    });
-    return response.data;
-  } catch (error) {
-    console.error('Error fetching from music service:', error.message);
-    return null;
-  }
-}
-
-// Helper: Fetch Spotify playlist (static data)
-function fetchSpotifyPlaylist() {
-  return SPOTIFY_PLAYLIST;
 }
 
 // Helper: Fetch YouTube playlist items
@@ -809,11 +815,12 @@ app.get('/api/song/:id', async (req, res) => {
   }
 });
 
-// Integrate downloader
-const downloader = require('./downloader');
+// Integrate downloader (only in development)
+if (!isProduction) {
+  const downloader = require('./downloader');
 
-// SSE endpoint for download progress
-app.get('/api/download-progress/:downloadId', (req, res) => {
+  // SSE endpoint for download progress
+  app.get('/api/download-progress/:downloadId', (req, res) => {
   const { downloadId } = req.params;
   
   res.setHeader('Content-Type', 'text/event-stream');
@@ -953,7 +960,8 @@ app.post('/api/download-album', async (req, res) => {
     console.error('Album download error:', error);
     res.status(500).json({ error: 'Failed to start album download' });
   }
-});
+  });
+}
 
 // Get trending songs using official API
 app.get('/api/trending', async (req, res) => {
@@ -1264,7 +1272,6 @@ app.get('/api/artist/:id', async (req, res) => {
 
     const artistData = officialData;
     
-    console.log('Artist API response for ID', id, ':', JSON.stringify(artistData, null, 2));
 
     // Helper for images
     const getBestImage = (imageObj) => {
@@ -1358,7 +1365,6 @@ app.get('/api/artist/:id', async (req, res) => {
       }
     } else {
       // Fallback: Search for songs by artist name if topSongs is empty
-      console.log('topSongs empty, searching for songs by artist name:', artistData.name);
       try {
         const searchResponse = await fetchFromMusicServiceOfficial('search.getSongResults', {
           q: artistData.name,
@@ -1613,51 +1619,6 @@ app.get('/api/trending-youtube', async (req, res) => {
   }
 });
 
-// Get trending songs from Spotify playlist matched with music service
-app.get('/api/trending-spotify', async (req, res) => {
-  try {
-    const limit = parseInt(req.query.limit) || 20;
-
-    const spotifySongs = fetchSpotifyPlaylist();
-
-    // Match each Spotify song with music service
-    const matchedSongs = [];
-    for (const spotifySong of spotifySongs.slice(0, limit)) {
-      const serviceMatch = await matchWithMusicService(spotifySong.name, spotifySong.artist);
-
-      if (serviceMatch) {
-        matchedSongs.push({
-          ...serviceMatch,
-          spotifyName: spotifySong.name,
-          spotifyArtist: spotifySong.artist,
-          availableOnService: true,
-          isLocal: isSongLocal(serviceMatch.id)
-        });
-      } else {
-        matchedSongs.push({
-          id: `spotify-${matchedSongs.length}`,
-          name: spotifySong.name,
-          artists: { primary: [{ name: spotifySong.artist }] },
-          album: null,
-          year: null,
-          image: [],
-          downloadUrl: [],
-          duration: null,
-          spotifyName: spotifySong.name,
-          spotifyArtist: spotifySong.artist,
-          availableOnService: false,
-          isLocal: false
-        });
-      }
-    }
-
-    res.json({ success: true, data: matchedSongs });
-  } catch (error) {
-    console.error('Spotify trending error:', error);
-    res.status(500).json({ error: 'Failed to fetch Spotify trending songs' });
-  }
-});
-
 // JioSaavn API Proxy Endpoints
 
 // Get footer details (Top Artists, Top Playlists)
@@ -1797,6 +1758,5 @@ app.get('/api/health', (req, res) => {
 buildIndexes();
 
 app.listen(PORT, () => {
-  console.log(`Music server running on http://localhost:${PORT}`);
-  console.log(`Music directory: ${MUSIC_DIR}`);
+  console.log(`Server running on port ${PORT}`);
 });

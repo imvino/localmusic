@@ -11,55 +11,6 @@ async function fetchAPI(endpoint, options = {}) {
   return response.json()
 }
 
-// Discover endpoints
-export function useTrending(language = 'tamil', limit = 10) {
-  return useQuery({
-    queryKey: ['trending', language, limit],
-    queryFn: () => fetchAPI(`/trending?language=${language}&limit=${limit}`),
-    select: (data) => data.data || [],
-  })
-}
-
-export function useNewReleases(language = 'tamil', limit = 10) {
-  return useQuery({
-    queryKey: ['new-releases', language, limit],
-    queryFn: () => fetchAPI(`/new-releases?language=${language}&limit=${limit}`),
-    select: (data) => data.data || [],
-  })
-}
-
-export function useFeaturedPlaylists(language = 'tamil', limit = 10) {
-  return useQuery({
-    queryKey: ['featured-playlists', language, limit],
-    queryFn: () => fetchAPI(`/featured-playlists?language=${language}&limit=${limit}`),
-    select: (data) => data.data || [],
-  })
-}
-
-export function useCharts(language = 'tamil', limit = 10) {
-  return useQuery({
-    queryKey: ['charts', language, limit],
-    queryFn: () => fetchAPI(`/charts?language=${language}&limit=${limit}`),
-    select: (data) => data.data || [],
-  })
-}
-
-export function useYoutubeTrending(limit = 20) {
-  return useQuery({
-    queryKey: ['trending-youtube', limit],
-    queryFn: () => fetchAPI(`/trending-youtube?limit=${limit}`),
-    select: (data) => data.data || [],
-  })
-}
-
-export function useSpotifyTrending(limit = 20) {
-  return useQuery({
-    queryKey: ['trending-spotify', limit],
-    queryFn: () => fetchAPI(`/trending-spotify?limit=${limit}`),
-    select: (data) => data.data || [],
-  })
-}
-
 // Detail endpoints
 export function useAlbum(id) {
   return useQuery({
@@ -83,16 +34,6 @@ export function usePlaylist(id) {
   return useQuery({
     queryKey: ['playlist', id],
     queryFn: () => fetchAPI(`/playlist/${id}`),
-    select: (data) => data.data || null,
-    enabled: !!id,
-  })
-}
-
-// Song endpoint
-export function useSong(id) {
-  return useQuery({
-    queryKey: ['song', id],
-    queryFn: () => fetchAPI(`/song/${id}`),
     select: (data) => data.data || null,
     enabled: !!id,
   })

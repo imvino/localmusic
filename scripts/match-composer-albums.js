@@ -2,6 +2,7 @@ const axios = require('axios');
 const fs = require('fs');
 const path = require('path');
 const Fuse = require('fuse.js');
+const { fetchFromMusicServiceOfficial, getBestImage, fuzzyMatchAlbumName } = require('../src/utils');
 
 // Parse command line arguments (handle both --arg=value and --arg value formats)
 const args = process.argv.slice(2);
@@ -31,81 +32,6 @@ if (!composer || !artistId || !inputFile || !outputFile) {
 }
 
 const API_BASE = 'http://localhost:3001/api';
-
-// Helper function to fetch from JioSaavn API
-async function fetchFromMusicServiceOfficial(__call, params = {}) {
-  try {
-    const allParams = {
-      __call,
-      _format: 'json',
-      _marker: 0,
-      api_version: 4,
-      ctx: 'web6dot0',
-      ...params
-    };
-    const response = await axios.get('https://www.jiosaavn.com/api.php', {
-      params: allParams,
-      headers: { 'User-Agent': 'Mozilla/5.0' }
-    });
-    return response.data;
-  } catch (error) {
-    if (error.response && error.response.status === 403) {
-      console.log(`  Rate limited (403) for query: ${params.q}`);
-    } else {
-      console.error(`Error fetching from music service: ${error.message}`);
-    }
-    return null;
-  }
-}
-
-// Helper to get best image
-function getBestImage(imageObj) {
-  if (typeof imageObj === 'string') return imageObj;
-  if (!imageObj || !Array.isArray(imageObj)) return null;
-  const best = imageObj.find(img => img.quality === '500x500') || 
-               imageObj.find(img => img.quality === '150x150') || 
-               imageObj[imageObj.length - 1];
-  return best ? best.url : null;
-}
-
-// Fuzzy match function for album names using fuse.js
-function fuzzyMatchAlbumName(searchName, apiName) {
-  const searchLower = searchName.toLowerCase().replace(/[^a-z0-9]/g, '');
-  const apiLower = apiName.toLowerCase().replace(/[^a-z0-9]/g, '');
-  
-  // Exact match
-  if (searchLower === apiLower) return true;
-  
-  // Check if API name contains search name (or vice versa)
-  if (searchLower.includes(apiLower) || apiLower.includes(searchLower)) return true;
-  
-  // Normalize common Tamil/English spelling variations
-  const normalizeSpelling = (str) => {
-    return str
-      .replace(/th/g, 't')  // Sathyam -> Satyam
-      .replace(/aa/g, 'a')   // Various double vowels
-      .replace(/ii/g, 'i')
-      .replace(/ee/g, 'e')
-      .replace(/oo/g, 'o');
-  };
-  
-  const normalizedSearch = normalizeSpelling(searchLower);
-  const normalizedApi = normalizeSpelling(apiLower);
-  
-  if (normalizedSearch === normalizedApi) return true;
-  if (normalizedSearch.includes(normalizedApi) || normalizedApi.includes(normalizedSearch)) return true;
-  
-  // Use fuse.js for fuzzy matching
-  const fuse = new Fuse([apiName], {
-    includeScore: true,
-    threshold: 0.4, // More lenient for longer names
-    ignoreLocation: true,
-    useExtendedSearch: false
-  });
-  
-  const result = fuse.search(searchName);
-  return result.length > 0;
-}
 
 // Verify album by checking language, composer, and name
 async function verifyAlbum(albumId, expectedTitle) {

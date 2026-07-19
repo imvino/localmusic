@@ -5,13 +5,11 @@ import { useState } from 'react'
 export default function DownloadManager() {
   const { downloads, removeDownload, clearCompleted } = useDownloadStore()
   const [isMinimized, setIsMinimized] = useState(false)
-  
+
   const downloadList = Object.values(downloads)
   const activeCount = downloadList.filter(d => d.status === 'downloading').length
   const completedCount = downloadList.filter(d => d.status === 'complete').length
-  const errorCount = downloadList.filter(d => d.status === 'error').length
-  const totalCount = downloadList.length
-  
+
   if (downloadList.length === 0) {
     return null
   }

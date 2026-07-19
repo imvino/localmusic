@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate, useLocation } from 'react-router-dom'
-import { ArrowLeft, Disc, Download, Loader2, ChevronDown, ChevronUp } from 'lucide-react'
+import { ArrowLeft, Disc, Download, Loader2, ChevronDown } from 'lucide-react'
 import { useDownloadStore } from '../stores/downloadStore'
 import MetaTags from '../components/MetaTags'
 import { getiTunesArtwork, decodeHtmlEntities, getArtistImageUrl } from '../utils'
@@ -9,6 +9,7 @@ import { queryClient } from '../App'
 
 const API_BASE = '/api'
 const HARRIS_JAYARAJ_ID = '455243'
+const isProduction = import.meta.env.MODE === 'production'
 
 export default function DiscoverDetailView({ onSongClick, showToast, currentSong, isPlaying, sidebarOpen }) {
   const { id } = useParams()
@@ -96,7 +97,7 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
               image: album.image ? [{ quality: '150x150', url: album.image }] : [],
               songCount: parseInt(album.songCount) || 0,
               playCount: album.playCount || 0,
-              isLocal: false
+              isLocal: album.isLocal || false
             }))
           setCustomAlbums(transformedAlbums)
         })
@@ -438,7 +439,7 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
         <div className="flex-1 min-w-0 text-center md:text-left">
           <div className="flex items-center justify-center md:justify-start gap-2 mb-2">
             <h1 className="text-2xl md:text-3xl font-bold text-white">{data?.name || meta?.name}</h1>
-            {isAlbum && data?.isLocal && (
+            {!isProduction && isAlbum && data?.isLocal && (
               <span className="hidden md:inline bg-green-500 text-white text-xs px-2 py-1 rounded font-medium">
                 LOCAL
               </span>
@@ -504,7 +505,7 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
           
           {data?.description && <p className="text-zinc-500 text-sm line-clamp-2">{data.description}</p>}
           
-          {isAlbum && (
+          {isAlbum && !isProduction && (
             <button
               onClick={(e) => handleDownloadAlbum(e)}
               disabled={downloadingAlbum[id] || songs.length === 0}
@@ -604,15 +605,18 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
                           {song.artists?.primary?.map((a, idx) => (
                             <span key={idx}>
                               {a.id ? (
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation()
-                                    navigate(`/discover/artist/${a.id}`)
-                                  }}
-                                  className="hover:text-[#fc3c44] hover:underline transition-colors"
-                                >
-                                  {a.name}
-                                </button>
+                                <>
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation()
+                                      navigate(`/discover/artist/${a.id}`)
+                                    }}
+                                    className="hidden md:inline hover:text-[#fc3c44] hover:underline transition-colors"
+                                  >
+                                    {a.name}
+                                  </button>
+                                  <span className="md:hidden">{a.name}</span>
+                                </>
                               ) : (
                                 <span>{a.name}</span>
                               )}
@@ -636,13 +640,14 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
                             </div>
                           )
                         })()}
-                        {song.isLocal && (
+                        {!isProduction && song.isLocal && (
                           <span className="hidden md:inline bg-green-500 text-white text-xs px-2 py-0.5 rounded font-medium">
                             LOCAL
                           </span>
                         )}
                         <div className="text-zinc-500 text-sm">{Math.floor(song.duration / 60)}:{(song.duration % 60).toString().padStart(2, '0')}</div>
                       </div>
+                      {!isProduction && (
                       <button
                         onClick={(e) => handleDownload(song, e)}
                         disabled={downloading === song.id || getDownloadBySongId(song.id)?.status === 'downloading'}
@@ -655,6 +660,7 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
                           <Download size={16} />
                         )}
                       </button>
+                      )}
                     </div>
                   ))}
                 </div>
@@ -749,15 +755,18 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
                         {song.artists?.primary?.map((a, idx) => (
                           <span key={idx}>
                             {a.id ? (
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  navigate(`/discover/artist/${a.id}`)
-                                }}
-                                className="hover:text-[#fc3c44] hover:underline transition-colors"
-                              >
-                                {a.name}
-                              </button>
+                              <>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    navigate(`/discover/artist/${a.id}`)
+                                  }}
+                                  className="hidden md:inline hover:text-[#fc3c44] hover:underline transition-colors"
+                                >
+                                  {a.name}
+                                </button>
+                                <span className="md:hidden">{a.name}</span>
+                              </>
                             ) : (
                               <span>{a.name}</span>
                             )}
@@ -781,13 +790,14 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
                           </div>
                         )
                       })()}
-                      {song.isLocal && (
+                      {!isProduction && song.isLocal && (
                         <span className="hidden md:inline bg-green-500 text-white text-xs px-2 py-0.5 rounded font-medium">
                           LOCAL
                         </span>
                       )}
                       <div className="text-zinc-500 text-sm">{Math.floor(song.duration / 60)}:{(song.duration % 60).toString().padStart(2, '0')}</div>
                     </div>
+                    {!isProduction && (
                     <button
                       onClick={(e) => handleDownload(song, e)}
                       disabled={downloading === song.id || getDownloadBySongId(song.id)?.status === 'downloading'}
@@ -800,6 +810,7 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
                         <Download size={16} />
                       )}
                     </button>
+                    )}
                   </div>
                 ))}
               </div>
@@ -862,7 +873,7 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
                           <Disc size={32} className="text-zinc-600" />
                         </div>
                       )}
-                      {album.isLocal && (
+                      {!isProduction && album.isLocal && (
                         <div className="hidden md:block absolute top-2 left-2 bg-green-500 text-white text-xs px-2 py-1 rounded font-medium">
                           LOCAL
                         </div>
@@ -907,15 +918,18 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
                   {song.artists?.primary?.map((a, idx) => (
                     <span key={idx}>
                       {a.id ? (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            navigate(`/discover/artist/${a.id}`)
-                          }}
-                          className="hover:text-[#fc3c44] hover:underline transition-colors"
-                        >
-                          {a.name}
-                        </button>
+                        <>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              navigate(`/discover/artist/${a.id}`)
+                            }}
+                            className="hidden md:inline hover:text-[#fc3c44] hover:underline transition-colors"
+                          >
+                            {a.name}
+                          </button>
+                          <span className="md:hidden">{a.name}</span>
+                        </>
                       ) : (
                         <span>{a.name}</span>
                       )}
@@ -939,13 +953,14 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
                     </div>
                   )
                 })()}
-                {song.isLocal && (
+                {!isProduction && song.isLocal && (
                   <span className="hidden md:inline bg-green-500 text-white text-xs px-2 py-0.5 rounded font-medium">
                     LOCAL
                   </span>
                 )}
                 <div className="text-zinc-500 text-sm">{Math.floor(song.duration / 60)}:{(song.duration % 60).toString().padStart(2, '0')}</div>
               </div>
+              {!isProduction && (
               <button
                 onClick={(e) => handleDownload(song, e)}
                 disabled={downloading === song.id || getDownloadBySongId(song.id)?.status === 'downloading'}
@@ -958,6 +973,7 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
                   <Download size={16} />
                 )}
               </button>
+              )}
             </div>
           ))}
         </div>

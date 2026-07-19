@@ -17,9 +17,10 @@ export default function PrivacyPolicy() {
 
         <section>
           <h2 className="text-base sm:text-lg font-semibold text-white mb-3">2. Information We Collect</h2>
-          <p>Torsongs is a hobby project that minimizes data collection:</p>
+          <p>Torsongs minimizes data collection. We collect the following information:</p>
           <ul className="list-disc list-inside space-y-2 ml-4">
-            <li>No account registration or personal information required</li>
+            <li><strong>Authentication Data:</strong> Through Clerk, we collect your email address, name, and other information you provide during registration</li>
+            <li><strong>Usage Data:</strong> Listening time for enforcing free user limits (5-minute session limit)</li>
             <li>No tracking or analytics beyond essential functionality</li>
             <li>No cookies for advertising or tracking purposes</li>
             <li>Search queries are processed locally and not stored</li>
@@ -41,17 +42,23 @@ export default function PrivacyPolicy() {
         <section>
           <h2 className="text-base sm:text-lg font-semibold text-white mb-3">4. Data Storage and Retention</h2>
           <p>
-            Torsongs does not store user data on our servers. All data processing happens locally on your device 
-            or through third-party services that have their own privacy policies.
+            Authentication data is stored securely by Clerk according to their privacy policy. Usage data (listening time)
+            is tracked temporarily in your browser session and is not stored on our servers.
           </p>
         </section>
 
         <section>
           <h2 className="text-base sm:text-lg font-semibold text-white mb-3">5. Third-Party Services</h2>
           <p>
-            Torsongs may use third-party services for music streaming and discovery. These services have their 
-            own privacy policies which you should review. We are not responsible for the privacy practices of 
-            third-party services.
+            Torsongs uses the following third-party services:
+          </p>
+          <ul className="list-disc list-inside space-y-2 ml-4">
+            <li><strong>Clerk:</strong> For user authentication and account management</li>
+            <li><strong>Music Streaming APIs:</strong> For music discovery and streaming</li>
+          </ul>
+          <p className="mt-2">
+            These services have their own privacy policies which you should review. We are not responsible for the
+            privacy practices of third-party services.
           </p>
         </section>
 
