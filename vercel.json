@@ -1,12 +1,30 @@
 {
+  "buildCommand": "cd client && pnpm install && pnpm run build",
+  "outputDirectory": "client/dist",
   "rewrites": [
     {
       "source": "/api/:path*",
       "destination": "https://torsongs.onrender.com/api/:path*"
     },
     {
-      "source": "/(.*)",
-      "destination": "/client/index.html"
+      "source": "/discover/:path*",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/search",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/terms",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/privacy",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/dmca",
+      "destination": "/index.html"
     }
   ]
 }
