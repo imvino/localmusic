@@ -69,6 +69,13 @@ function loadLibrary() {
     return libraryCache;
   }
   
+  // In production, library file may not exist - return empty library
+  if (!fs.existsSync(LIBRARY_FILE)) {
+    libraryCache = { albums: [] };
+    libraryCacheTime = now;
+    return libraryCache;
+  }
+  
   libraryCache = loadLibraryUtil(LIBRARY_FILE);
   libraryCacheTime = now;
   return libraryCache;
