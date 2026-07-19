@@ -75,12 +75,12 @@ export default defineConfig(({ mode }) => {
       },
       proxy: {
         '/api': {
-          target: 'https://torsongs.onrender.com',
+          target: env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3001',
           changeOrigin: true,
           secure: false,
           configure: (proxy, options) => {
             proxy.on('proxyReq', (proxyReq, req, res) => {
-              proxyReq.setHeader('Origin', 'https://torsongs.onrender.com')
+              proxyReq.setHeader('Origin', options.target)
             })
           }
         }
