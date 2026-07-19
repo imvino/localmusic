@@ -3,6 +3,10 @@
     {
       "source": "/api/:path*",
       "destination": "https://torsongs.onrender.com/api/:path*"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/client/index.html"
     }
   ]
 }
