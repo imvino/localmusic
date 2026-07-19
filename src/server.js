@@ -6,7 +6,7 @@ const path = require('path');
 const axios = require('axios');
 const { exec } = require('child_process');
 const { decodeHtmlEntities, loadLibrary: loadLibraryUtil, detectComposerFromSongs, getBestImage, fetchFromMusicServiceOfficial } = require('./utils');
-const { ClerkExpressRequireAuth, clerkClient } = require('@clerk/backend');
+const { clerkClient, clerkExpressRequireAuth } = require('@clerk/backend');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -379,7 +379,7 @@ const streamHandler = async (req, res) => {
 
 // Register stream endpoint with conditional authentication
 if (isProduction) {
-  app.get('/api/stream/:songId', ClerkExpressRequireAuth(), streamHandler);
+  app.get('/api/stream/:songId', clerkExpressRequireAuth, streamHandler);
 } else {
   app.get('/api/stream/:songId', streamHandler);
 }
