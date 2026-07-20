@@ -10,7 +10,7 @@ export default function PlayerBar({ currentSong, isPlaying, onTogglePlay, onPrev
 
   if (isMobileMiniplayer) {
     return (
-      <div className="h-16 bg-black/95 backdrop-blur border-t border-zinc-800/60 flex items-center px-3 gap-2">
+      <div className="h-16 bg-zinc-900 flex items-center px-3 gap-2">
         {/* Now Playing - Compact */}
         <div className="flex items-center gap-2 flex-1 min-w-0">
           {artwork ? (

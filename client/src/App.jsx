@@ -672,7 +672,7 @@ function AppContent() {
       
       {/* Mobile Mini Player - Visible only on mobile */}
       {!showFullScreenPlayer && (
-        <div className="fixed bottom-16 left-0 right-0 md:hidden bg-zinc-900 border-t border-zinc-800 z-30">
+        <div className="fixed bottom-16 left-0 right-0 md:hidden bg-zinc-900 z-30">
           <PlayerBar
             currentSong={currentSong}
             isPlaying={isPlaying}
@@ -701,10 +701,10 @@ function AppContent() {
       )}
       
       {/* Mobile Bottom Navigation - Visible only on mobile */}
-      <div className="fixed bottom-0 left-0 right-0 md:hidden bg-zinc-950 border-t border-zinc-900 flex items-center justify-around h-16 z-40 safe-area-inset-bottom">
+      <div className="fixed bottom-0 left-0 right-0 md:hidden bg-zinc-900 flex items-center h-16 z-40 pb-safe">
         <button
           onClick={() => navigate('/discover')}
-          className={`flex flex-col items-center justify-center w-full h-full touch-target transition-colors ${
+          className={`flex flex-col items-center justify-center flex-1 h-full touch-target transition-colors active:scale-95 active:opacity-70 ${
             location.pathname.startsWith('/discover') ? 'text-[#fc3c44]' : 'text-zinc-400 hover:text-white'
           }`}
           title="Discover"
@@ -714,7 +714,7 @@ function AppContent() {
         </button>
         <button
           onClick={() => navigate('/search')}
-          className={`flex flex-col items-center justify-center w-full h-full touch-target transition-colors ${
+          className={`flex flex-col items-center justify-center flex-1 h-full touch-target transition-colors active:scale-95 active:opacity-70 ${
             location.pathname === '/search' ? 'text-[#fc3c44]' : 'text-zinc-400 hover:text-white'
           }`}
           title="Search"
@@ -722,18 +722,18 @@ function AppContent() {
           <Search size={24} />
           <span className="text-xs mt-1">Search</span>
         </button>
-        <div className="flex flex-col items-center justify-center w-full h-full">
-          {isSignedIn ? (
+        {isSignedIn ? (
+          <div className="flex flex-col items-center justify-center flex-1 h-full">
             <UserButton afterSignOutUrl="/" />
-          ) : (
-            <SignInButton mode="modal">
-              <button className="flex flex-col items-center justify-center text-zinc-400 hover:text-white">
-                <User size={24} />
-                <span className="text-xs mt-1">Sign In</span>
-              </button>
-            </SignInButton>
-          )}
-        </div>
+          </div>
+        ) : (
+          <SignInButton mode="modal">
+            <button className="flex flex-col items-center justify-center flex-1 h-full text-zinc-400 hover:text-white active:scale-95 active:opacity-70 transition-colors">
+              <User size={24} />
+              <span className="text-xs mt-1">Sign In</span>
+            </button>
+          </SignInButton>
+        )}
       </div>
       
       {/* Full Screen Player - Mobile Only */}

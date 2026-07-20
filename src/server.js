@@ -1599,10 +1599,10 @@ app.get('/api/search', async (req, res) => {
 
     // Search across multiple types in parallel using official API
     const [songsData, albumsData, artistsData, playlistsData] = await Promise.all([
-      fetchFromMusicServiceOfficial('search.getSongResults', { q: query, p: 1, n: 100 }),
-      fetchFromMusicServiceOfficial('search.getAlbumResults', { q: query, p: 1, n: 100 }),
-      fetchFromMusicServiceOfficial('search.getArtistResults', { q: query, p: 1, n: 50 }),
-      fetchFromMusicServiceOfficial('search.getPlaylistResults', { q: query, p: 1, n: 50 })
+      fetchFromMusicServiceOfficial('search.getSongResults', { q: query, p: 1, n: 100, language: 'tamil' }),
+      fetchFromMusicServiceOfficial('search.getAlbumResults', { q: query, p: 1, n: 100, language: 'tamil' }),
+      fetchFromMusicServiceOfficial('search.getArtistResults', { q: query, p: 1, n: 50, language: 'tamil' }),
+      fetchFromMusicServiceOfficial('search.getPlaylistResults', { q: query, p: 1, n: 50, language: 'tamil' })
     ]);
 
     // Helper to normalize API response format
