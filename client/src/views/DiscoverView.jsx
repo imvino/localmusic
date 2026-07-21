@@ -167,9 +167,9 @@ function ArtistCard({ artist, onArtistClick }) {
 
   return (
     <div onClick={handleClick} className="flex flex-col items-center gap-3 w-20 md:w-24 cursor-pointer group">
-      <div className="w-20 md:w-24 h-20 md:h-24 rounded-full overflow-hidden bg-zinc-800 flex-shrink-0 shadow-lg flex items-center justify-center p-4">
+      <div className="w-20 md:w-24 h-20 md:h-24 rounded-full overflow-hidden bg-zinc-800 flex-shrink-0 shadow-lg">
         {artist.image ? (
-          <img src={artist.image} alt={artist.name} className="w-full h-full object-contain group-hover:scale-105 transition-transform" />
+          <img src={artist.image} alt={artist.name} className={`w-full h-full group-hover:scale-105 transition-transform ${artist.image.includes('logo_512x512') ? 'object-contain p-4' : 'object-cover'}`} />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-zinc-600">
             <Disc size={32} />
