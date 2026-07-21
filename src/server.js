@@ -1388,6 +1388,7 @@ app.get('/api/artist/:id', async (req, res) => {
     });
 
     if (!officialData) {
+      console.error(`Failed to fetch artist ${id} from official API: No data returned`);
       return res.status(500).json({ error: 'Failed to fetch artist from official API' });
     }
 
@@ -1624,10 +1625,10 @@ app.get('/api/search', async (req, res) => {
     // Search across multiple types in parallel using official API
     // Use search.getResults for songs (it works), separate endpoints for other types
     const [songsData, albumsData, artistsData, playlistsData] = await Promise.all([
-      fetchFromMusicServiceOfficial('search.getResults', { q: query, p: page, n: limit }),
-      fetchFromMusicServiceOfficial('search.getAlbumResults', { q: query, p: page, n: limit }),
-      fetchFromMusicServiceOfficial('search.getArtistResults', { q: query, p: page, n: limit }),
-      fetchFromMusicServiceOfficial('search.getPlaylistResults', { q: query, p: page, n: limit })
+      fetchFromMusicServiceOfficial('search.getResults', { q: query, p: page, n: limit, language: 'tamil' }),
+      fetchFromMusicServiceOfficial('search.getAlbumResults', { q: query, p: page, n: limit, language: 'tamil' }),
+      fetchFromMusicServiceOfficial('search.getArtistResults', { q: query, p: page, n: limit, language: 'tamil' }),
+      fetchFromMusicServiceOfficial('search.getPlaylistResults', { q: query, p: page, n: limit, language: 'tamil' })
     ]);
 
     // Helper to normalize API response format

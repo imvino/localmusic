@@ -6,6 +6,7 @@ import { persistQueryClient } from '@tanstack/query-persist-client-core'
 import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister'
 import { ClerkProvider, UserButton, useAuth, SignInButton } from '@clerk/react'
 import { dark } from '@clerk/themes'
+import { Analytics } from '@vercel/analytics/react'
 import { useHealthCheck } from './hooks/useApi'
 import Sidebar from './views/Sidebar'
 import SearchView from './views/SearchView'
@@ -853,6 +854,7 @@ function App() {
       <QueryClientProvider client={queryClient}>
         <BrowserRouter>
           <AppContent />
+          <Analytics />
         </BrowserRouter>
       </QueryClientProvider>
     </ClerkProvider>

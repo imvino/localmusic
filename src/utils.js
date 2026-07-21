@@ -132,6 +132,9 @@ async function fetchFromMusicServiceOfficial(__call, params = {}) {
     const allParams = {
       __call,
       _format: 'json',
+      _marker: 0,
+      api_version: 4,
+      ctx: 'web6dot0',
       ...params
     };
     const response = await axios.get('https://www.jiosaavn.com/api.php', {

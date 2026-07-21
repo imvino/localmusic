@@ -162,19 +162,23 @@ export default function Sidebar({ searchQuery, onSearch, showToast, onClose }) {
           </button>
         </div>
 
+        {/* Clear Cache - Available to all users */}
+        <div className="flex flex-col gap-0.5">
+          <div className="text-[10px] font-semibold text-zinc-600 uppercase tracking-widest mb-2 px-2">Settings</div>
+          
+          <button
+            onClick={handleClearCache}
+            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-left w-full text-zinc-400 hover:text-white hover:bg-zinc-800/40"
+          >
+            <Trash2 size={17} />
+            Clear Cache
+          </button>
+        </div>
+
         {/* Registered User Features - Only visible when signed in */}
         {isSignedIn && (
           <div className="flex flex-col gap-0.5">
             <div className="text-[10px] font-semibold text-zinc-600 uppercase tracking-widest mb-2 px-2">Library</div>
-            
-            {/* Clear Cache */}
-            <button
-              onClick={handleClearCache}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-left w-full text-zinc-400 hover:text-white hover:bg-zinc-800/40"
-            >
-              <Trash2 size={17} />
-              Clear Cache
-            </button>
 
             {/* Offline Music - Coming Soon */}
             <button

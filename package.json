@@ -12,6 +12,7 @@
   "description": "",
   "dependencies": {
     "@clerk/backend": "^3.11.7",
+    "@vercel/analytics": "^2.0.1",
     "axios": "^1.17.0",
     "cors": "^2.8.6",
     "dotenv": "^16.4.5",
