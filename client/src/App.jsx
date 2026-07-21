@@ -107,6 +107,9 @@ function AppContent() {
 
     const audio = audioRef.current
 
+    // Configure audio for iOS background playback
+    audio.preload = 'auto'
+
     if (currentSong) {
       let streamUrl
       if (currentSong.isStream && currentSong.streamUrl) {
@@ -281,6 +284,18 @@ function AppContent() {
     return () => el.removeEventListener('ended', onEnded)
   }, [repeat, currentSong, queue, queueIndex, shuffle])
 
+  // Handle visibility change - resume playback when app returns from background (iOS/Android)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && isPlaying && audioRef.current) {
+        audioRef.current.play().catch(e => console.error('Resume play error:', e))
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
+  }, [isPlaying])
+
 
   const navigateToView = (viewName, data = null, source = 'discover') => {
     if (viewName === 'album' && data) {
@@ -292,11 +307,30 @@ function AppContent() {
     }
   }
 
-  const handleSongSelect = (song, songQueue = null, songIndex = null) => {
+  const handleSongSelect = async (song, songQueue = null, songIndex = null) => {
+    let songWithStream = { ...song }
+
+    // Fetch stream URL if not already present
+    if (!song.streamUrl && song.id) {
+      try {
+        const res = await fetch(`${API_BASE}/song/${song.id}`)
+        const result = await res.json()
+        if (result.success && result.data && result.data.streamUrl) {
+          songWithStream = {
+            ...song,
+            streamUrl: result.data.streamUrl,
+            albumId: result.data.albumId || song.albumId
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch stream URL:', error)
+      }
+    }
+
     setCurrentSong({
-      ...song,
-      artist: song.artist || song.artists?.primary?.[0]?.name,
-      albumId: song.album?.id || song.albumId,
+      ...songWithStream,
+      artist: songWithStream.artist || songWithStream.artists?.primary?.[0]?.name,
+      albumId: songWithStream.album?.id || songWithStream.albumId,
       isStream: true
     })
     if (songQueue && songIndex !== null) {
@@ -474,7 +508,13 @@ function AppContent() {
 
   return (
     <div className="flex h-screen bg-black text-white overflow-hidden flex-col md:flex-row">
-      <audio ref={audioRef} className="hidden" />
+      <audio 
+        ref={audioRef} 
+        className="hidden" 
+        playsinline 
+        webkit-playsinline 
+        crossOrigin="anonymous"
+      />
       
       {/* Sidebar - Hidden by default, toggled with burger menu */}
       {sidebarOpen && (

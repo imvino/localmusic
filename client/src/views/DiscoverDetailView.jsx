@@ -685,12 +685,12 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
                         onClick={() => navigate(`/discover/artist/${artist.id}`)}
                         className="flex flex-col items-center gap-2 group w-20"
                       >
-                        <div className="w-20 h-20 rounded-full overflow-hidden bg-zinc-800 shadow">
+                        <div className="w-20 h-20 rounded-full overflow-hidden bg-zinc-800 shadow flex items-center justify-center p-3">
                           {getArtistImageUrl(artist.image) ? (
                             <img
                               src={getArtistImageUrl(artist.image)}
                               alt={artist.name}
-                              className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform"
+                              className="w-full h-full object-contain group-hover:scale-105 transition-transform"
                             />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center">

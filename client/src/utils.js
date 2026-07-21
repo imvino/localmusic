@@ -33,7 +33,14 @@ export function getBestImageUrl(imageArray) {
     const qualityMap = { '50x50': 1, '150x150': 2, '500x500': 3 }
     return (qualityMap[b.quality] || 0) - (qualityMap[a.quality] || 0)
   })
-  return sorted[0]?.url || null
+  let url = sorted[0]?.url || null
+  
+  // Replace JioSaavn brand logo with local logo
+  if (url && url.includes('share-image-2.png')) {
+    return '/logo_512x512.png'
+  }
+  
+  return url
 }
 
 // Helper to get artist image URL (prefers 150x150 for better resolution in small containers)
@@ -43,7 +50,14 @@ export function getArtistImageUrl(imageArray) {
     const qualityMap = { '150x150': 3, '500x500': 2, '50x50': 1 }
     return (qualityMap[b.quality] || 0) - (qualityMap[a.quality] || 0)
   })
-  return sorted[0]?.url || null
+  let url = sorted[0]?.url || null
+  
+  // Replace JioSaavn brand logo with local logo
+  if (url && url.includes('share-image-2.png')) {
+    return '/logo_512x512.png'
+  }
+  
+  return url
 }
 
 // Helper to format duration from seconds

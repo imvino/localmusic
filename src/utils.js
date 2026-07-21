@@ -85,7 +85,14 @@ function detectComposerFromSongs(songs) {
 function getBestImage(imageObj) {
   if (!imageObj || !Array.isArray(imageObj)) return null;
   const best = imageObj.find(img => img.quality === '500x500') || imageObj.find(img => img.quality === '150x150');
-  return best ? best.url : null;
+  let url = best ? best.url : null;
+  
+  // Replace JioSaavn brand logo with local logo
+  if (url && url.includes('share-image-2.png')) {
+    return '/logo_512x512.png';
+  }
+  
+  return url;
 }
 
 // Helper to get 320kbps download URL
@@ -125,9 +132,6 @@ async function fetchFromMusicServiceOfficial(__call, params = {}) {
     const allParams = {
       __call,
       _format: 'json',
-      _marker: 0,
-      api_version: 4,
-      ctx: 'web6dot0',
       ...params
     };
     const response = await axios.get('https://www.jiosaavn.com/api.php', {

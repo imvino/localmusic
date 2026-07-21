@@ -609,7 +609,14 @@ async function matchWithMusicService(songName, artist) {
         const getBestImage = (imageObj) => {
           if (!imageObj || !Array.isArray(imageObj)) return null;
           const best = imageObj.find(img => img.quality === '500x500') || imageObj.find(img => img.quality === '150x150');
-          return best ? best.url : null;
+          let url = best ? best.url : null;
+          
+          // Replace JioSaavn brand logo with local logo
+          if (url && url.includes('share-image-2.png')) {
+            return '/logo_512x512.png';
+          }
+          
+          return url;
         };
 
         return {
@@ -1389,10 +1396,23 @@ app.get('/api/artist/:id', async (req, res) => {
 
     // Helper for images
     const getBestImage = (imageObj) => {
-      if (typeof imageObj === 'string') return imageObj; 
+      if (typeof imageObj === 'string') {
+        // Replace JioSaavn brand logo with local logo for string URLs
+        if (imageObj.includes('share-image-2.png')) {
+          return '/logo_512x512.png';
+        }
+        return imageObj;
+      }
       if (!imageObj || !Array.isArray(imageObj)) return null;
       const best = imageObj.find(img => img.quality === '500x500') || imageObj.find(img => img.quality === '150x150') || imageObj[imageObj.length - 1];
-      return best ? best.url : null;
+      let url = best ? best.url : null;
+      
+      // Replace JioSaavn brand logo with local logo
+      if (url && url.includes('share-image-2.png')) {
+        return '/logo_512x512.png';
+      }
+      
+      return url;
     };
 
     // Normalize Bio
@@ -1597,19 +1617,25 @@ app.get('/api/search', async (req, res) => {
       return res.status(400).json({ error: 'Query parameter is required' });
     }
 
+    // Get limit and page from query params, with defaults
+    const limit = parseInt(req.query.n) || 20;
+    const page = parseInt(req.query.p) || 1;
+
     // Search across multiple types in parallel using official API
+    // Use search.getResults for songs (it works), separate endpoints for other types
     const [songsData, albumsData, artistsData, playlistsData] = await Promise.all([
-      fetchFromMusicServiceOfficial('search.getSongResults', { q: query, p: 1, n: 100, language: 'tamil' }),
-      fetchFromMusicServiceOfficial('search.getAlbumResults', { q: query, p: 1, n: 100, language: 'tamil' }),
-      fetchFromMusicServiceOfficial('search.getArtistResults', { q: query, p: 1, n: 50, language: 'tamil' }),
-      fetchFromMusicServiceOfficial('search.getPlaylistResults', { q: query, p: 1, n: 50, language: 'tamil' })
+      fetchFromMusicServiceOfficial('search.getResults', { q: query, p: page, n: limit }),
+      fetchFromMusicServiceOfficial('search.getAlbumResults', { q: query, p: page, n: limit }),
+      fetchFromMusicServiceOfficial('search.getArtistResults', { q: query, p: page, n: limit }),
+      fetchFromMusicServiceOfficial('search.getPlaylistResults', { q: query, p: page, n: limit })
     ]);
 
     // Helper to normalize API response format
     const normalizeResults = (data, type) => {
       if (!data || !data.results) return [];
-      // Official API returns results as an object with numeric keys
-      return Object.values(data.results).map(item => {
+      // Official API returns results as a list (not object with numeric keys)
+      const results = Array.isArray(data.results) ? data.results : Object.values(data.results);
+      return results.map(item => {
         // Normalize artist data structure
         let artists = { primary: [] };
         if (item.more_info?.artistMap?.primary_artists) {
@@ -1658,15 +1684,37 @@ app.get('/api/search', async (req, res) => {
         // Convert 50x50 to 150x150 for better resolution on artist images
         const imageUrl = item.image ? item.image.replace('50x50', '150x150') : item.image;
 
+        // Handle album field - could be string or object
+        let album = null;
+        if (item.more_info?.album) {
+          if (typeof item.more_info.album === 'string') {
+            album = { name: item.more_info.album };
+          } else if (typeof item.more_info.album === 'object') {
+            album = item.more_info.album;
+          }
+        }
+
+        // Get song name from multiple possible fields
+        const songName = item.song || item.title || item.name || item.more_info?.song || item.more_info?.title || '';
+
+        // Try to extract album name from album_url if album field is null
+        if (!album && item.album_url) {
+          const albumMatch = item.album_url.match(/\/album\/([^\/]+)/);
+          if (albumMatch) {
+            album = { name: decodeHtmlEntities(albumMatch[1].replace(/-/g, ' ')) };
+          }
+        }
+
         return {
           ...item,
-          id: item.id || item.tokenid,
-          name: item.title || item.name,
+          id: item.id || item.tokenid || item.albumid,
+          name: songName,
           artists: artists,
+          album: album,
           year: item.year || item.more_info?.year || null,
           image: imageUrl ? [{ quality: '150x150', url: imageUrl }] : [],
           isLocal: type === 'song' ? isSongLocal(item.id || item.tokenid) :
-                   type === 'album' ? isAlbumLocal(item.id || item.tokenid) : false
+                   type === 'album' ? isAlbumLocal(item.albumid || item.id || item.tokenid) : false
         };
       });
     };
@@ -1676,7 +1724,7 @@ app.get('/api/search', async (req, res) => {
     if (artistsWithImages.length > 0) {
       artistsWithImages = await Promise.all(artistsWithImages.map(async (artist) => {
         try {
-          const artistDetail = await fetchFromMusicServiceOfficial('artist.getArtistPageDetails', { 
+          const artistDetail = await fetchFromMusicServiceOfficial('artist.getArtistPageDetails', {
             artistId: artist.id,
             p: 1,
             n_song: 1,
@@ -1709,9 +1757,11 @@ app.get('/api/search', async (req, res) => {
 
     // Set top result - prioritize songs, then albums
     if (response.data.songs.length > 0) {
-      response.data.topResult = { type: 'song', ...response.data.songs[0] };
+      const { type, ...topSong } = response.data.songs[0];
+      response.data.topResult = { ...topSong, type: 'song' };
     } else if (response.data.albums.length > 0) {
-      response.data.topResult = { type: 'album', ...response.data.albums[0] };
+      const { type, ...topAlbum } = response.data.albums[0];
+      response.data.topResult = { ...topAlbum, type: 'album' };
     }
 
     res.json(response);

@@ -1,5 +1,6 @@
-import { Search, Mic2, Disc3, Music, ListMusic } from 'lucide-react'
+import { Search, Mic2, Disc3, Music, ListMusic, ChevronDown } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
+import { useState, useEffect } from 'react'
 import MetaTags from '../components/MetaTags'
 import { useSearch } from '../hooks/useApi'
 import { decodeHtmlEntities, getBestImageUrl, getArtistImageUrl, formatDuration } from '../utils'
@@ -7,6 +8,26 @@ import { decodeHtmlEntities, getBestImageUrl, getArtistImageUrl, formatDuration 
 export default function SearchView({ query, onSongClick, onAlbumClick, onArtistClick }) {
   const navigate = useNavigate()
   const appUrl = import.meta.env.VITE_APP_URL
+  const [visibleSongs, setVisibleSongs] = useState(5)
+  const [visibleAlbums, setVisibleAlbums] = useState(4)
+  const [visibleArtists, setVisibleArtists] = useState(5)
+  const [visiblePlaylists, setVisiblePlaylists] = useState(5)
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
+
+  // Handle responsive album and artist counts
+  useEffect(() => {
+    const handleResize = () => {
+      const mobile = window.innerWidth < 768
+      setIsMobile(mobile)
+      setVisibleAlbums(mobile ? 4 : 12)
+      setVisibleArtists(mobile ? 5 : 13)
+    }
+
+    window.addEventListener('resize', handleResize)
+    handleResize() // Set initial value
+
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
 
   // Use TanStack Query for search
   const { data: onlineResults, isLoading: loading, error } = useSearch(query)
@@ -89,7 +110,7 @@ export default function SearchView({ query, onSongClick, onAlbumClick, onArtistC
                 <Music size={18} className="text-[#fc3c44]" /> Top Result
               </h2>
               <button
-                className="flex flex-col md:flex-row items-center md:items-start gap-4 p-4 bg-zinc-900 rounded-xl hover:bg-zinc-800 transition-colors w-full group"
+                className="flex flex-col md:flex-row items-center md:items-start gap-4 p-4 bg-zinc-900 rounded-xl hover:bg-zinc-800 transition-colors w-full group overflow-hidden"
                 onClick={() => {
                   if (onlineResults.topResult.type === 'song') {
                     onSongClick({
@@ -115,13 +136,13 @@ export default function SearchView({ query, onSongClick, onAlbumClick, onArtistC
                     </div>
                   )}
                 </div>
-                <div className="flex-1 min-w-0 text-left">
+                <div className="flex-1 min-w-0 text-left w-full">
                   <p className="text-base font-medium text-white truncate">
-                    {onlineResults.topResult.name}
+                    {decodeHtmlEntities(onlineResults.topResult.name)}
                   </p>
                   <p className="text-sm text-zinc-500 truncate">
                     {onlineResults.topResult.type === 'song'
-                      ? `${onlineResults.topResult.artists?.primary?.map(a => a.name).join(', ')} · ${onlineResults.topResult.album?.name}`
+                      ? `${onlineResults.topResult.artists?.primary?.map(a => a.name).join(', ')} · ${decodeHtmlEntities(onlineResults.topResult.album?.name)}`
                       : `${onlineResults.topResult.artists?.primary?.map(a => a.name).join(', ')} · ${onlineResults.topResult.year}`
                     }
                   </p>
@@ -140,7 +161,7 @@ export default function SearchView({ query, onSongClick, onAlbumClick, onArtistC
                 <Music size={18} className="text-[#fc3c44]" /> Songs
               </h2>
               <div className="flex flex-col gap-0.5">
-                {onlineResults.songs.slice(0, 20).map((song, index) => (
+                {onlineResults.songs.slice(0, visibleSongs).map((song, index) => (
                   <button
                     key={song.id}
                     onClick={() => onSongClick({
@@ -164,13 +185,22 @@ export default function SearchView({ query, onSongClick, onAlbumClick, onArtistC
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-white truncate">{decodeHtmlEntities(song.name)}</p>
                       <p className="text-xs text-zinc-500 truncate">
-                        {song.artists?.primary?.map(a => a.name).join(', ')} · {song.album?.name}
+                        {song.artists?.primary?.map(a => a.name).join(', ')} · {decodeHtmlEntities(song.album?.name)}
                       </p>
                     </div>
                     <span className="text-xs text-zinc-500 flex-shrink-0">{formatDuration(song.duration)}</span>
                   </button>
                 ))}
               </div>
+              {onlineResults.songs.length > visibleSongs && (
+                <button
+                  onClick={() => setVisibleSongs(prev => Math.min(prev + 5, onlineResults.songs.length))}
+                  className="mt-3 text-sm text-zinc-400 hover:text-white transition-colors flex items-center gap-1"
+                >
+                  Load more
+                  <ChevronDown size={16} />
+                </button>
+              )}
             </section>
           )}
 
@@ -181,7 +211,7 @@ export default function SearchView({ query, onSongClick, onAlbumClick, onArtistC
                 <Disc3 size={18} className="text-[#fc3c44]" /> Albums
               </h2>
               <div className="flex gap-3 md:gap-4 flex-wrap">
-                {onlineResults.albums.slice(0, 10).map(album => (
+                {onlineResults.albums.slice(0, visibleAlbums).map(album => (
                   <button
                     key={album.id}
                     onClick={() => navigate(`/discover/album/${album.id}`, { state: { album } })}
@@ -201,11 +231,20 @@ export default function SearchView({ query, onSongClick, onAlbumClick, onArtistC
                       )}
                     </div>
                     <span className="text-xs text-zinc-300 group-hover:text-white transition-colors text-left w-24 truncate leading-snug">
-                      {album.name || album.title}
+                      {decodeHtmlEntities(album.name || album.title)}
                     </span>
                   </button>
                 ))}
               </div>
+              {onlineResults.albums.length > visibleAlbums && (
+                <button
+                  onClick={() => setVisibleAlbums(prev => Math.min(prev + (isMobile ? 4 : 12), onlineResults.albums.length))}
+                  className="mt-3 text-sm text-zinc-400 hover:text-white transition-colors flex items-center gap-1"
+                >
+                  Load more
+                  <ChevronDown size={16} />
+                </button>
+              )}
             </section>
           )}
 
@@ -216,18 +255,18 @@ export default function SearchView({ query, onSongClick, onAlbumClick, onArtistC
                 <Mic2 size={18} className="text-[#fc3c44]" /> Artists
               </h2>
               <div className="flex gap-3 md:gap-5 flex-wrap">
-                {onlineResults.artists.slice(0, 8).map(artist => (
+                {onlineResults.artists.slice(0, visibleArtists).map(artist => (
                   <button
                     key={artist.id}
                     onClick={() => onArtistClick(artist)}
                     className="flex flex-col items-center gap-2 group w-16 md:w-20"
                   >
-                    <div className="w-16 md:w-20 h-16 md:h-20 rounded-full overflow-hidden bg-zinc-800 shadow">
+                    <div className="w-16 md:w-20 h-16 md:h-20 rounded-full overflow-hidden bg-zinc-800 shadow flex items-center justify-center p-3">
                       {getArtistImageUrl(artist.image) ? (
                         <img
                           src={getArtistImageUrl(artist.image)}
                           alt={artist.name}
-                          className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform"
+                          className="w-full h-full object-contain group-hover:scale-105 transition-transform"
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center">
@@ -236,11 +275,20 @@ export default function SearchView({ query, onSongClick, onAlbumClick, onArtistC
                       )}
                     </div>
                     <span className="text-xs text-zinc-300 group-hover:text-white transition-colors text-center leading-snug w-full truncate">
-                      {artist.name}
+                      {decodeHtmlEntities(artist.name)}
                     </span>
                   </button>
                 ))}
               </div>
+              {onlineResults.artists.length > visibleArtists && (
+                <button
+                  onClick={() => setVisibleArtists(prev => Math.min(prev + (isMobile ? 5 : 13), onlineResults.artists.length))}
+                  className="mt-3 text-sm text-zinc-400 hover:text-white transition-colors flex items-center gap-1"
+                >
+                  Load more
+                  <ChevronDown size={16} />
+                </button>
+              )}
             </section>
           )}
 
@@ -251,7 +299,7 @@ export default function SearchView({ query, onSongClick, onAlbumClick, onArtistC
                 <ListMusic size={18} className="text-[#fc3c44]" /> Playlists
               </h2>
               <div className="flex gap-3 md:gap-4 flex-wrap">
-                {onlineResults.playlists.slice(0, 8).map(playlist => (
+                {onlineResults.playlists.slice(0, visiblePlaylists).map(playlist => (
                   <button
                     key={playlist.id}
                     onClick={() => navigate(`/discover/playlist/${playlist.id}`, { state: { playlist } })}
@@ -271,11 +319,20 @@ export default function SearchView({ query, onSongClick, onAlbumClick, onArtistC
                       )}
                     </div>
                     <span className="text-xs text-zinc-300 group-hover:text-white transition-colors text-left w-24 truncate leading-snug">
-                      {playlist.name}
+                      {decodeHtmlEntities(playlist.name)}
                     </span>
                   </button>
                 ))}
               </div>
+              {onlineResults.playlists.length > visiblePlaylists && (
+                <button
+                  onClick={() => setVisiblePlaylists(prev => Math.min(prev + 5, onlineResults.playlists.length))}
+                  className="mt-3 text-sm text-zinc-400 hover:text-white transition-colors flex items-center gap-1"
+                >
+                  Load more
+                  <ChevronDown size={16} />
+                </button>
+              )}
             </section>
           )}
         </>
