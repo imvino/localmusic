@@ -3,6 +3,14 @@
   "outputDirectory": "dist",
   "rewrites": [
     {
+      "source": "/api/search",
+      "destination": "/api/search"
+    },
+    {
+      "source": "/api/artist/:path*",
+      "destination": "/api/artist/:path*"
+    },
+    {
       "source": "/api/album/:path*",
       "destination": "https://torsongs.onrender.com/api/album/:path*"
     },
