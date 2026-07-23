@@ -1,11 +1,6 @@
 {
   "buildCommand": "pnpm install && pnpm run build",
   "outputDirectory": "dist",
-  "functions": {
-    "api/**/*.js": {
-      "runtime": "edge"
-    }
-  },
   "rewrites": [
     {
       "source": "/api/album/:path*",
