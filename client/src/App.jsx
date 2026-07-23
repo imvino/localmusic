@@ -20,6 +20,7 @@ import PrivacyPolicy from './pages/PrivacyPolicy'
 import DMCA from './pages/DMCA'
 
 const API_BASE = import.meta.env.VITE_API_URL
+const VERCEL_API_BASE = import.meta.env.VITE_VERCEL_API_URL
 
 // Check if we're in production mode
 const isProduction = import.meta.env.MODE === 'production'
@@ -458,7 +459,7 @@ function AppContent() {
       setIsSearchingAlbum(true)
       try {
         const searchQuery = `${currentSong.album} ${currentSong.name}`
-        const res = await fetch(`${API_BASE}/search?q=${encodeURIComponent(searchQuery)}`)
+        const res = await fetch(`${VERCEL_API_BASE || API_BASE}/search?q=${encodeURIComponent(searchQuery)}`)
         const result = await res.json()
         
         if (result.success && result.data.albums) {

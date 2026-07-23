@@ -1,10 +1,21 @@
 import { useQuery } from '@tanstack/react-query'
 
 const API_BASE = import.meta.env.VITE_API_URL
+const VERCEL_API_BASE = import.meta.env.VITE_VERCEL_API_URL
+
+// Helper function to get the correct API base based on endpoint
+function getAPIBase(endpoint) {
+  // Route search and artist endpoints to Vercel for geolocation
+  if (endpoint.startsWith('/search') || endpoint.startsWith('/artist')) {
+    return VERCEL_API_BASE || API_BASE
+  }
+  return API_BASE
+}
 
 // Helper function for fetch with error handling
 async function fetchAPI(endpoint, options = {}) {
-  const response = await fetch(`${API_BASE}${endpoint}`, options)
+  const apiBase = getAPIBase(endpoint)
+  const response = await fetch(`${apiBase}${endpoint}`, options)
   if (!response.ok) {
     throw new Error(`API error: ${response.status}`)
   }
