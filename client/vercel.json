@@ -1,10 +1,59 @@
 {
   "buildCommand": "pnpm install && pnpm run build",
   "outputDirectory": "dist",
+  "functions": {
+    "api/**/*.js": {
+      "runtime": "edge"
+    }
+  },
   "rewrites": [
     {
-      "source": "/api/:path*",
-      "destination": "https://torsongs.onrender.com/api/:path*"
+      "source": "/api/album/:path*",
+      "destination": "https://torsongs.onrender.com/api/album/:path*"
+    },
+    {
+      "source": "/api/song/:path*",
+      "destination": "https://torsongs.onrender.com/api/song/:path*"
+    },
+    {
+      "source": "/api/stream/:path*",
+      "destination": "https://torsongs.onrender.com/api/stream/:path*"
+    },
+    {
+      "source": "/api/playlist/:path*",
+      "destination": "https://torsongs.onrender.com/api/playlist/:path*"
+    },
+    {
+      "source": "/api/download-song",
+      "destination": "https://torsongs.onrender.com/api/download-song"
+    },
+    {
+      "source": "/api/download-album",
+      "destination": "https://torsongs.onrender.com/api/download-album"
+    },
+    {
+      "source": "/api/download-progress/:path*",
+      "destination": "https://torsongs.onrender.com/api/download-progress/:path*"
+    },
+    {
+      "source": "/api/scan",
+      "destination": "https://torsongs.onrender.com/api/scan"
+    },
+    {
+      "source": "/api/composer-albums/:path*",
+      "destination": "https://torsongs.onrender.com/api/composer-albums/:path*"
+    },
+    {
+      "source": "/api/health",
+      "destination": "https://torsongs.onrender.com/api/health"
+    },
+    {
+      "source": "/api/jio/:path*",
+      "destination": "https://torsongs.onrender.com/api/jio/:path*"
+    },
+    {
+      "source": "/api/trending-youtube",
+      "destination": "https://torsongs.onrender.com/api/trending-youtube"
     },
     {
       "source": "/discover/:path*",
