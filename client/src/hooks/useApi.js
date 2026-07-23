@@ -15,7 +15,12 @@ function getAPIBase(endpoint) {
 // Helper function for fetch with error handling
 async function fetchAPI(endpoint, options = {}) {
   const apiBase = getAPIBase(endpoint)
-  const response = await fetch(`${apiBase}${endpoint}`, options)
+  // Prepend /api if using Vercel and endpoint doesn't already have it
+  const isVercelEndpoint = endpoint.startsWith('/search') || endpoint.startsWith('/artist')
+  const url = isVercelEndpoint && apiBase === VERCEL_API_BASE && !endpoint.startsWith('/api')
+    ? `${apiBase}/api${endpoint}`
+    : `${apiBase}${endpoint}`
+  const response = await fetch(url, options)
   if (!response.ok) {
     throw new Error(`API error: ${response.status}`)
   }
