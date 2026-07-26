@@ -214,7 +214,10 @@ export default function SearchView({ query, onSongClick, onAlbumClick, onArtistC
                 {onlineResults.albums.slice(0, visibleAlbums).map(album => (
                   <button
                     key={album.id}
-                    onClick={() => navigate(`/discover/album/${album.id}`, { state: { album } })}
+                    onClick={() => {
+                      const slug = (album.name || album.title).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+                      navigate(`/discover/album/${album.id}/${slug}`, { state: { album, albumName: album.name || album.title } });
+                    }}
                     className="flex flex-col gap-2 group w-20 md:w-24"
                   >
                     <div className="w-20 md:w-24 h-20 md:h-24 rounded-xl overflow-hidden bg-zinc-800 shadow">

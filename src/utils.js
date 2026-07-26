@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const axios = require('axios');
+const crypto = require('crypto');
 const { PRIMARY_API, FALLBACK_API } = require('./constants');
 
 // Helper to decode HTML entities
@@ -125,6 +126,61 @@ function parseDuration(duration) {
     return parseInt(parts[0]) * 60 + parseInt(parts[1]);
   }
   return 0;
+}
+
+// Helper: Generate auth token for JioSaavn streaming URL (returns all quality URLs)
+async function generateJioSaavnAuthUrls(encryptedUrl) {
+  if (!encryptedUrl) return null;
+  
+  const bitrates = [96, 160, 320];
+  const urls = {};
+  
+  try {
+    // Generate auth tokens for all bitrates in parallel
+    const promises = bitrates.map(async (bitrate) => {
+      try {
+        const response = await axios.get('https://www.jiosaavn.com/api.php', {
+          params: {
+            __call: 'song.generateAuthToken',
+            url: encryptedUrl,
+            bitrate: bitrate,
+            api_version: 4,
+            _format: 'json',
+            ctx: 'web6dot0',
+            _marker: 0
+          },
+          headers: { 'User-Agent': 'Mozilla/5.0' }
+        });
+        
+        const data = response.data;
+        if (data && data.auth_url && data.status === 'success') {
+          return { bitrate, url: data.auth_url };
+        }
+        return null;
+      } catch (error) {
+        console.error(`Error generating auth token for ${bitrate}kbps:`, error.message);
+        return null;
+      }
+    });
+    
+    const results = await Promise.all(promises);
+    results.forEach(result => {
+      if (result) {
+        urls[result.bitrate] = result.url;
+      }
+    });
+    
+    return urls;
+  } catch (error) {
+    console.error('Error generating auth tokens:', error.message);
+    return null;
+  }
+}
+
+// Helper: Generate auth token for JioSaavn streaming URL (single bitrate, for backward compatibility)
+async function generateJioSaavnAuthToken(encryptedUrl, bitrate = 320) {
+  const urls = await generateJioSaavnAuthUrls(encryptedUrl);
+  return urls ? urls[bitrate] : null;
 }
 
 // Helper: Fetch from official music service API
@@ -305,6 +361,8 @@ module.exports = {
   extractYearFromCopyright,
   sanitizeFilename,
   parseDuration,
+  generateJioSaavnAuthToken,
+  generateJioSaavnAuthUrls,
   fetchFromMusicServiceOfficial,
   fuzzyMatchAlbumName,
   fetchWithFallback

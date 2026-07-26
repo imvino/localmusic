@@ -28,10 +28,11 @@ async function fetchAPI(endpoint, options = {}) {
 }
 
 // Detail endpoints
-export function useAlbum(id) {
+export function useAlbum(id, albumName) {
+  const url = albumName ? `/album/${id}?name=${encodeURIComponent(albumName)}` : `/album/${id}`
   return useQuery({
-    queryKey: ['album', id],
-    queryFn: () => fetchAPI(`/album/${id}`),
+    queryKey: ['album', id, albumName],
+    queryFn: () => fetchAPI(url),
     select: (data) => data.data || null,
     enabled: !!id,
   })

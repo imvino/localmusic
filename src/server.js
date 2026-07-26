@@ -5,7 +5,7 @@ const fs = require('fs');
 const path = require('path');
 const axios = require('axios');
 const { exec } = require('child_process');
-const { decodeHtmlEntities, loadLibrary: loadLibraryUtil, detectComposerFromSongs, getBestImage, fetchFromMusicServiceOfficial, fetchWithFallback } = require('./utils');
+const { decodeHtmlEntities, loadLibrary: loadLibraryUtil, detectComposerFromSongs, getBestImage, fetchFromMusicServiceOfficial, fetchWithFallback, generateJioSaavnAuthToken, generateJioSaavnAuthUrls } = require('./utils');
 const { PRIMARY_API, FALLBACK_API } = require('./constants');
 // const { clerkClient, clerkExpressRequireAuth } = require('@clerk/backend');
 
@@ -300,7 +300,7 @@ app.post('/api/scan', (req, res) => {
 
 // Stream a song with range support (local or proxied)
 // In production, require authentication
-const streamHandler = async (req, res) => {
+const streamHandler = async (req, res, bitrate = '320') => {
   try {
     // Build indexes if not available
     if (!songIdIndex || !albumIdIndex) {
@@ -310,8 +310,8 @@ const streamHandler = async (req, res) => {
     const indexed = songIdIndex.get(req.params.songId);
     const song = indexed?.song;
     
-    // Check if song is local
-    if (song && song.audioPath && fs.existsSync(song.audioPath)) {
+    // Check if song is local AND music directory is available
+    if (song && song.audioPath && isMusicDirAvailable() && fs.existsSync(song.audioPath)) {
       const filePath = song.audioPath;
       const stat = fs.statSync(filePath);
       const fileSize = stat.size;
@@ -399,8 +399,9 @@ const streamHandler = async (req, res) => {
             }
             
             if (officialSong && officialSong.more_info?.encrypted_media_url) {
-              // Use the preview URL from official API (vlink) for streaming
-              streamUrl = officialSong.more_info.vlink || officialSong.more_info.encrypted_media_url;
+              // Generate auth token to get authenticated streaming URL with requested bitrate
+              const authUrl = await generateJioSaavnAuthToken(officialSong.more_info.encrypted_media_url, parseInt(bitrate));
+              streamUrl = authUrl;
             }
           } catch (officialError) {
             console.error('Official API also failed for stream:', officialError.message);
@@ -412,14 +413,37 @@ const streamHandler = async (req, res) => {
         return res.status(404).json({ error: 'Stream URL not available' });
       }
       
+      // Support HTTP Range requests for adaptive streaming
+      const range = req.headers.range;
+      const headers = { 
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36',
+        'Referer': 'https://www.jiosaavn.com/',
+        'Origin': 'https://www.jiosaavn.com'
+      };
+      
+      if (range) {
+        headers['Range'] = range;
+      }
+      
       // Proxy the stream from external URL
       const streamResponse = await axios.get(streamUrl, {
         responseType: 'stream',
-        headers: { 'User-Agent': 'Mozilla/5.0' }
+        headers
       });
       
       res.setHeader('Content-Type', 'audio/mpeg');
       res.setHeader('Accept-Ranges', 'bytes');
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.setHeader('Access-Control-Allow-Headers', 'Range');
+      
+      // Forward range response headers
+      if (streamResponse.status === 206) {
+        res.status(206);
+        if (streamResponse.headers['content-range']) {
+          res.setHeader('Content-Range', streamResponse.headers['content-range']);
+        }
+      }
+      
       if (streamResponse.headers['content-length']) {
         res.setHeader('Content-Length', streamResponse.headers['content-length']);
       }
@@ -436,7 +460,13 @@ const streamHandler = async (req, res) => {
 };
 
 // Register stream endpoint (auth temporarily disabled for deployment)
-app.get('/api/stream/:songId', streamHandler);
+app.get('/api/stream/:songId', async (req, res) => {
+  const { songId } = req.params;
+  const bitrate = req.query.bitrate || '320'; // Default to 320kbps
+  
+  // Call streamHandler with bitrate
+  await streamHandler(req, res, bitrate);
+});
 
 // Get artwork (only in development)
 if (!isProduction) {
@@ -664,9 +694,116 @@ function parseDuration(duration) {
 // Get album details by ID using unofficial API (same as jio-saavn-downloader.js)
 app.get('/api/album/:id', async (req, res) => {
   const albumId = req.params.id;
+  let albumName = req.query.name; // Get album name from query parameter
   
+  // If album name not provided, try to fetch it from primary API
+  if (!albumName) {
+    try {
+      console.log('Album name not provided, fetching from primary API');
+      const searchResponse = await axios.get(`${PRIMARY_API}/search`, {
+        params: { query: albumId, type: 'album' },
+        headers: { 'User-Agent': 'Mozilla/5.0' }
+      });
+      
+      const searchAlbum = searchResponse.data?.data?.results?.albums?.[0];
+      if (searchAlbum && searchAlbum.id === albumId && searchAlbum.name) {
+        albumName = searchAlbum.name;
+        console.log('Found album name from primary API:', albumName);
+      }
+    } catch (nameFetchError) {
+      console.error('Failed to fetch album name from primary API:', nameFetchError.message);
+    }
+  }
+  
+  // Primary method: Use official JioSaavn search API to get album token
+  try {
+    console.log('Using official JioSaavn search API as primary method');
+    // Search by album name (if available) or ID to get the token
+    const searchQuery = albumName || albumId;
+    const officialSearchResponse = await axios.get('https://www.jiosaavn.com/api.php', {
+      params: {
+        __call: 'search.getAlbumResults',
+        q: searchQuery,
+        p: 1,
+        n: 10,
+        _format: 'json',
+        _marker: 0,
+        ctx: 'web6dot0'
+      },
+      headers: { 'User-Agent': 'Mozilla/5.0' }
+    });
+    
+    const searchData = officialSearchResponse.data;
+    if (searchData && searchData.results && Array.isArray(searchData.results)) {
+      const albumDoc = searchData.results.find(a => a.albumid === albumId);
+      if (albumDoc && albumDoc.perma_url) {
+        // Extract token from perma_url
+        const tokenMatch = albumDoc.perma_url.match(/\/([^\/]+)$/);
+        const token = tokenMatch ? tokenMatch[1] : null;
+        
+        if (token) {
+          console.log('Found album token from search API:', token);
+          // Fetch album details using the token
+          const tokenResponse = await axios.get('https://www.jiosaavn.com/api.php', {
+            params: {
+              __call: 'webapi.get',
+              type: 'album',
+              id: albumId,
+              token: token,
+              includeMetaTags: 0,
+              ctx: 'web6dot0',
+              api_version: 4,
+              _format: 'json',
+              _marker: 0
+            },
+            headers: { 'User-Agent': 'Mozilla/5.0' }
+          });
+          
+          const tokenData = tokenResponse.data;
+          const songs = tokenData?.list || [];
+          
+          if (songs.length > 0) {
+            const totalDuration = songs.reduce((sum, s) => sum + (parseInt(s.more_info?.duration) || 0), 0);
+            const primaryArtists = tokenData.more_info?.artistMap?.primary_artists || [];
+            
+            const album = {
+              id: albumId,
+              name: decodeHtmlEntities(tokenData.title || tokenData.name),
+              year: tokenData.year || tokenData.more_info?.release_date?.substring(0, 4) || 0,
+              language: tokenData.language,
+              artists: primaryArtists.map(a => ({ id: a.id, name: a.name, image: a.image })),
+              composers: [],
+              copyright: tokenData.copyright_text || '',
+              playCount: tokenData.play_count || 0,
+              songCount: songs.length,
+              totalDuration: totalDuration,
+              image: tokenData.image ? [{ quality: '500x500', url: tokenData.image }] : [],
+              isLocal: isAlbumLocal(albumId),
+              songs: songs.map(song => ({
+                id: song.id,
+                name: decodeHtmlEntities(song.title || song.song),
+                artists: { primary: song.more_info?.artistMap?.primary_artists?.map(a => ({ id: a.id, name: a.name })) || [] },
+                composers: [],
+                album: decodeHtmlEntities(tokenData.title || tokenData.name),
+                duration: parseInt(song.more_info?.duration) || 0,
+                playCount: song.play_count || 0,
+                year: tokenData.year || 0,
+                image: song.image ? [{ quality: '500x500', url: song.image }] : [],
+                downloadUrl: song.more_info?.encrypted_media_url ? [{ quality: '320kbps', url: song.more_info.encrypted_media_url }] : [],
+                isLocal: isSongLocal(song.id)
+              }))
+            };
+            
+            return res.json({ success: true, data: album });
+          }
+        }
+      }
+    }
+  } catch (primaryError) {
+    console.error('Official search API failed:', primaryError.message);
+  }
 
-  // Try primary API first
+  // Fallback: Try primary API
   try {
     const response = await axios.get(`${PRIMARY_API}/albums`, {
       params: { id: albumId },
@@ -817,7 +954,219 @@ app.get('/api/album/:id', async (req, res) => {
       res.json({ success: true, data: album });
     } catch (fallbackError) {
       console.error('Fallback API also failed:', fallbackError.message);
-      res.status(500).json({ error: 'Failed to fetch album details' });
+      
+      // Try search API as third fallback (doesn't require album token)
+      try {
+        console.log('Trying search API for album');
+        const searchResponse = await axios.get(`${PRIMARY_API}/search`, {
+          params: { query: albumId, type: 'album' },
+          headers: { 'User-Agent': 'Mozilla/5.0' }
+        });
+        
+        const searchAlbum = searchResponse.data?.data?.results?.albums?.[0];
+        if (searchAlbum && searchAlbum.id === albumId) {
+          return res.json({ success: true, data: searchAlbum });
+        }
+      } catch (searchError) {
+        console.error('Search API failed:', searchError.message);
+        
+        // Try official JioSaavn search API as additional fallback
+        try {
+          console.log('Trying official JioSaavn search API');
+          const officialSearchData = await fetchFromMusicServiceOfficial('search.getResults', { 
+            q: albumId, 
+            p: 1, 
+            n: 1,
+            ctx: 'web6dot0',
+            _format: 'json',
+            _marker: 0
+          });
+          
+          if (officialSearchData && officialSearchData.albums && officialSearchData.albums.response && officialSearchData.albums.response.docs) {
+            const searchAlbum = officialSearchData.albums.response.docs[0];
+            if (searchAlbum && searchAlbum.id === albumId) {
+              // Normalize official search response to match our format
+              const album = {
+                id: searchAlbum.id,
+                name: decodeHtmlEntities(searchAlbum.title || searchAlbum.album),
+                year: searchAlbum.year || searchAlbum.more_info?.year || 0,
+                language: searchAlbum.language,
+                artists: searchAlbum.artistMap?.primary_artists?.map(a => ({ id: a.id, name: a.name, image: a.image })) || [],
+                composers: [],
+                copyright: searchAlbum.copyright_text || '',
+                playCount: searchAlbum.play_count || 0,
+                songCount: searchAlbum.more_info?.song_count || 0,
+                totalDuration: 0,
+                image: searchAlbum.image ? [{ quality: '500x500', url: searchAlbum.image }] : [],
+                isLocal: isAlbumLocal(albumId),
+                songs: []
+              };
+              return res.json({ success: true, data: album });
+            }
+          }
+        } catch (officialSearchError) {
+          console.error('Official search API also failed:', officialSearchError.message);
+        }
+      }
+      
+      // Try official JioSaavn API as fourth fallback
+      console.log('Trying official JioSaavn API for album');
+      try {
+        // Use webapi.get with album token instead of album.getDetails
+        const officialParams = {
+          __call: 'webapi.get',
+          type: 'album',
+          id: albumId,
+          includeMetaTags: 0,
+          ctx: 'web6dot0',
+          api_version: 4,
+          _format: 'json',
+          _marker: 0
+        };
+        const officialData = await fetchFromMusicServiceOfficial(officialParams.__call, officialParams);
+        console.log('Official API response:', officialData ? 'Success' : 'No data');
+        console.log('Official API has songs?', officialData?.list ? 'Yes' : 'No');
+        console.log('Official API songs count:', officialData?.list?.length || 0);
+        
+        // Official API returns songs in 'list' array
+        const songs = officialData?.list || [];
+        
+        if (songs.length > 0) {
+          // Normalize official API response
+          const totalDuration = songs.reduce((sum, song) => sum + (parseInt(song.more_info?.duration) || 0), 0);
+          
+          const primaryArtists = officialData.more_info?.artistMap?.primary_artists || [];
+          const composers = primaryArtists.map(artist => ({ id: artist.id, name: artist.name, image: artist.image }));
+
+          const album = {
+            id: albumId,
+            name: decodeHtmlEntities(officialData.title || officialData.name),
+            year: officialData.year || officialData.more_info?.release_date?.substring(0, 4) || 0,
+            language: officialData.language,
+            artists: primaryArtists.map(artist => ({ id: artist.id, name: artist.name, image: artist.image })),
+            composers: composers,
+            copyright: officialData.copyright_text || '',
+            playCount: officialData.play_count || 0,
+            songCount: songs.length,
+            totalDuration: totalDuration,
+            image: officialData.image ? [{ quality: '500x500', url: officialData.image }] : [],
+            isLocal: isAlbumLocal(albumId),
+            songs: songs.map(song => ({
+              id: song.id,
+              name: decodeHtmlEntities(song.title || song.song),
+              artists: { primary: song.more_info?.artistMap?.primary_artists?.map(a => ({ id: a.id, name: a.name })) || [] },
+              composers: [],
+              album: decodeHtmlEntities(officialData.title || officialData.name),
+              duration: parseInt(song.more_info?.duration) || 0,
+              playCount: song.play_count || 0,
+              year: officialData.year || 0,
+              image: song.image ? [{ quality: '500x500', url: song.image }] : [],
+              downloadUrl: song.more_info?.encrypted_media_url ? [{ quality: '320kbps', url: song.more_info.encrypted_media_url }] : [],
+              isLocal: isSongLocal(song.id)
+            }))
+          };
+
+          return res.json({ success: true, data: album });
+        }
+      } catch (officialError) {
+        console.error('Official JioSaavn API also failed:', officialError.message);
+      }
+      
+      // Final fallback: Get album token from artist API, then fetch with token
+      try {
+        console.log('Trying to get album token from artist API');
+        // Search for the album to find which artist it belongs to
+        const searchResponse = await axios.get(`${PRIMARY_API}/search`, {
+          params: { query: albumId, type: 'album' },
+          headers: { 'User-Agent': 'Mozilla/5.0' }
+        });
+        
+        const searchAlbum = searchResponse.data?.data?.results?.albums?.[0];
+        if (searchAlbum && searchAlbum.id === albumId && searchAlbum.artists && searchAlbum.artists.length > 0) {
+          const artistId = searchAlbum.artists[0].id;
+          console.log('Found artist ID:', artistId);
+          
+          // Get artist details to get the album with perma_url
+          const artistResponse = await axios.get(`${PRIMARY_API}/artist/${artistId}`, {
+            headers: { 'User-Agent': 'Mozilla/5.0' }
+          });
+          
+          const artistData = artistResponse.data?.data;
+          if (artistData && artistData.albums) {
+            const albumWithToken = artistData.albums.find(a => a.id === albumId);
+            if (albumWithToken && albumWithToken.perma_url) {
+              // Extract token from perma_url
+              const tokenMatch = albumWithToken.perma_url.match(/\/([^\/]+)$/);
+              const token = tokenMatch ? tokenMatch[1] : null;
+              
+              if (token) {
+                console.log('Found album token:', token);
+                // Fetch album details using the token
+                const tokenResponse = await axios.get('https://www.jiosaavn.com/api.php', {
+                  params: {
+                    __call: 'webapi.get',
+                    type: 'album',
+                    id: albumId,
+                    token: token,
+                    includeMetaTags: 0,
+                    ctx: 'web6dot0',
+                    api_version: 4,
+                    _format: 'json',
+                    _marker: 0
+                  },
+                  headers: { 'User-Agent': 'Mozilla/5.0' }
+                });
+                
+                const tokenData = tokenResponse.data;
+                const songs = tokenData?.list || [];
+                
+                if (songs.length > 0) {
+                  const totalDuration = songs.reduce((sum, s) => sum + (parseInt(s.more_info?.duration) || 0), 0);
+                  const primaryArtists = tokenData.more_info?.artistMap?.primary_artists || [];
+                  
+                  const album = {
+                    id: albumId,
+                    name: decodeHtmlEntities(tokenData.title || tokenData.name),
+                    year: tokenData.year || tokenData.more_info?.release_date?.substring(0, 4) || 0,
+                    language: tokenData.language,
+                    artists: primaryArtists.map(a => ({ id: a.id, name: a.name, image: a.image })),
+                    composers: [],
+                    copyright: tokenData.copyright_text || '',
+                    playCount: tokenData.play_count || 0,
+                    songCount: songs.length,
+                    totalDuration: totalDuration,
+                    image: tokenData.image ? [{ quality: '500x500', url: tokenData.image }] : [],
+                    isLocal: isAlbumLocal(albumId),
+                    songs: songs.map(song => ({
+                      id: song.id,
+                      name: decodeHtmlEntities(song.title || song.song),
+                      artists: { primary: song.more_info?.artistMap?.primary_artists?.map(a => ({ id: a.id, name: a.name })) || [] },
+                      composers: [],
+                      album: decodeHtmlEntities(tokenData.title || tokenData.name),
+                      duration: parseInt(song.more_info?.duration) || 0,
+                      playCount: song.play_count || 0,
+                      year: tokenData.year || 0,
+                      image: song.image ? [{ quality: '500x500', url: song.image }] : [],
+                      downloadUrl: song.more_info?.encrypted_media_url ? [{ quality: '320kbps', url: song.more_info.encrypted_media_url }] : [],
+                      isLocal: isSongLocal(song.id)
+                    }))
+                  };
+                  
+                  return res.json({ success: true, data: album });
+                }
+              }
+            }
+          }
+        }
+      } catch (tokenError) {
+        console.error('Token-based fetch also failed:', tokenError.message);
+      }
+      
+      res.status(503).json({ 
+        error: 'Album details temporarily unavailable',
+        message: 'External JioSaavn APIs are currently rate-limited. Please try again in a few minutes or browse songs from the artist page.',
+        retryable: true
+      });
     }
   }
 });

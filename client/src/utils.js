@@ -75,3 +75,48 @@ export function formatTime(seconds) {
   const secs = Math.floor(seconds % 60)
   return `${mins}:${secs.toString().padStart(2, '0')}`
 }
+
+// Helper to detect connection type (WiFi/cellular) for adaptive bitrate
+export function getConnectionType() {
+  const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection
+  if (!connection) return 'unknown'
+  
+  // Check effectiveType for cellular networks
+  if (connection.effectiveType) {
+    const slowTypes = ['slow-2g', '2g', '3g']
+    if (slowTypes.includes(connection.effectiveType)) {
+      return 'cellular-slow'
+    }
+  }
+  
+  // Check if on cellular
+  if (connection.type === 'cellular') {
+    return 'cellular'
+  }
+  
+  // Default to WiFi if not cellular
+  return 'wifi'
+}
+
+// Helper to get max bitrate based on connection type and user preference
+export function getMaxBitrate(connectionType, userPreference = 'auto') {
+  if (userPreference === 'low-data') {
+    return 96
+  }
+  
+  if (userPreference === 'high-quality') {
+    return 320
+  }
+  
+  // Auto mode - adapt based on connection
+  if (connectionType === 'cellular-slow') {
+    return 96
+  }
+  
+  if (connectionType === 'cellular') {
+    return 160
+  }
+  
+  // WiFi or unknown
+  return 320
+}

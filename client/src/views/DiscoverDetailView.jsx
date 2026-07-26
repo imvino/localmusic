@@ -12,7 +12,7 @@ const HARRIS_JAYARAJ_ID = '455243'
 const isProduction = import.meta.env.MODE === 'production'
 
 export default function DiscoverDetailView({ onSongClick, showToast, currentSong, isPlaying, sidebarOpen }) {
-  const { id } = useParams()
+  const { id, slug } = useParams()
   const navigate = useNavigate()
   const location = useLocation()
   const { addDownload, updateDownload, removeDownload, getDownloadBySongId } = useDownloadStore()
@@ -31,9 +31,11 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
   const [customAlbums, setCustomAlbums] = useState(null)
   const [iTunesArtwork, setITunesArtwork] = useState(null)
   const meta = location.state?.[isAlbum ? 'album' : isArtist ? 'artist' : 'playlist']
+  // Use slug from URL as album name, fallback to state
+  const albumName = slug ? slug.replace(/-/g, ' ') : location.state?.albumName
 
   // Use TanStack Query hooks based on route type
-  const { data: albumData, isLoading: albumLoading } = useAlbum(isAlbum ? id : null)
+  const { data: albumData, isLoading: albumLoading } = useAlbum(isAlbum ? id : null, albumName)
   const { data: artistData, isLoading: artistLoading } = useArtist(isArtist ? id : null, 50, 'all')
   const { data: playlistData, isLoading: playlistLoading } = usePlaylist(isPlaylist ? id : null)
 
@@ -858,7 +860,10 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
                 {sortedAlbums.map(album => (
                   <button
                     key={album.id}
-                    onClick={() => navigate(`/discover/album/${album.id}`, { state: { album } })}
+                    onClick={() => {
+                      const slug = (album.name || album.title || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+                      navigate(`/discover/album/${album.id}/${slug}`, { state: { album } });
+                    }}
                     className="flex flex-col gap-2 group"
                   >
                     <div className="aspect-square rounded-xl overflow-hidden bg-zinc-800 shadow relative">

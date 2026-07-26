@@ -8,6 +8,7 @@ import { ClerkProvider, UserButton, useAuth, SignInButton } from '@clerk/react'
 import { dark } from '@clerk/themes'
 import { Analytics } from '@vercel/analytics/react'
 import { useHealthCheck } from './hooks/useApi'
+import { getConnectionType, getMaxBitrate } from './utils'
 import Sidebar from './views/Sidebar'
 import SearchView from './views/SearchView'
 import DiscoverView from './views/DiscoverView'
@@ -75,6 +76,11 @@ function AppContent() {
   const [isSearchingAlbum, setIsSearchingAlbum] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [showFullScreenPlayer, setShowFullScreenPlayer] = useState(false)
+  const [qualityPreference, setQualityPreference] = useState(() => {
+    const saved = localStorage.getItem('qualityPreference')
+    return saved || 'auto'
+  })
+  const [currentBitrate, setCurrentBitrate] = useState(96)
   const audioRef = useRef(null)
 
   // Use TanStack Query for health check
@@ -176,9 +182,36 @@ function AppContent() {
       setIsPlaying(false)
     }
 
-    // Add timeupdate event listener for progress tracking
+    // Add timeupdate event listener for progress tracking and adaptive bitrate
     const handleTimeUpdate = () => {
       setCurrentTime(audio.currentTime)
+      
+      // Adaptive bitrate: upgrade based on buffer health
+      if (currentSong && currentSong.maxBitrate && currentBitrate < currentSong.maxBitrate) {
+        const buffered = audio.buffered
+        if (buffered.length > 0) {
+          const bufferEnd = buffered.end(buffered.length - 1)
+          const bufferAhead = bufferEnd - audio.currentTime
+          
+          // Upgrade to 160kbps after 5 seconds buffer
+          if (bufferAhead > 5 && currentBitrate === 96) {
+            setCurrentBitrate(160)
+          }
+          // Upgrade to max bitrate (320kbps) after 10 seconds buffer
+          if (bufferAhead > 10 && currentBitrate === 160) {
+            setCurrentBitrate(currentSong.maxBitrate)
+          }
+        }
+      }
+      
+      // Downgrade if buffer is low
+      if (audio.buffered.length > 0) {
+        const bufferEnd = audio.buffered.end(audio.buffered.length - 1)
+        const bufferAhead = bufferEnd - audio.currentTime
+        if (bufferAhead < 3 && currentBitrate > 96) {
+          setCurrentBitrate(96)
+        }
+      }
     }
 
     // Add loadedmetadata event listener for duration
@@ -195,7 +228,7 @@ function AppContent() {
       audio.removeEventListener('timeupdate', handleTimeUpdate)
       audio.removeEventListener('loadedmetadata', handleLoadedMetadata)
     }
-  }, [currentSong, isPlaying, volume, muted])
+  }, [currentSong, isPlaying, volume, muted, currentBitrate])
 
   // Handle shortcuts
   useEffect(() => {
@@ -305,10 +338,64 @@ function AppContent() {
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
   }, [isPlaying])
 
+  // Detect connection type and set initial bitrate
+  useEffect(() => {
+    const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection
+    if (connection) {
+      const handleConnectionChange = () => {
+        const connType = getConnectionType()
+        const maxBitrate = getMaxBitrate(connType, qualityPreference)
+        console.log('Connection changed:', connType, 'Max bitrate:', maxBitrate)
+      }
+
+      connection.addEventListener('change', handleConnectionChange)
+      return () => connection.removeEventListener('change', handleConnectionChange)
+    }
+  }, [qualityPreference])
+
+  // Save quality preference to localStorage
+  useEffect(() => {
+    localStorage.setItem('qualityPreference', qualityPreference)
+  }, [qualityPreference])
+
+  // Handle bitrate switching - reload stream with new bitrate from current position
+  useEffect(() => {
+    if (!audioRef.current || !currentSong || !currentSong.id) return
+    
+    const audio = audioRef.current
+    const currentTime = audio.currentTime
+    
+    // Only switch if we have a valid stream URL and the bitrate actually changed
+    if (currentSong.isStream && currentSong.id && currentBitrate !== 96) {
+      const fetchNewStreamUrl = async () => {
+        try {
+          const res = await fetch(`${API_BASE}/stream/${currentSong.id}?bitrate=${currentBitrate}`)
+          if (res.ok) {
+            const newStreamUrl = res.url
+            if (audio.src !== newStreamUrl) {
+              const wasPlaying = !audio.paused
+              audio.src = newStreamUrl
+              audio.currentTime = currentTime
+              audio.load()
+              if (wasPlaying) {
+                audio.play().catch(e => console.error('Play error after bitrate switch:', e))
+              }
+            }
+          }
+        } catch (error) {
+          console.error('Failed to switch bitrate:', error)
+        }
+      }
+      
+      fetchNewStreamUrl()
+    }
+  }, [currentBitrate, currentSong])
+
 
   const navigateToView = (viewName, data = null, source = 'discover') => {
     if (viewName === 'album' && data) {
-      navigate(`/discover/album/${data.id || encodeURIComponent(data.name)}`, { state: { album: data, source } })
+      const slug = (data.name || data.title || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+      navigate(`/discover/album/${data.id || encodeURIComponent(data.name)}/${slug}`, { state: { album: data, source } })
     } else if (viewName === 'artist' && data) {
       navigate(`/discover/artist/${data.id}`, { state: { artist: data, source } })
     } else {
@@ -319,6 +406,13 @@ function AppContent() {
   const handleSongSelect = async (song, songQueue = null, songIndex = null) => {
     let songWithStream = { ...song }
 
+    // Determine appropriate bitrate based on connection and preference
+    const connType = getConnectionType()
+    const maxBitrate = getMaxBitrate(connType, qualityPreference)
+    
+    // Start with 96kbps for fast start, will upgrade later
+    setCurrentBitrate(96)
+
     // Fetch stream URL if not already present
     if (!song.streamUrl && song.id) {
       try {
@@ -328,7 +422,8 @@ function AppContent() {
           songWithStream = {
             ...song,
             streamUrl: result.data.streamUrl,
-            albumId: result.data.albumId || song.albumId
+            albumId: result.data.albumId || song.albumId,
+            maxBitrate: maxBitrate
           }
         }
       } catch (error) {
@@ -460,7 +555,8 @@ function AppContent() {
   const handleArtworkClick = async () => {
     console.log('handleArtworkClick called, currentSong:', currentSong)
     if (currentSong && currentSong.albumId) {
-      navigate(`/discover/album/${currentSong.albumId}`)
+      const slug = (currentSong.album || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+      navigate(`/discover/album/${currentSong.albumId}/${slug}`)
     } else if (currentSong && currentSong.album && currentSong.name) {
       // Fallback: search for album
       setIsSearchingAlbum(true)
@@ -481,7 +577,8 @@ function AppContent() {
                 if (songExists) {
                   // Found the album, navigate and update currentSong
                   setCurrentSong(prev => ({ ...prev, albumId: album.id }))
-                  navigate(`/discover/album/${album.id}`)
+                  const slug = (album.name || album.title || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+                  navigate(`/discover/album/${album.id}/${slug}`)
                   setIsSearchingAlbum(false)
                   return
                 }
@@ -535,6 +632,8 @@ function AppContent() {
               onSearch={q => setSearchParams({ q })}
               showToast={showToastMessage}
               onClose={() => setSidebarOpen(false)}
+              qualityPreference={qualityPreference}
+              onQualityChange={setQualityPreference}
             />
           </div>
         </div>
@@ -546,6 +645,8 @@ function AppContent() {
           searchQuery={searchQuery}
           onSearch={q => setSearchParams({ q })}
           showToast={showToastMessage}
+          qualityPreference={qualityPreference}
+          onQualityChange={setQualityPreference}
         />
       </div>
       
@@ -682,7 +783,7 @@ function AppContent() {
         <div className="flex-1 overflow-y-auto bg-zinc-950 pb-32 md:pb-0">
           <Routes>
             <Route path="/discover" element={<DiscoverView onSongClick={handleSongSelect} showToast={showToastMessage} />} />
-            <Route path="/discover/album/:id" element={<DiscoverDetailView onSongClick={handleSongSelect} showToast={showToastMessage} currentSong={currentSong} isPlaying={isPlaying} sidebarOpen={sidebarOpen} />} />
+            <Route path="/discover/album/:id/:slug?" element={<DiscoverDetailView onSongClick={handleSongSelect} showToast={showToastMessage} currentSong={currentSong} isPlaying={isPlaying} sidebarOpen={sidebarOpen} />} />
             <Route path="/discover/playlist/:id" element={<DiscoverDetailView onSongClick={handleSongSelect} showToast={showToastMessage} currentSong={currentSong} isPlaying={isPlaying} sidebarOpen={sidebarOpen} />} />
             <Route path="/discover/artist/:id" element={<DiscoverDetailView onSongClick={handleSongSelect} showToast={showToastMessage} currentSong={currentSong} isPlaying={isPlaying} sidebarOpen={sidebarOpen} />} />
             <Route path="/search" element={<SearchView query={searchQuery} onSongClick={handleSongSelect} onAlbumClick={a => navigateToView('album', a)} onArtistClick={a => navigateToView('artist', a)} showToast={showToastMessage} />} />

@@ -1,4 +1,4 @@
-import { Compass, RefreshCw, Keyboard, X, Trash2, Download, ListMusic, Clock } from 'lucide-react'
+import { Compass, RefreshCw, Keyboard, X, Trash2, Download, ListMusic, Clock, Settings } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 import { useState, useRef } from 'react'
 import { useAuth } from '@clerk/react'
@@ -10,12 +10,13 @@ const NAV_ITEMS = [
   { id: 'discover', label: 'Discover', icon: Compass, path: '/discover' },
 ]
 
-export default function Sidebar({ searchQuery, onSearch, showToast, onClose }) {
+export default function Sidebar({ searchQuery, onSearch, showToast, onClose, qualityPreference, onQualityChange }) {
   const location = useLocation()
   const currentPath = location.pathname
   const { isSignedIn } = useAuth()
   const [isScanning, setIsScanning] = useState(false)
   const [showShortcuts, setShowShortcuts] = useState(false)
+  const [showQualitySettings, setShowQualitySettings] = useState(false)
 
   const handleScan = async () => {
     setIsScanning(true)
@@ -167,6 +168,14 @@ export default function Sidebar({ searchQuery, onSearch, showToast, onClose }) {
           <div className="text-[10px] font-semibold text-zinc-600 uppercase tracking-widest mb-2 px-2">Settings</div>
           
           <button
+            onClick={() => setShowQualitySettings(true)}
+            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-left w-full text-zinc-400 hover:text-white hover:bg-zinc-800/40"
+          >
+            <Settings size={17} />
+            Streaming Quality
+          </button>
+          
+          <button
             onClick={handleClearCache}
             className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-left w-full text-zinc-400 hover:text-white hover:bg-zinc-800/40"
           >
@@ -311,6 +320,55 @@ export default function Sidebar({ searchQuery, onSearch, showToast, onClose }) {
                 <span className="text-zinc-400">Seek to End</span>
                 <kbd className="px-2 py-1 bg-zinc-800 rounded text-zinc-300 text-xs">End</kbd>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Quality Settings Modal */}
+      {showQualitySettings && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50" onClick={() => setShowQualitySettings(false)}>
+          <div className="bg-zinc-900 rounded-xl p-6 max-w-md w-full mx-4 shadow-2xl" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-bold text-white">Streaming Quality</h2>
+              <button onClick={() => setShowQualitySettings(false)} className="text-zinc-400 hover:text-white">
+                <X size={20} />
+              </button>
+            </div>
+            <div className="space-y-3">
+              <button
+                onClick={() => { onQualityChange('auto'); setShowQualitySettings(false); }}
+                className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition-all
+                  ${qualityPreference === 'auto' ? 'bg-zinc-800 text-white' : 'text-zinc-400 hover:text-white hover:bg-zinc-800/40'}`}
+              >
+                <div className="text-left">
+                  <div className="font-medium">Auto</div>
+                  <div className="text-xs text-zinc-500 mt-1">Adjusts based on connection (WiFi: 320kbps, Cellular: 160kbps)</div>
+                </div>
+                {qualityPreference === 'auto' && <div className="w-2 h-2 bg-[#fc3c44] rounded-full" />}
+              </button>
+              <button
+                onClick={() => { onQualityChange('low-data'); setShowQualitySettings(false); }}
+                className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition-all
+                  ${qualityPreference === 'low-data' ? 'bg-zinc-800 text-white' : 'text-zinc-400 hover:text-white hover:bg-zinc-800/40'}`}
+              >
+                <div className="text-left">
+                  <div className="font-medium">Low Data</div>
+                  <div className="text-xs text-zinc-500 mt-1">Always 96kbps (saves ~50% data on cellular)</div>
+                </div>
+                {qualityPreference === 'low-data' && <div className="w-2 h-2 bg-[#fc3c44] rounded-full" />}
+              </button>
+              <button
+                onClick={() => { onQualityChange('high-quality'); setShowQualitySettings(false); }}
+                className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition-all
+                  ${qualityPreference === 'high-quality' ? 'bg-zinc-800 text-white' : 'text-zinc-400 hover:text-white hover:bg-zinc-800/40'}`}
+              >
+                <div className="text-left">
+                  <div className="font-medium">High Quality</div>
+                  <div className="text-xs text-zinc-500 mt-1">Always 320kbps (best sound quality)</div>
+                </div>
+                {qualityPreference === 'high-quality' && <div className="w-2 h-2 bg-[#fc3c44] rounded-full" />}
+              </button>
             </div>
           </div>
         </div>
