@@ -3,10 +3,11 @@ const fs = require('fs');
 const path = require('path');
 const NodeID3 = require('node-id3');
 const { sanitizeFilename, loadLibrary, saveLibrary, decodeHtmlEntities } = require('../src/utils');
+const { PRIMARY_API } = require('../src/constants');
 
 const MUSIC_DIR = '/Volumes/samsung/Music';
 const LIBRARY_FILE = path.join(__dirname, '../data/music-library.json');
-const JIO_SAAVN_BASE = 'https://saavn.sumit.co/api';
+const JIO_SAAVN_BASE = PRIMARY_API;
 
 // Helper to normalize string for comparison
 function normalizeString(str) {

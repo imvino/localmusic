@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const axios = require('axios');
+const { PRIMARY_API, FALLBACK_API } = require('./constants');
 
 // Helper to decode HTML entities
 function decodeHtmlEntities(text) {
@@ -178,6 +179,122 @@ function fuzzyMatchAlbumName(searchName, apiName) {
   return false;
 }
 
+// 3-tier fallback helper for API calls
+async function fetchWithFallback(endpoint, params, type = 'songs') {
+  
+  // Try primary API first
+  try {
+    console.log(`Trying primary API for ${type}`);
+    const response = await axios.get(`${PRIMARY_API}/${endpoint}`, {
+      params,
+      headers: { 'User-Agent': 'Mozilla/5.0' }
+    });
+    return response.data;
+  } catch (primaryError) {
+    console.log(`Primary API failed for ${type}, trying fallback API`);
+    
+    // Try fallback API
+    try {
+      const response = await axios.get(`${FALLBACK_API}/${endpoint}`, {
+        params,
+        headers: { 'User-Agent': 'Mozilla/5.0' }
+      });
+      return response.data;
+    } catch (fallbackError) {
+      console.error(`Fallback API also failed for ${type}:`, fallbackError.message);
+      
+      // Try official JioSaavn API as third fallback
+      console.log(`Trying official JioSaavn API for ${type}`);
+      try {
+        let officialParams;
+        let officialEndpoint;
+        
+        if (type === 'songs') {
+          officialParams = {
+            __call: 'song.getDetails',
+            pids: params.ids
+          };
+        } else if (type === 'albums') {
+          officialParams = {
+            __call: 'album.getDetails',
+            albumid: params.id
+          };
+        } else if (type === 'playlists') {
+          officialParams = {
+            __call: 'playlist.getDetails',
+            listid: params.id
+          };
+        }
+        
+        const officialData = await fetchFromMusicServiceOfficial(officialParams.__call, officialParams);
+        
+        // Normalize official API response to match primary API structure
+        if (officialData) {
+          if (type === 'songs') {
+            const songs = Array.isArray(officialData) ? officialData : 
+                          (officialData.songs ? officialData.songs : [officialData]);
+            return {
+              data: songs.map(song => ({
+                id: song.id,
+                name: song.title || song.song || song.name,
+                album: song.more_info?.album,
+                year: song.year || song.more_info?.release_date?.substring(0, 4),
+                duration: parseInt(song.more_info?.duration) || 0,
+                image: song.image ? [{ quality: '500x500', url: song.image }] : [],
+                artists: {
+                  primary: song.more_info?.artistMap?.primary_artists?.map(a => ({
+                    id: a.id,
+                    name: a.name,
+                    image: a.image
+                  })) || []
+                },
+                downloadUrl: song.more_info?.encrypted_media_url ? [{
+                  quality: '320kbps',
+                  url: song.more_info.encrypted_media_url
+                }] : []
+              }))
+            };
+          } else if (type === 'albums') {
+            const album = Array.isArray(officialData) ? officialData[0] : officialData;
+            return {
+              data: {
+                id: album.albumid || album.id,
+                name: album.title || album.name,
+                year: album.year || album.more_info?.release_date?.substring(0, 4),
+                image: album.image ? [{ quality: '500x500', url: album.image }] : [],
+                songs: album.songs?.map(s => ({
+                  id: s.id,
+                  name: s.title || s.song || s.name,
+                  duration: parseInt(s.more_info?.duration) || 0
+                })) || []
+              }
+            };
+          } else if (type === 'playlists') {
+            const playlist = Array.isArray(officialData) ? officialData[0] : officialData;
+            return {
+              data: {
+                id: playlist.listid || playlist.id,
+                name: playlist.title || playlist.name,
+                image: playlist.image ? [{ quality: '500x500', url: playlist.image }] : [],
+                songs: playlist.songs?.map(s => ({
+                  id: s.id,
+                  name: s.title || s.song || s.name,
+                  duration: parseInt(s.more_info?.duration) || 0
+                })) || []
+              }
+            };
+          }
+        }
+        
+        return null;
+      } catch (officialError) {
+        console.error(`Official API also failed for ${type}:`, officialError.message);
+        return null;
+      }
+    }
+  }
+}
+
 module.exports = {
   decodeHtmlEntities,
   loadLibrary,
@@ -189,5 +306,6 @@ module.exports = {
   sanitizeFilename,
   parseDuration,
   fetchFromMusicServiceOfficial,
-  fuzzyMatchAlbumName
+  fuzzyMatchAlbumName,
+  fetchWithFallback
 };

@@ -4,10 +4,11 @@ const fs = require('fs');
 const path = require('path');
 const NodeID3 = require('node-id3');
 const { exec } = require('child_process');
-const { decodeHtmlEntities, loadLibrary, saveLibrary, detectComposerFromSongs, getBestImage, get320kbpsUrl, extractYearFromCopyright, sanitizeFilename } = require('./utils');
+const { decodeHtmlEntities, loadLibrary, saveLibrary, detectComposerFromSongs, getBestImage, get320kbpsUrl, extractYearFromCopyright, sanitizeFilename, fetchWithFallback } = require('./utils');
+const { PRIMARY_API } = require('./constants');
 
 const MUSIC_DIR = '/Volumes/samsung/Music';
-const JIO_SAAVN_BASE = 'https://saavn.sumit.co/api';
+const JIO_SAAVN_BASE = PRIMARY_API;
 const LIBRARY_FILE = path.join(__dirname, '../data/music-library.json');
 
 // Helper functions for composer mappings
@@ -380,14 +381,14 @@ async function downloadSingleSong(songId, onProgress) {
       });
     }
 
-    // 1. Fetch song details
-    const songRes = await axios.get(`${JIO_SAAVN_BASE}/songs`, { params: { ids: songId } });
-    const songData = songRes.data?.data?.[0];
+    // 1. Fetch song details with 3-tier fallback
+    const songRes = await fetchWithFallback('songs', { ids: songId }, 'songs');
+    const songData = songRes?.data?.[0];
     if (!songData) throw new Error('Song not found');
 
-    // 2. Fetch album details to get all songs (to detect composer properly)
-    const albumRes = await axios.get(`${JIO_SAAVN_BASE}/albums`, { params: { id: songData.album.id } });
-    const albumData = albumRes.data?.data;
+    // 2. Fetch album details to get all songs (to detect composer properly) with 3-tier fallback
+    const albumRes = await fetchWithFallback('albums', { id: songData.album.id }, 'albums');
+    const albumData = albumRes?.data;
     if (!albumData) throw new Error('Album not found');
 
     if (onProgress) {
@@ -577,10 +578,10 @@ async function downloadAlbum(albumId, onProgress) {
 
     // 5. Download all songs sequentially
     const results = [];
-    // Need full song details to get download URLs
+    // Need full song details to get download URLs with 3-tier fallback
     const songIds = songs.map(s => s.id).join(',');
-    const songDetailsRes = await axios.get(`${JIO_SAAVN_BASE}/songs`, { params: { ids: songIds } });
-    const fullSongs = songDetailsRes.data?.data || [];
+    const songDetailsRes = await fetchWithFallback('songs', { ids: songIds }, 'songs');
+    const fullSongs = songDetailsRes?.data || [];
 
     for (let i = 0; i < fullSongs.length; i++) {
       const songData = fullSongs[i];

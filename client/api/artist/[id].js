@@ -1,8 +1,128 @@
 import { decodeHtmlEntities, fetchFromMusicServiceOfficial } from '../_utils.js';
+import { PRIMARY_API, FALLBACK_API } from '../../src/constants.js';
 
 export const config = {
   runtime: 'edge'
 };
+
+// 3-tier fallback helper for Edge functions
+async function fetchWithFallback(endpoint, params, type = 'songs') {
+  
+  // Try primary API first
+  try {
+    console.log(`Trying primary API for ${type}`);
+    const url = new URL(`${PRIMARY_API}/${endpoint}`);
+    Object.keys(params).forEach(key => url.searchParams.append(key, params[key]));
+    const response = await fetch(url, {
+      headers: { 'User-Agent': 'Mozilla/5.0' }
+    });
+    if (!response.ok) throw new Error(`Primary API failed: ${response.status}`);
+    return await response.json();
+  } catch (primaryError) {
+    console.log(`Primary API failed for ${type}, trying fallback API`);
+    
+    // Try fallback API
+    try {
+      const url = new URL(`${FALLBACK_API}/${endpoint}`);
+      Object.keys(params).forEach(key => url.searchParams.append(key, params[key]));
+      const response = await fetch(url, {
+        headers: { 'User-Agent': 'Mozilla/5.0' }
+      });
+      if (!response.ok) throw new Error(`Fallback API failed: ${response.status}`);
+      return await response.json();
+    } catch (fallbackError) {
+      console.error(`Fallback API also failed for ${type}:`, fallbackError.message);
+      
+      // Try official JioSaavn API as third fallback
+      console.log(`Trying official JioSaavn API for ${type}`);
+      try {
+        let officialParams;
+        
+        if (type === 'songs') {
+          officialParams = {
+            __call: 'song.getDetails',
+            pids: params.ids
+          };
+        } else if (type === 'albums') {
+          officialParams = {
+            __call: 'album.getDetails',
+            albumid: params.id
+          };
+        } else if (type === 'playlists') {
+          officialParams = {
+            __call: 'playlist.getDetails',
+            listid: params.id
+          };
+        }
+        
+        const officialData = await fetchFromMusicServiceOfficial(officialParams.__call, officialParams);
+        
+        // Normalize official API response to match primary API structure
+        if (officialData) {
+          if (type === 'songs') {
+            const songs = Array.isArray(officialData) ? officialData : 
+                          (officialData.songs ? officialData.songs : [officialData]);
+            return {
+              data: songs.map(song => ({
+                id: song.id,
+                name: song.title || song.song || song.name,
+                album: song.more_info?.album,
+                year: song.year || song.more_info?.release_date?.substring(0, 4),
+                duration: parseInt(song.more_info?.duration) || 0,
+                image: song.image ? [{ quality: '500x500', url: song.image }] : [],
+                artists: {
+                  primary: song.more_info?.artistMap?.primary_artists?.map(a => ({
+                    id: a.id,
+                    name: a.name,
+                    image: a.image
+                  })) || []
+                },
+                downloadUrl: song.more_info?.encrypted_media_url ? [{
+                  quality: '320kbps',
+                  url: song.more_info.encrypted_media_url
+                }] : []
+              }))
+            };
+          } else if (type === 'albums') {
+            const album = Array.isArray(officialData) ? officialData[0] : officialData;
+            return {
+              data: {
+                id: album.albumid || album.id,
+                name: album.title || album.name,
+                year: album.year || album.more_info?.release_date?.substring(0, 4),
+                image: album.image ? [{ quality: '500x500', url: album.image }] : [],
+                songs: album.songs?.map(s => ({
+                  id: s.id,
+                  name: s.title || s.song || s.name,
+                  duration: parseInt(s.more_info?.duration) || 0
+                })) || []
+              }
+            };
+          } else if (type === 'playlists') {
+            const playlist = Array.isArray(officialData) ? officialData[0] : officialData;
+            return {
+              data: {
+                id: playlist.listid || playlist.id,
+                name: playlist.title || playlist.name,
+                image: playlist.image ? [{ quality: '500x500', url: playlist.image }] : [],
+                songs: playlist.songs?.map(s => ({
+                  id: s.id,
+                  name: s.title || s.song || s.name,
+                  duration: parseInt(s.more_info?.duration) || 0
+                })) || []
+              }
+            };
+          }
+        }
+        
+        return null;
+      } catch (officialError) {
+        console.error(`Official API also failed for ${type}:`, officialError.message);
+        return null;
+      }
+    }
+  }
+}
 
 export default async function handler(req) {
   const url = new URL(req.url);
@@ -21,7 +141,7 @@ export default async function handler(req) {
   // If it's an encoded name or just an artist name (not numeric ID), use fallback API
   if (isEncodedName || isArtistName) {
     try {
-      const searchResponse = await fetch(`https://jiosaavn-apix.arcadopredator.workers.dev/api/search?query=${encodeURIComponent(decodedId)}`);
+      const searchResponse = await fetch(`${FALLBACK_API}/search?query=${encodeURIComponent(decodedId)}`);
       const searchResults = await searchResponse.json();
       
       const songs = searchResults?.response?.songs || searchResults?.results || searchResults?.songs || [];
@@ -168,10 +288,7 @@ export default async function handler(req) {
     if (topSongs.length > 0) {
       const songIds = topSongs.map(s => s.id);
       try {
-        const songsResponse = await fetch(`https://saavn.sumit.co/api/songs?ids=${songIds.join(',')}`, {
-          headers: { 'User-Agent': 'Mozilla/5.0' }
-        });
-        const songsData = await songsResponse.json();
+        const songsData = await fetchWithFallback('songs', { ids: songIds.join(',') }, 'songs');
         const richSongsData = songsData?.data || [];
         const songDetailsMap = richSongsData.reduce((acc, song) => {
           acc[song.id] = song;
@@ -222,10 +339,7 @@ export default async function handler(req) {
           const songIds = searchSongs.map(s => s.id || s.tokenid).filter(Boolean);
           
           if (songIds.length > 0) {
-            const songsResponse = await fetch(`https://saavn.sumit.co/api/songs?ids=${songIds.join(',')}`, {
-              headers: { 'User-Agent': 'Mozilla/5.0' }
-            });
-            const songsData = await songsResponse.json();
+            const songsData = await fetchWithFallback('songs', { ids: songIds.join(',') }, 'songs');
             const richSongsData = songsData?.data || [];
             normalizedArtist.topSongs = richSongsData.map(song => ({
               id: song.id,

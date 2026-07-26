@@ -116,6 +116,13 @@ function AppContent() {
       let streamUrl
       if (currentSong.isStream && currentSong.streamUrl) {
         streamUrl = currentSong.streamUrl
+        // Prepend API_BASE if streamUrl is a relative path
+        if (streamUrl.startsWith('/api/')) {
+          // Remove /api/ from streamUrl if API_BASE already includes /api
+          const apiBase = API_BASE.endsWith('/api') ? API_BASE : API_BASE
+          const relativePath = streamUrl.startsWith('/api/') ? streamUrl.substring(4) : streamUrl
+          streamUrl = `${apiBase}${relativePath}`
+        }
       }
 
       if (streamUrl && audio.src !== streamUrl) {
@@ -513,7 +520,7 @@ function AppContent() {
       <audio 
         ref={audioRef} 
         className="hidden" 
-        playsinline 
+        playsInline 
         webkit-playsinline 
         crossOrigin="anonymous"
       />

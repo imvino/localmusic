@@ -5,7 +5,8 @@ const fs = require('fs');
 const path = require('path');
 const axios = require('axios');
 const { exec } = require('child_process');
-const { decodeHtmlEntities, loadLibrary: loadLibraryUtil, detectComposerFromSongs, getBestImage, fetchFromMusicServiceOfficial } = require('./utils');
+const { decodeHtmlEntities, loadLibrary: loadLibraryUtil, detectComposerFromSongs, getBestImage, fetchFromMusicServiceOfficial, fetchWithFallback } = require('./utils');
+const { PRIMARY_API, FALLBACK_API } = require('./constants');
 // const { clerkClient, clerkExpressRequireAuth } = require('@clerk/backend');
 
 const app = express();
@@ -20,7 +21,7 @@ const isProduction = process.env.NODE_ENV === 'production';
 const CLERK_SECRET_KEY = process.env.CLERK_SECRET_KEY;
 
 // Music Service API Configuration
-const MUSIC_API_BASE = 'https://saavn.sumit.co/api';
+const MUSIC_API_BASE = PRIMARY_API;
 
 // YouTube Data API Configuration
 const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY;
@@ -357,24 +358,53 @@ const streamHandler = async (req, res) => {
                       downloadUrls.find(u => u.quality === '160kbps')?.url || null;
         }
       } catch (primaryError) {
-        // If rate limited (429), try fallback API
-        if (primaryError.response?.status === 429) {
-          console.log('Primary API rate limited, trying fallback API for stream');
-          try {
-            const fallbackResponse = await axios.get(`https://jiosaavn-apix.arcadopredator.workers.dev/api/songs?ids=${req.params.songId}`);
-            const fallbackData = fallbackResponse.data?.data;
-            
-            if (fallbackData && fallbackData.length > 0) {
-              const fallbackSong = fallbackData[0];
-              const downloadUrls = fallbackSong.downloadUrl || [];
-              streamUrl = downloadUrls.find(u => u.quality === '320kbps')?.url || 
-                          downloadUrls.find(u => u.quality === '160kbps')?.url || null;
-            }
-          } catch (fallbackError) {
-            console.error('Fallback API also failed:', fallbackError.message);
+        console.log('Primary API failed for stream, trying fallback API');
+        try {
+          const fallbackResponse = await axios.get(`${FALLBACK_API}/songs?ids=${req.params.songId}`);
+          const fallbackData = fallbackResponse.data?.data;
+          
+          if (fallbackData && fallbackData.length > 0) {
+            const fallbackSong = fallbackData[0];
+            const downloadUrls = fallbackSong.downloadUrl || [];
+            streamUrl = downloadUrls.find(u => u.quality === '320kbps')?.url || 
+                        downloadUrls.find(u => u.quality === '160kbps')?.url || null;
           }
-        } else {
-          throw primaryError;
+        } catch (fallbackError) {
+          console.error('Fallback API also failed for stream:', fallbackError.message);
+          
+          // Try official JioSaavn API as third fallback
+          console.log('Trying official JioSaavn API for stream');
+          try {
+            const officialResponse = await axios.get('https://www.jiosaavn.com/api.php', {
+              params: {
+                __call: 'song.getDetails',
+                _format: 'json',
+                _marker: 0,
+                api_version: 4,
+                ctx: 'web6dot0',
+                pids: req.params.songId
+              },
+              headers: { 'User-Agent': 'Mozilla/5.0' }
+            });
+            const officialData = officialResponse.data;
+            
+            // Handle different response structures
+            let officialSong = null;
+            if (Array.isArray(officialData) && officialData.length > 0) {
+              officialSong = officialData[0];
+            } else if (officialData.songs && Array.isArray(officialData.songs) && officialData.songs.length > 0) {
+              officialSong = officialData.songs[0];
+            } else if (officialData.id) {
+              officialSong = officialData;
+            }
+            
+            if (officialSong && officialSong.more_info?.encrypted_media_url) {
+              // Use the preview URL from official API (vlink) for streaming
+              streamUrl = officialSong.more_info.vlink || officialSong.more_info.encrypted_media_url;
+            }
+          } catch (officialError) {
+            console.error('Official API also failed for stream:', officialError.message);
+          }
         }
       }
       
@@ -428,35 +458,15 @@ if (!isProduction) {
   });
 }
 
-// Helper: Fetch from music service API (for discover endpoints)
+// Helper: Fetch from music service API (for discover endpoints) using 3-tier fallback
 async function fetchFromMusicService(endpoint, params = {}) {
-  try {
-    const response = await axios.get(`https://saavn.sumit.co${endpoint}`, {
-      params,
-      headers: { 'User-Agent': 'Mozilla/5.0' }
-    });
-    return response.data;
-  } catch (error) {
-    // If rate limited (429), try fallback API
-    if (error.response?.status === 429) {
-      console.log('Primary API rate limited, trying fallback API for discover endpoint');
-      try {
-        // Map endpoints to fallback API structure
-        const fallbackEndpoint = endpoint.replace('/api', '/api');
-        const response = await axios.get(`https://jiosaavn-apix.arcadopredator.workers.dev${fallbackEndpoint}`, {
-          params,
-          headers: { 'User-Agent': 'Mozilla/5.0' }
-        });
-        return response.data;
-      } catch (fallbackError) {
-        console.error('Fallback API also failed:', fallbackError.message);
-        return null;
-      }
-    } else {
-      console.error('Error fetching from music service:', error.message);
-      return null;
-    }
-  }
+  // Extract endpoint type from URL
+  const endpointPath = endpoint.replace('/api/', '');
+  const type = endpointPath.includes('songs') ? 'songs' : 
+               endpointPath.includes('albums') ? 'albums' : 
+               endpointPath.includes('playlists') ? 'playlists' : 'songs';
+  
+  return await fetchWithFallback(endpointPath, params, type);
 }
 
 // Helper: Fetch YouTube playlist items
@@ -541,7 +551,7 @@ async function matchWithMusicService(songName, artist) {
         if (primaryError.response?.status === 429) {
           console.log('Primary API rate limited, trying fallback API for search');
           try {
-            response = await axios.get(`https://jiosaavn-apix.arcadopredator.workers.dev/api/search`, {
+            response = await axios.get(`${FALLBACK_API}/search`, {
               params: {
                 query: searchQuery,
                 limit: 10
@@ -658,7 +668,7 @@ app.get('/api/album/:id', async (req, res) => {
 
   // Try primary API first
   try {
-    const response = await axios.get('https://saavn.sumit.co/api/albums', {
+    const response = await axios.get(`${PRIMARY_API}/albums`, {
       params: { id: albumId },
       headers: { 'User-Agent': 'Mozilla/5.0' }
     });
@@ -668,34 +678,12 @@ app.get('/api/album/:id', async (req, res) => {
       return res.status(404).json({ error: 'Album not found' });
     }
 
-    // Fetch song details with download URLs
+    // Fetch song details with download URLs using 3-tier fallback
     const songIds = data.songs ? data.songs.map(s => s.id) : [];
     let songDetailsMap = {};
     if (songIds.length > 0) {
-      let songsResponse;
-      try {
-        songsResponse = await axios.get('https://saavn.sumit.co/api/songs', {
-          params: { ids: songIds.join(',') },
-          headers: { 'User-Agent': 'Mozilla/5.0' }
-        });
-      } catch (primaryError) {
-        // If rate limited (429), try fallback API
-        if (primaryError.response?.status === 429) {
-          console.log('Primary API rate limited, trying fallback API for songs in album endpoint');
-          try {
-            songsResponse = await axios.get('https://jiosaavn-apix.arcadopredator.workers.dev/api/songs', {
-              params: { ids: songIds.join(',') },
-              headers: { 'User-Agent': 'Mozilla/5.0' }
-            });
-          } catch (fallbackError) {
-            console.error('Fallback API also failed:', fallbackError.message);
-            songsResponse = { data: { data: [] } };
-          }
-        } else {
-          throw primaryError;
-        }
-      }
-      const songsData = songsResponse.data?.data || [];
+      const songsResponse = await fetchWithFallback('songs', { ids: songIds.join(',') }, 'songs');
+      const songsData = songsResponse?.data || [];
       songDetailsMap = songsData.reduce((acc, song) => {
         acc[song.id] = song;
         return acc;
@@ -784,7 +772,7 @@ app.get('/api/album/:id', async (req, res) => {
     
     // Fallback to alternative music service API
     try {
-      const fallbackResponse = await axios.get(`https://jiosaavn-apix.arcadopredator.workers.dev/api/albums?id=${albumId}`);
+      const fallbackResponse = await axios.get(`${FALLBACK_API}/albums?id=${albumId}`);
       const fallbackData = fallbackResponse.data?.data;
       
       if (!fallbackData || !fallbackData.songs) {
@@ -878,34 +866,83 @@ app.get('/api/song/:id', async (req, res) => {
                             downloadUrls.find(u => u.quality === '160kbps')?.url || null;
       }
     } catch (primaryError) {
-      // If rate limited (429), try fallback API
-      if (primaryError.response?.status === 429) {
-        console.log('Primary API rate limited, trying fallback API for song metadata');
+      console.log('Primary API failed for song, trying fallback API');
+      try {
+        const fallbackResponse = await axios.get(`${FALLBACK_API}/songs?ids=${id}`);
+        const fallbackData = fallbackResponse.data?.data;
+        const fallbackSong = fallbackData?.[0];
+        
+        if (fallbackSong) {
+          songData = {
+            id: fallbackSong.id,
+            name: fallbackSong.name,
+            album: fallbackSong.album,
+            year: fallbackSong.year,
+            duration: fallbackSong.duration,
+            image: fallbackSong.image || [],
+            artists: fallbackSong.artists?.primary || [],
+            downloadUrl: fallbackSong.downloadUrl || []
+          };
+          const downloadUrls = fallbackSong.downloadUrl || [];
+          externalStreamUrl = downloadUrls.find(u => u.quality === '320kbps')?.url || 
+                              downloadUrls.find(u => u.quality === '160kbps')?.url || null;
+        }
+      } catch (fallbackError) {
+        console.error('Fallback API also failed for song:', fallbackError.message);
+        
+        // Try official JioSaavn API as third fallback
+        console.log('Trying official JioSaavn API for song');
         try {
-          const fallbackResponse = await axios.get(`https://jiosaavn-apix.arcadopredator.workers.dev/api/songs?ids=${id}`);
-          const fallbackData = fallbackResponse.data?.data;
-          const fallbackSong = fallbackData?.[0];
+          const officialResponse = await axios.get('https://www.jiosaavn.com/api.php', {
+            params: {
+              __call: 'song.getDetails',
+              _format: 'json',
+              _marker: 0,
+              api_version: 4,
+              ctx: 'web6dot0',
+              pids: id
+            },
+            headers: { 'User-Agent': 'Mozilla/5.0' }
+          });
+          const officialData = officialResponse.data;
           
-          if (fallbackSong) {
+          // Handle different response structures
+          let officialSong = null;
+          if (Array.isArray(officialData) && officialData.length > 0) {
+            officialSong = officialData[0];
+          } else if (officialData.songs && Array.isArray(officialData.songs) && officialData.songs.length > 0) {
+            officialSong = officialData.songs[0];
+          } else if (officialData.id) {
+            officialSong = officialData;
+          }
+          
+          if (officialSong) {
             songData = {
-              id: fallbackSong.id,
-              name: fallbackSong.name,
-              album: fallbackSong.album,
-              year: fallbackSong.year,
-              duration: fallbackSong.duration,
-              image: fallbackSong.image || [],
-              artists: fallbackSong.artists?.primary || [],
-              downloadUrl: fallbackSong.downloadUrl || []
+              id: officialSong.id,
+              name: officialSong.title || officialSong.song || officialSong.name,
+              album: officialSong.more_info?.album,
+              year: officialSong.year || officialSong.more_info?.release_date?.substring(0, 4),
+              duration: parseInt(officialSong.more_info?.duration) || 0,
+              image: officialSong.image ? [{ quality: '500x500', url: officialSong.image }] : [],
+              artists: {
+                primary: officialSong.more_info?.artistMap?.primary_artists?.map(a => ({
+                  id: a.id,
+                  name: a.name,
+                  image: a.image
+                })) || []
+              },
+              downloadUrl: officialSong.more_info?.encrypted_media_url ? [{
+                quality: '320kbps',
+                url: officialSong.more_info.encrypted_media_url
+              }] : []
             };
-            const downloadUrls = fallbackSong.downloadUrl || [];
+            const downloadUrls = songData.downloadUrl || [];
             externalStreamUrl = downloadUrls.find(u => u.quality === '320kbps')?.url || 
                                 downloadUrls.find(u => u.quality === '160kbps')?.url || null;
           }
-        } catch (fallbackError) {
-          console.error('Fallback API also failed:', fallbackError.message);
+        } catch (officialError) {
+          console.error('Official API also failed for song:', officialError.message);
         }
-      } else {
-        throw primaryError;
       }
     }
     
@@ -1277,7 +1314,135 @@ app.get('/api/playlist/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const limit = parseInt(req.query.limit) || 200;
-    const data = await fetchFromMusicService('/api/playlists', { id, limit });
+    let data = await fetchFromMusicService('/api/playlists', { id, limit });
+
+    // If primary API fails, try fallback API
+    if (!data || !data.success) {
+      console.log('Primary API failed for playlist, trying fallback API');
+      try {
+        const fallbackResponse = await axios.get(`${FALLBACK_API}/playlists`, {
+          params: { id, limit },
+          headers: { 'User-Agent': 'Mozilla/5.0' }
+        });
+        data = fallbackResponse.data;
+      } catch (fallbackError) {
+        console.error('Fallback API also failed for playlist:', fallbackError.message);
+        
+        // Try official JioSaavn API as third fallback
+        console.log('Trying official JioSaavn API for playlist');
+        try {
+          const allParams = {
+            __call: 'playlist.getDetails',
+            _format: 'json',
+            _marker: 0,
+            api_version: 4,
+            ctx: 'web6dot0',
+            listid: id
+          };
+          const response = await axios.get('https://www.jiosaavn.com/api.php', {
+            params: allParams,
+            headers: { 'User-Agent': 'Mozilla/5.0' }
+          });
+          const officialData = response.data;
+          
+          if (officialData) {
+            // Normalize official API response to match our format
+            // Official API returns an object with more_info containing songs
+            
+            // Songs are in more_info.contents as comma-separated IDs
+            const songIds = officialData.more_info?.contents?.split(',') || [];
+            
+            // Fetch songs by IDs
+            let songsArray = [];
+            if (songIds.length > 0) {
+              try {
+                // Try with different parameter names
+                const songsResponse = await axios.get('https://www.jiosaavn.com/api.php', {
+                  params: {
+                    __call: 'song.getDetails',
+                    _format: 'json',
+                    _marker: 0,
+                    api_version: 4,
+                    ctx: 'web6dot0',
+                    ids: songIds.join(',')
+                  },
+                  headers: { 'User-Agent': 'Mozilla/5.0' }
+                });
+                const songsData = songsResponse.data;
+                songsArray = Array.isArray(songsData) ? songsData : [];
+                
+                // If still empty, try fetching songs one by one
+                if (songsArray.length === 0 && songIds.length > 0) {
+                  const individualSongs = await Promise.all(
+                    songIds.slice(0, 50).map(async (songId) => {
+                      try {
+                        const singleResponse = await axios.get('https://www.jiosaavn.com/api.php', {
+                          params: {
+                            __call: 'song.getDetails',
+                            _format: 'json',
+                            _marker: 0,
+                            api_version: 4,
+                            ctx: 'web6dot0',
+                            pids: songId
+                          },
+                          headers: { 'User-Agent': 'Mozilla/5.0' }
+                        });
+                        const songData = singleResponse.data;
+                        if (Array.isArray(songData) && songData.length > 0) {
+                          return songData[0]; // Return first element if array
+                        }
+                        // If response has songs array, extract the first song
+                        if (songData.songs && Array.isArray(songData.songs) && songData.songs.length > 0) {
+                          return songData.songs[0];
+                        }
+                        return songData;
+                      } catch (e) {
+                        return null;
+                      }
+                    })
+                  );
+                  songsArray = individualSongs.filter(s => s !== null);
+                }
+              } catch (songsError) {
+                console.error('Failed to fetch songs:', songsError.message);
+              }
+            }
+            
+            data = {
+              success: true,
+              data: {
+                id: id,
+                name: officialData.title || officialData.more_info?.subtitle_desc?.[1] || 'Playlist',
+                image: officialData.image ? [{ quality: '500x500', url: officialData.image }] : [],
+                songCount: songsArray.length,
+                songs: songsArray.map(song => ({
+                  id: song.id,
+                  name: song.title || song.song || song.name,
+                  album: song.more_info?.album,
+                  year: song.year || song.more_info?.release_date?.substring(0, 4),
+                  duration: parseInt(song.more_info?.duration) || 0,
+                  image: song.image ? [{ quality: '500x500', url: song.image }] : [],
+                  artists: {
+                    primary: song.more_info?.artistMap?.primary_artists?.map(a => ({
+                      id: a.id,
+                      name: a.name,
+                      image: a.image
+                    })) || []
+                  },
+                  downloadUrl: song.more_info?.encrypted_media_url ? [{
+                    quality: '320kbps',
+                    url: song.more_info.encrypted_media_url
+                  }] : []
+                }))
+              }
+            };
+          }
+        } catch (officialError) {
+          console.error('Official API also failed for playlist:', officialError.message);
+          return res.status(500).json({ error: 'Failed to fetch playlist' });
+        }
+      }
+    }
 
     if (!data || !data.success) {
       return res.status(500).json({ error: 'Failed to fetch playlist' });
@@ -1300,6 +1465,103 @@ app.get('/api/playlist/:id', async (req, res) => {
   }
 });
 
+// Test endpoint for artist albums with pagination and language filtering
+app.get('/api/artist/:id/albums-test', async (req, res) => {
+  const { id } = req.params;
+  const page = parseInt(req.query.page) || 1;
+  const totalPages = Math.min(parseInt(req.query.totalPages) || 5, 10); // Max 10 pages
+  const language = req.query.language || 'tamil';
+  const limit = parseInt(req.query.limit) || 50;
+
+  console.log(`Fetching albums for artist ${id}: page=${page}, totalPages=${totalPages}, language=${language}, limit=${limit}`);
+
+  try {
+    // Fetch multiple pages in parallel
+    const pagePromises = [];
+    for (let i = 1; i <= totalPages; i++) {
+      pagePromises.push(
+        fetchFromMusicServiceOfficial('artist.getArtistPageDetails', {
+          artistId: id,
+          p: i,
+          n_song: 0, // Don't fetch songs, only albums
+          n_album: limit,
+          sort_order: 'latest',
+          more: true,
+          includeMetaTags: 0
+        })
+      );
+    }
+
+    const allPagesData = await Promise.all(pagePromises);
+
+    // Aggregate all albums from all pages
+    let allAlbums = [];
+    allPagesData.forEach((pageData, index) => {
+      if (pageData?.topAlbums) {
+        console.log(`Page ${index + 1}: Found ${pageData.topAlbums.length} albums`);
+        allAlbums = allAlbums.concat(pageData.topAlbums);
+      }
+    });
+
+    console.log(`Total albums fetched: ${allAlbums.length}`);
+
+    // Filter by language (client-side filtering)
+    const filteredAlbums = language === 'all' 
+      ? allAlbums 
+      : allAlbums.filter(album => {
+          const albumLanguage = album.language?.toLowerCase() || '';
+          return albumLanguage === language.toLowerCase();
+        });
+
+    console.log(`Albums after ${language} filter: ${filteredAlbums.length}`);
+
+    // Normalize albums
+    const normalizedAlbums = filteredAlbums.map(album => {
+      let albumId = album.id;
+      let imageUrl = album.image;
+      if (imageUrl && typeof imageUrl === 'string') {
+        imageUrl = imageUrl.replace('-150x150.jpg', '-500x500.jpg');
+      }
+
+      return {
+        id: albumId,
+        name: album.title || album.name,
+        year: album.year,
+        language: album.language,
+        image: imageUrl ? [{ quality: '500x500', url: imageUrl }] : [],
+        playCount: album.play_count || 0,
+        isLocal: false
+      };
+    });
+
+    // Apply pagination to filtered results
+    const startIndex = (page - 1) * limit;
+    const endIndex = startIndex + limit;
+    const paginatedAlbums = normalizedAlbums.slice(startIndex, endIndex);
+    
+    const totalFilteredPages = Math.ceil(normalizedAlbums.length / limit);
+
+    const response = {
+      success: true,
+      data: {
+        totalAlbums: allAlbums.length,
+        filteredAlbums: normalizedAlbums.length,
+        totalPages: totalFilteredPages,
+        currentPage: page,
+        albums: paginatedAlbums
+      }
+    };
+
+    console.log(`Returning page ${page} of ${totalFilteredPages} with ${paginatedAlbums.length} albums`);
+
+    res.json(response);
+
+  } catch (error) {
+    console.error('Artist albums test error:', error);
+    res.status(500).json({ error: 'Failed to fetch artist albums' });
+  }
+});
+
 // Get artist details and top songs
 app.get('/api/artist/:id', async (req, res) => {
   const { id } = req.params;
@@ -1316,7 +1578,7 @@ app.get('/api/artist/:id', async (req, res) => {
   if (isEncodedName || isArtistName) {
     try {
       // Search for the artist using the fallback API
-      const searchResponse = await axios.get(`https://jiosaavn-apix.arcadopredator.workers.dev/api/search?query=${encodeURIComponent(decodedId)}`);
+      const searchResponse = await axios.get(`${FALLBACK_API}/search?query=${encodeURIComponent(decodedId)}`);
       const searchResults = searchResponse.data;
       
       // The fallback API returns data in a different structure
@@ -1456,32 +1718,9 @@ app.get('/api/artist/:id', async (req, res) => {
     if (topSongs.length > 0) {
       const songIds = topSongs.map(s => s.id);
       try {
-        // Fetch rich metadata for songs to get downloadUrl
-        let songsResponse;
-        try {
-          songsResponse = await axios.get('https://saavn.sumit.co/api/songs', {
-            params: { ids: songIds.join(',') },
-            headers: { 'User-Agent': 'Mozilla/5.0' }
-          });
-        } catch (primaryError) {
-          // If rate limited (429), try fallback API
-          if (primaryError.response?.status === 429) {
-            console.log('Primary API rate limited, trying fallback API for artist top songs');
-            try {
-              songsResponse = await axios.get('https://jiosaavn-apix.arcadopredator.workers.dev/api/songs', {
-                params: { ids: songIds.join(',') },
-                headers: { 'User-Agent': 'Mozilla/5.0' }
-              });
-            } catch (fallbackError) {
-              console.error('Fallback API also failed:', fallbackError.message);
-              songsResponse = { data: { data: [] } };
-            }
-          } else {
-            throw primaryError;
-          }
-        }
-        
-        const richSongsData = songsResponse.data?.data || [];
+        // Fetch rich metadata for songs to get downloadUrl using 3-tier fallback
+        const songsResponse = await fetchWithFallback('songs', { ids: songIds.join(',') }, 'songs');
+        const richSongsData = songsResponse?.data || [];
         const songDetailsMap = richSongsData.reduce((acc, song) => {
           acc[song.id] = song;
           return acc;
@@ -1532,31 +1771,9 @@ app.get('/api/artist/:id', async (req, res) => {
           const songIds = searchSongs.map(s => s.id || s.tokenid).filter(Boolean);
           
           if (songIds.length > 0) {
-            let songsResponse;
-            try {
-              songsResponse = await axios.get('https://saavn.sumit.co/api/songs', {
-                params: { ids: songIds.join(',') },
-                headers: { 'User-Agent': 'Mozilla/5.0' }
-              });
-            } catch (primaryError) {
-              // If rate limited (429), try fallback API
-              if (primaryError.response?.status === 429) {
-                console.log('Primary API rate limited, trying fallback API for artist search songs');
-                try {
-                  songsResponse = await axios.get('https://jiosaavn-apix.arcadopredator.workers.dev/api/songs', {
-                    params: { ids: songIds.join(',') },
-                    headers: { 'User-Agent': 'Mozilla/5.0' }
-                  });
-                } catch (fallbackError) {
-                  console.error('Fallback API also failed:', fallbackError.message);
-                  songsResponse = { data: { data: [] } };
-                }
-              } else {
-                throw primaryError;
-              }
-            }
-            
-            const richSongsData = songsResponse.data?.data || [];
+            // Fetch rich song data using 3-tier fallback
+            const songsResponse = await fetchWithFallback('songs', { ids: songIds.join(',') }, 'songs');
+            const richSongsData = songsResponse?.data || [];
             normalizedArtist.topSongs = richSongsData.map(song => ({
               id: song.id,
               name: song.name || song.title,
