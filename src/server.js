@@ -346,7 +346,7 @@ const streamHandler = async (req, res, bitrate = '320') => {
     try {
       let streamUrl;
       
-      // Try primary API first (saavn.sumit.co)
+      // Try primary API first (nepotuneapi.vercel.app)
       try {
         const response = await axios.get(`${MUSIC_API_BASE}/songs`, { params: { ids: req.params.songId } });
         const songsData = response.data?.data;
@@ -1200,7 +1200,7 @@ app.get('/api/song/:id', async (req, res) => {
       return res.json({ success: true, data: song });
     }
     
-    // Otherwise, fetch from saavn.sumit.co API with fallback
+    // Otherwise, fetch from nepotuneapi.vercel.app API with fallback
     let songData;
     let externalStreamUrl;
     

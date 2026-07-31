@@ -1,5 +1,5 @@
-const PRIMARY_API = 'https://saavn.sumit.co/api';
-const FALLBACK_API = 'https://jiosaavn-apix.arcadopredator.workers.dev/api';
+const PRIMARY_API = 'https://nepotuneapi.vercel.app/api';
+const FALLBACK_API = 'https://saavnapi-nine.vercel.app/api';
 
 module.exports = {
   PRIMARY_API,
