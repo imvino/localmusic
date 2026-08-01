@@ -209,25 +209,127 @@ export default async function handler(req) {
 
     let category = language === 'all' ? '' : language;
 
-    const officialData = await fetchFromMusicServiceOfficial('artist.getArtistPageDetails', {
-      artistId: id,
-      p: 1,
-      n_song: limit,
-      n_album: limit,
-      category: category,
-      sort_order: sort_order,
-      more: true,
-      includeMetaTags: 0
-    });
+    // Fetch all pages of songs
+    let allTopSongs = [];
+    let songIdSet = new Set(); // Track unique song IDs for deduplication
+    let page = 1;
+    let hasMoreSongs = true;
+    const maxPages = 20; // Safety limit to prevent infinite loops
 
-    if (!officialData) {
-      return new Response(JSON.stringify({ error: 'Failed to fetch artist from official API' }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' }
+    while (hasMoreSongs && page <= maxPages) {
+      const officialData = await fetchFromMusicServiceOfficial('artist.getArtistPageDetails', {
+        artistId: id,
+        p: page,
+        n_song: limit,
+        n_album: limit,
+        category: category,
+        sort_order: sort_order,
+        more: true,
+        includeMetaTags: 0
       });
+
+      if (!officialData) {
+        break;
+      }
+
+      const pageSongs = Array.isArray(officialData.topSongs) ? officialData.topSongs : [];
+      
+      if (pageSongs.length === 0) {
+        hasMoreSongs = false;
+      } else {
+        // Add only unique songs by ID
+        let newSongsAdded = 0;
+        for (const song of pageSongs) {
+          if (!songIdSet.has(song.id)) {
+            songIdSet.add(song.id);
+            allTopSongs.push(song);
+            newSongsAdded++;
+          }
+        }
+        
+        // If no new songs were added, we've reached the end
+        if (newSongsAdded === 0) {
+          hasMoreSongs = false;
+        } else {
+          page++;
+        }
+      }
+
+      // Store the first page's artist data (bio, similar artists, etc.)
+      if (page === 1) {
+        var artistData = officialData;
+      }
     }
 
-    const artistData = officialData;
+    // Fetch all pages of albums
+    let allTopAlbums = [];
+    let albumIdSet = new Set(); // Track unique album IDs for deduplication
+    let albumPage = 1;
+    let hasMoreAlbums = true;
+
+    while (hasMoreAlbums && albumPage <= maxPages) {
+      const officialData = await fetchFromMusicServiceOfficial('artist.getArtistPageDetails', {
+        artistId: id,
+        p: albumPage,
+        n_song: limit,
+        n_album: limit,
+        category: category,
+        sort_order: sort_order,
+        more: true,
+        includeMetaTags: 0
+      });
+
+      if (!officialData) {
+        break;
+      }
+
+      const pageAlbums = Array.isArray(officialData.topAlbums) ? officialData.topAlbums : [];
+      
+      if (pageAlbums.length === 0) {
+        hasMoreAlbums = false;
+      } else {
+        // Add only unique albums by ID
+        let newAlbumsAdded = 0;
+        for (const album of pageAlbums) {
+          if (!albumIdSet.has(album.id)) {
+            albumIdSet.add(album.id);
+            allTopAlbums.push(album);
+            newAlbumsAdded++;
+          }
+        }
+        
+        // If no new albums were added, we've reached the end
+        if (newAlbumsAdded === 0) {
+          hasMoreAlbums = false;
+        } else {
+          albumPage++;
+        }
+      }
+    }
+
+    // If no songs were fetched, use the first page data anyway
+    if (!artistData) {
+      const officialData = await fetchFromMusicServiceOfficial('artist.getArtistPageDetails', {
+        artistId: id,
+        p: 1,
+        n_song: limit,
+        n_album: limit,
+        category: category,
+        sort_order: sort_order,
+        more: true,
+        includeMetaTags: 0
+      });
+
+      if (!officialData) {
+        return new Response(JSON.stringify({ error: 'Failed to fetch artist from official API' }), {
+          status: 500,
+          headers: { 'Content-Type': 'application/json' }
+        });
+      }
+
+      artistData = officialData;
+      allTopSongs = Array.isArray(artistData.topSongs) ? artistData.topSongs : [];
+    }
 
     // Helper for images
     const getBestImage = (imageObj) => {
@@ -283,7 +385,7 @@ export default async function handler(req) {
     };
 
     // Normalize Top Songs
-    let topSongs = Array.isArray(artistData.topSongs) ? artistData.topSongs : [];
+    let topSongs = allTopSongs;
     
     if (topSongs.length > 0) {
       const songIds = topSongs.map(s => s.id);
@@ -307,6 +409,7 @@ export default async function handler(req) {
             artists: rich.artists || { primary: [{ name: artistData.name }] },
             downloadUrl: rich.downloadUrl || [],
             playCount: rich.playCount || song.play_count || 0,
+            language: song.language,
             isLocal: false
           };
         });
@@ -321,6 +424,7 @@ export default async function handler(req) {
           image: song.image ? [{ quality: '500x500', url: song.image }] : [],
           downloadUrl: [],
           playCount: song.play_count || 0,
+          language: song.language,
           isLocal: false
         }));
       }
@@ -351,6 +455,7 @@ export default async function handler(req) {
               artists: song.artists || { primary: [{ name: artistData.name }] },
               downloadUrl: song.downloadUrl || [],
               playCount: song.playCount || 0,
+              language: song.language,
               isLocal: false
             }));
           } else {
@@ -366,7 +471,7 @@ export default async function handler(req) {
     }
 
     // Normalize Top Albums
-    let topAlbums = Array.isArray(artistData.topAlbums) ? artistData.topAlbums : [];
+    let topAlbums = allTopAlbums.length > 0 ? allTopAlbums : (Array.isArray(artistData.topAlbums) ? artistData.topAlbums : []);
     normalizedArtist.topAlbums = topAlbums.map(album => {
       let albumId = album.id;
       let imageUrl = album.image;

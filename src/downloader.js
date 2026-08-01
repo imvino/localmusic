@@ -41,7 +41,7 @@ function applyComposerAlias(composerName) {
 }
 
 
-function updateLibraryWithSong(songId, songName, albumId, albumName, albumYear, audioPath) {
+function updateLibraryWithSong(songId, songName, albumId, albumName, albumYear, audioPath, totalTracks = null) {
   const library = loadLibrary(LIBRARY_FILE);
   
   // Find or create album
@@ -59,6 +59,11 @@ function updateLibraryWithSong(songId, songName, albumId, albumName, albumYear, 
   
   // Update album local path if needed
   album.localPath = path.dirname(audioPath);
+  
+  // Update total tracks if provided
+  if (totalTracks !== null) {
+    album.totalTracks = totalTracks;
+  }
   
   // Find or create song
   let song = album.songs?.find(s => s.id === songId);
@@ -78,7 +83,7 @@ function updateLibraryWithSong(songId, songName, albumId, albumName, albumYear, 
   saveLibrary(LIBRARY_FILE, library);
 }
 
-function updateLibraryWithAlbum(albumId, albumName, albumYear, albumDir, songs) {
+function updateLibraryWithAlbum(albumId, albumName, albumYear, albumDir, songs, totalTracks = null) {
   const library = loadLibrary(LIBRARY_FILE);
   
   // Find or create album
@@ -101,6 +106,11 @@ function updateLibraryWithAlbum(albumId, albumName, albumYear, albumDir, songs) 
     name: decodeHtmlEntities(s.name),
     audioPath: s.audioPath
   }));
+  
+  // Update total tracks if provided
+  if (totalTracks !== null) {
+    album.totalTracks = totalTracks;
+  }
   
   saveLibrary(LIBRARY_FILE, library);
 }
@@ -478,7 +488,7 @@ async function downloadSingleSong(songId, onProgress) {
     await writeID3Tags(songPath, songData, albumData, composer, artworkBuffer);
 
     // 9. Update library
-    updateLibraryWithSong(songData.id, songData.name, albumData.id, albumData.name, correctYear, songPath);
+    updateLibraryWithSong(songData.id, songData.name, albumData.id, albumData.name, correctYear, songPath, totalTracks);
 
     return { success: true, path: songPath, filename: songFilename, albumName: albumData.name };
   } catch (error) {
@@ -671,7 +681,7 @@ async function downloadAlbum(albumId, onProgress) {
       });
 
     if (downloadedSongs.length > 0) {
-      updateLibraryWithAlbum(albumData.id, albumData.name, correctYear, albumDir, downloadedSongs);
+      updateLibraryWithAlbum(albumData.id, albumData.name, correctYear, albumDir, downloadedSongs, songs.length);
     }
 
     return { success: true, results, albumDir };

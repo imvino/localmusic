@@ -1,11 +1,10 @@
 {
   "artistId": "455243",
   "artistName": "Harris Jayaraj",
-  "source": "Wikipedia + JioSaavn API",
-  "extractedAt": "2026-07-18T21:49:20.293Z",
-  "totalAlbums": 45,
-  "foundAlbums": 43,
-  "notFoundAlbums": 2,
+  "extractedAt": "2026-08-01T14:32:18.992Z",
+  "totalAlbums": 49,
+  "foundAlbums": 49,
+  "notFoundAlbums": 0,
   "albums": [
     {
       "title": "Minnale",
@@ -41,7 +40,7 @@
     },
     {
       "title": "Lesa Lesa",
-      "year": 2002,
+      "year": 2003,
       "language": "Tamil",
       "id": "2988215",
       "image": "https://c.saavncdn.com/152/Lesa-Lesa-Tamil-2003-20201214105757-150x150.jpg",
@@ -65,7 +64,7 @@
     },
     {
       "title": "Kovil",
-      "year": 2003,
+      "year": 2004,
       "language": "Tamil",
       "id": "1132816",
       "image": "https://c.saavncdn.com/683/Kovil-2003-150x150.jpg",
@@ -97,7 +96,7 @@
     },
     {
       "title": "Thotti Jaya",
-      "year": 2004,
+      "year": 2005,
       "language": "Tamil",
       "id": "16041132",
       "image": "https://c.saavncdn.com/005/Thotti-Jaya-Tamil-2005-20220706004607-150x150.jpg",
@@ -115,8 +114,8 @@
       "title": "Anniyan",
       "year": 2005,
       "language": "Tamil",
-      "id": "38211294",
-      "image": "https://c.saavncdn.com/184/Anniyan-Tamil-2005-20251230133307-150x150.jpg",
+      "id": "33386343",
+      "image": "https://c.saavncdn.com/820/Anniyan-Tamil-2025-20250930143632-150x150.jpg",
       "found": true
     },
     {
@@ -139,8 +138,8 @@
       "title": "Pachaikili Muthucharam",
       "year": 2007,
       "language": "Tamil",
-      "id": "38211289",
-      "image": "https://c.saavncdn.com/153/Patchai-Kili-Muthucharam-Tamil-2007-20251230163348-150x150.jpg",
+      "id": "33278680",
+      "image": "https://c.saavncdn.com/623/Patchai-Kili-Muthucharam-Tamil-2025-20260521180309-150x150.jpg",
       "found": true
     },
     {
@@ -201,7 +200,7 @@
     },
     {
       "title": "Engeyum Kadhal",
-      "year": 2011,
+      "year": 2010,
       "language": "Tamil",
       "id": "2800138",
       "image": "https://c.saavncdn.com/705/Engeyum-Kadhal-Tamil-2010-20190731133246-150x150.jpg",
@@ -225,7 +224,7 @@
     },
     {
       "title": "Nanban",
-      "year": 2012,
+      "year": 2011,
       "language": "Tamil",
       "id": "2703707",
       "image": "https://c.saavncdn.com/961/Nanban-Tamil-2011-150x150.jpg",
@@ -253,6 +252,14 @@
       "language": "Tamil",
       "id": "2704098",
       "image": "https://c.saavncdn.com/234/Thuppakki-Tamil-2012-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Irandaam Ulagam",
+      "year": 2013,
+      "language": "Tamil",
+      "id": "1146056",
+      "image": "https://c.saavncdn.com/300/Irandaam-Ulagam-Tamil-2013-20190822140519-150x150.jpg",
       "found": true
     },
     {
@@ -289,7 +296,7 @@
     },
     {
       "title": "Nannbenda",
-      "year": 2015,
+      "year": 2014,
       "language": "Tamil",
       "id": "1216254",
       "image": "https://c.saavncdn.com/344/Nannbenda-Tamil-2014-20190822151822-150x150.jpg",
@@ -305,7 +312,7 @@
     },
     {
       "title": "Gethu",
-      "year": 2016,
+      "year": 2015,
       "language": "Tamil",
       "id": "42211514",
       "image": "https://c.saavncdn.com/312/Gethu-Original-Motion-Picture-Soundtrack-Tamil-2023-20230201184410-150x150.jpg",
@@ -320,11 +327,35 @@
       "found": true
     },
     {
+      "title": "S3",
+      "year": 2016,
+      "language": "Tamil",
+      "id": "33080885",
+      "image": "https://c.saavncdn.com/624/S3-Tamil-2025-20250930143952-150x150.jpg",
+      "found": true
+    },
+    {
       "title": "Vanamagan",
       "year": 2017,
       "language": "Tamil",
       "id": "10660583",
       "image": "https://c.saavncdn.com/550/Vanamagan-Tamil-2017-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Spyder",
+      "year": 2017,
+      "language": "Tamil",
+      "id": "11279035",
+      "image": "https://c.saavncdn.com/035/Spyder-Tamil-Tamil-2017-20170910045037-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Dev",
+      "year": 2019,
+      "language": "Tamil",
+      "id": "14630219",
+      "image": "https://c.saavncdn.com/099/Dev-Tamil-2018-20181226221300-150x150.jpg",
       "found": true
     },
     {
@@ -344,14 +375,6 @@
       "found": true
     },
     {
-      "title": "Extra Ordinary Man",
-      "year": 2023,
-      "language": "Tamil",
-      "id": null,
-      "image": null,
-      "found": false
-    },
-    {
       "title": "Brother",
       "year": 2024,
       "language": "Tamil",
@@ -361,10 +384,18 @@
     },
     {
       "title": "Kadhal Reset Repeat",
-      "year": 2025,
+      "year": 2026,
       "language": "Tamil",
       "id": "71005446",
       "image": "https://c.saavncdn.com/415/Unnai-Ninaithu-From-Kadhal-Reset-Repeat-Tamil-2025-20251224231009-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Dhruva Natchathiram",
+      "year": "TBA",
+      "language": "Tamil",
+      "id": "49949293",
+      "image": "https://c.saavncdn.com/265/Dhruva-Natchathiram-Original-Motion-Picture-Soundtrack-Tamil-2023-20231123124546-150x150.jpg",
       "found": true
     }
   ]

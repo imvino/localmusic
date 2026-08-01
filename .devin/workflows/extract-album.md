@@ -1,28 +1,41 @@
 ---
-description: Extract Tamil albums from Wikipedia and match with JioSaavn API for any composer
+description: Match Tamil albums with JioSaavn API for any composer using provided album list
 ---
 
-# Extract Composer Albums from Wikipedia
+# Match Composer Albums with JioSaavn API
 
-This workflow extracts Tamil albums from a Wikipedia composer's discography page and matches them with JioSaavn API data.
+This workflow matches a provided list of Tamil albums with JioSaavn API data for any composer.
 
 ## Prerequisites
 
 - Server must be running on `http://localhost:3001`
 - `fuse.js` package must be installed (already in package.json)
-- Wikipedia URL for the composer's discography page
+- Album list in JSON format (with title and year fields)
 - Composer's JioSaavn artist page URL
 - Composer name (for verification and file naming)
 
 ## Trigger Format
 
 ```
-/extract-album <wikipedia-url> <artist-page-url> <composer-name>
+/extract-album <album-list-json> <artist-page-url> <composer-name>
 ```
 
 **Example:**
 ```
-/extract-album https://en.wikipedia.org/wiki/Harris_Jayaraj_discography http://localhost:5173/discover/artist/455243 "Harris Jayaraj"
+/extract-album '{"total_count":53,"artist":"Harris Jayaraj","tamil_albums":[{"year":2001,"title":"Minnale"},{"year":2001,"title":"Majunu"}]}' http://localhost:5173/discover/artist/455243 "Harris Jayaraj"
+```
+
+**Album List Format:**
+```json
+{
+  "total_count": 53,
+  "artist": "Harris Jayaraj",
+  "tamil_albums": [
+    { "year": 2001, "title": "Minnale" },
+    { "year": 2001, "title": "Majunu" },
+    { "year": 2001, "title": "12B" }
+  ]
+}
 ```
 
 ## Workflow Steps
@@ -30,38 +43,34 @@ This workflow extracts Tamil albums from a Wikipedia composer's discography page
 ### 1. Extract Parameters
 
 Parse the trigger parameters:
-- **Wikipedia URL**: The discography page URL
+- **Album List JSON**: The JSON string containing album data with `tamil_albums` array
 - **Artist Page URL**: The JioSaavn artist page URL (e.g., `http://localhost:5173/discover/artist/455243`)
 - **Composer Name**: The composer's name (e.g., "Harris Jayaraj")
 
 Extract:
 - Artist ID from artist page URL (last segment after `/artist/`)
-- Generate safe filename from composer name: `harris-jayaraj` → `harris-jayaraj-wikipedia-albums.json`
+- Parse the album list JSON to get the `tamil_albums` array
+- Generate safe filename from composer name: `harris-jayaraj` → `harris-jayaraj-albums.json`
 
-### 2. AI Wikipedia Extraction
+### 2. Save Album List
 
-Use AI to fetch and parse the Wikipedia discography table:
+Save the provided album list to a JSON file for processing:
 
-**AI Task:**
-Fetch the Wikipedia page and extract Tamil albums from the discography table.
+**Input Format:**
+```json
+{
+  "total_count": 53,
+  "artist": "Harris Jayaraj",
+  "tamil_albums": [
+    { "year": 2001, "title": "Minnale" },
+    { "year": 2001, "title": "Majunu" },
+    { "year": 2001, "title": "12B" }
+  ]
+}
+```
 
-**AI Instructions:**
-- Fetch the Wikipedia page content from the provided URL
-- Locate the discography section/table
-- Extract album names and years from the table
-- **Filter for Tamil language only** (exclude Telugu, Hindi, Kannada, Malayalam, etc.)
-- Handle complex table structures:
-  - Continuation rows (where year spans multiple album rows)
-  - Merged cells
-  - Multiple table formats
-- Extract years from various formats (single year, year ranges, etc.)
-- Ignore non-film albums, compilations, singles
-- Preserve original spelling (don't normalize yet - needed for fuzzy matching)
-- Output format: JSON array of objects with `albumName` and `year` fields
-
-**Output File:** `data/{composer-name}-wikipedia-albums.json`
-
-**Example Output:**
+**Transform to Script Format:**
+Convert the album list to the format expected by the matching script:
 ```json
 [
   { "albumName": "Minnale", "year": "2001" },
@@ -69,6 +78,8 @@ Fetch the Wikipedia page and extract Tamil albums from the discography table.
   { "albumName": "12B", "year": "2001" }
 ]
 ```
+
+**Output File:** `data/{composer-name}-albums.json`
 
 ### 3. API Matching with Script
 
@@ -78,7 +89,7 @@ Run the matching script to find corresponding albums on JioSaavn:
 node scripts/match-composer-albums.js \
   --composer "{composer-name}" \
   --artist-id "{artist-id}" \
-  --input data/{composer-name}-wikipedia-albums.json \
+  --input data/{composer-name}-albums.json \
   --output data/{composer-name}-albums-metadata.json
 ```
 
@@ -86,7 +97,7 @@ node scripts/match-composer-albums.js \
 
 The script should:
 1. Parse command line arguments (--composer, --artist-id, --input, --output)
-2. Read the Wikipedia extraction JSON file
+2. Read the album list JSON file
 3. For each album, try multiple search queries with fallback:
    - `"{albumName} {composer} tamil"`
    - `"{albumName} {composer}"`
@@ -102,7 +113,7 @@ The script should:
    - Check language is Tamil
    - Check composer includes the specified composer
    - Check name fuzzy matches
-   - **DO NOT** check year (Wikipedia years are unreliable)
+   - **DO NOT** check year (provided years may be unreliable)
 7. Add delay between queries (1-2 seconds) to avoid rate limiting
 8. Handle 403 errors with retry logic
 9. Save results with found/not found status
@@ -112,7 +123,7 @@ The script should:
 {
   "artistId": "455243",
   "artistName": "Harris Jayaraj",
-  "source": "Wikipedia + JioSaavn API",
+  "source": "Provided list + JioSaavn API",
   "extractedAt": "2026-07-19T...",
   "totalAlbums": 45,
   "foundAlbums": 41,
@@ -177,10 +188,10 @@ useEffect(() => {
 const albums = (isArtist && id === {COMPOSER_CONSTANT_NAME}_ID) ? (customAlbums || []) : (data?.topAlbums || [])
 ```
 
-### 5. Verification & Reporting
+### 4. Verification & Reporting
 
 After completion, report:
-- Total albums extracted from Wikipedia
+- Total albums from provided list
 - Albums successfully matched with JioSaavn
 - Albums not found (list them)
 - Any errors or warnings encountered
@@ -189,14 +200,13 @@ After completion, report:
 
 **Problems Encountered (and solutions):**
 
-1. **Wikipedia year data unreliable** → Don't use for verification
+1. **Provided year data unreliable** → Don't use for verification
 2. **Wrong album matches** → Use fuzzy matching + API verification
 3. **Duplicate IDs** → Proper deduplication in script
 4. **Rate limiting** → Add delays between API calls, handle 403 errors
 5. **Spelling variations** → Normalize (th→t, aa→a, ii→i, etc.)
-6. **Complex tables** → Use AI to parse Wikipedia tables
-7. **Language filtering** → Verify language is Tamil in API response
-8. **Composer verification** → Check composer field in API response
+6. **Language filtering** → Verify language is Tamil in API response
+7. **Composer verification** → Check composer field in API response
 
 **Solutions Implemented:**
 
@@ -205,12 +215,11 @@ After completion, report:
 3. **Fallback queries** - Try multiple search terms
 4. **Rate limiting handling** - 403 detection and delays
 5. **Spelling normalization** - th→t, aa→a, ii→i, etc.
-6. **AI extraction** - Use AI for complex Wikipedia table parsing
 
 ## Troubleshooting
 
 **Issue: Albums not found**
-- Check if the album name spelling matches between Wikipedia and JioSaavn
+- Check if the album name spelling matches between provided list and JioSaavn
 - Try manual search on JioSaavn to see if the album exists
 - The album might be listed under a different name or compilation
 
@@ -224,24 +233,24 @@ After completion, report:
 - The script should handle 403 errors automatically
 - Wait a few minutes and retry
 
-**Issue: Wikipedia table not parsed correctly**
-- The AI might need better instructions for the specific table format
-- Provide the table structure in the AI prompt
-- Manually extract and verify a few entries
+**Issue: Invalid JSON format**
+- Ensure the album list JSON is properly formatted
+- Check that `tamil_albums` array exists and contains objects with `title` and `year` fields
+- Validate JSON structure before running the script
 
 ## Example Usage
 
 For Harris Jayaraj:
 ```
-/extract-album https://en.wikipedia.org/wiki/Harris_Jayaraj_discography http://localhost:5173/discover/artist/455243 "Harris Jayaraj"
+/extract-album '{"total_count":53,"artist":"Harris Jayaraj","tamil_albums":[{"year":2001,"title":"Minnale"},{"year":2001,"title":"Majunu"}]}' http://localhost:5173/discover/artist/455243 "Harris Jayaraj"
 ```
 
 For A.R. Rahman:
 ```
-/extract-album https://en.wikipedia.org/wiki/A._R._Rahman_discography http://localhost:5173/discover/artist/455162 "A.R. Rahman"
+/extract-album '{"total_count":100,"artist":"A.R. Rahman","tamil_albums":[{"year":1992,"title":"Roja"},{"year":1993,"title":"Kadal"}]}' http://localhost:5173/discover/artist/455162 "A.R. Rahman"
 ```
 
 For Yuvan Shankar Raja:
 ```
-/extract-album https://en.wikipedia.org/wiki/Yuvan_Shankar_Raja_discography http://localhost:5173/discover/artist/456091 "Yuvan Shankar Raja"
+/extract-album '{"total_count":80,"artist":"Yuvan Shankar Raja","tamil_albums":[{"year":2002,"title":"Thulluvadho Ilamai"},{"year":2003,"title":"Pudhupettai"}]}' http://localhost:5173/discover/artist/456091 "Yuvan Shankar Raja"
 ```

@@ -50,6 +50,9 @@ function isMusicDirAvailable() {
 
 // Build indexes for O(1) lookups
 function buildIndexes() {
+  // Clear cache to ensure fresh data
+  libraryCache = null;
+  libraryCacheTime = 0;
   const library = loadLibrary();
   songIdIndex = new Map();
   albumIdIndex = new Map();
@@ -188,17 +191,23 @@ app.get('/api/composer-albums/:composerId', (req, res) => {
   try {
     const { composerId } = req.params;
     
-    // Map composer ID to filename
-    const composerFileMap = {
-      '455243': 'harris-jayaraj-albums-metadata.json'
-    };
+    // Load artist configuration
+    const configPath = path.join(__dirname, '../config/artist-config.json');
+    let artistConfig;
     
-    const filename = composerFileMap[composerId];
-    if (!filename) {
+    if (fs.existsSync(configPath)) {
+      artistConfig = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+    } else {
+      artistConfig = { customAlbums: {} };
+    }
+    
+    const artistInfo = artistConfig.customAlbums[composerId];
+    if (!artistInfo) {
       return res.status(404).json({ error: 'Composer metadata not found' });
     }
     
-    const metadataFile = path.join(__dirname, '../data', filename);
+    const filename = artistInfo.metadataFile;
+    const metadataFile = path.join(__dirname, '../data/meta', filename);
     
     if (!fs.existsSync(metadataFile)) {
       return res.status(404).json({ error: 'Composer metadata file not found' });
@@ -207,14 +216,21 @@ app.get('/api/composer-albums/:composerId', (req, res) => {
     const data = JSON.parse(fs.readFileSync(metadataFile, 'utf8'));
     
     // Check which albums are in the local library
-    const library = loadLibrary();
     const albums = data.albums || [];
     
+    // Build indexes (this now clears cache internally)
+    buildIndexes();
+    
     albums.forEach(album => {
-      if (album.id && albumIdIndex.has(album.id)) {
+      if (album.id && albumIdIndex && albumIdIndex.has(album.id)) {
         album.isLocal = true;
+        const localAlbum = albumIdIndex.get(album.id);
+        album.totalTracks = localAlbum?.totalTracks || null;
+        album.songCount = localAlbum?.songs?.length || 0;
       } else {
         album.isLocal = false;
+        album.totalTracks = null;
+        album.songCount = 0;
       }
     });
     
@@ -766,6 +782,15 @@ app.get('/api/album/:id', async (req, res) => {
             const totalDuration = songs.reduce((sum, s) => sum + (parseInt(s.more_info?.duration) || 0), 0);
             const primaryArtists = tokenData.more_info?.artistMap?.primary_artists || [];
             
+            // Build indexes before checking local status
+            if (!songIdIndex || !albumIdIndex) {
+              buildIndexes();
+            }
+            
+            // Get local album data to check totalTracks
+            const localAlbum = albumIdIndex.get(albumId);
+            const totalTracks = localAlbum?.totalTracks || null;
+            
             const album = {
               id: albumId,
               name: decodeHtmlEntities(tokenData.title || tokenData.name),
@@ -779,6 +804,7 @@ app.get('/api/album/:id', async (req, res) => {
               totalDuration: totalDuration,
               image: tokenData.image ? [{ quality: '500x500', url: tokenData.image }] : [],
               isLocal: isAlbumLocal(albumId),
+              totalTracks: totalTracks,
               songs: songs.map(song => ({
                 id: song.id,
                 name: decodeHtmlEntities(song.title || song.song),
@@ -871,6 +897,15 @@ app.get('/api/album/:id', async (req, res) => {
     }
     const primaryArtists = Array.from(primaryArtistsMap.values());
 
+    // Build indexes before checking local status
+    if (!songIdIndex || !albumIdIndex) {
+      buildIndexes();
+    }
+    
+    // Get local album data to check totalTracks
+    const localAlbum = albumIdIndex.get(data.id);
+    const totalTracks = localAlbum?.totalTracks || null;
+    
     // Normalize the response format
     const album = {
       id: data.id,
@@ -885,6 +920,7 @@ app.get('/api/album/:id', async (req, res) => {
       totalDuration: totalDuration,
       image: getBestImage(data.image) ? [{ quality: '500x500', url: getBestImage(data.image) }] : [],
       isLocal: isAlbumLocal(data.id),
+      totalTracks: totalTracks,
       songs: data.songs ? data.songs.map(song => {
         const songDetails = songDetailsMap[song.id] || {};
         return {
@@ -1309,7 +1345,7 @@ app.get('/api/song/:id', async (req, res) => {
       duration: songData.duration,
       image: songData.image || [],
       artists: songData.artists,
-      streamUrl: externalStreamUrl ? `/api/stream/${id}` : null,
+      streamUrl: externalStreamUrl || null,
       previewUrl: songData.url, // Provide the service page URL as fallback
       downloadUrl: songData.downloadUrl || [],
       isLocal: false
@@ -1986,24 +2022,174 @@ app.get('/api/artist/:id', async (req, res) => {
     // Map language to official API format
     let category = language === 'all' ? '' : language;
 
-    // Fetch from official API using artist.getArtistPageDetails
-    const officialData = await fetchFromMusicServiceOfficial('artist.getArtistPageDetails', {
-      artistId: id,
-      p: 1,
-      n_song: limit,
-      n_album: limit,
-      category: category,
-      sort_order: sort_order,
-      more: true,
-      includeMetaTags: 0
-    });
+    // Fetch all pages of songs
+    let allTopSongs = [];
+    let songIdSet = new Set(); // Track unique song IDs for deduplication
+    let page = 1;
+    let hasMoreSongs = true;
+    const maxPages = 20; // Safety limit to prevent infinite loops
 
-    if (!officialData) {
-      console.error(`Failed to fetch artist ${id} from official API: No data returned`);
-      return res.status(500).json({ error: 'Failed to fetch artist from official API' });
+    while (hasMoreSongs && page <= maxPages) {
+      const officialData = await fetchFromMusicServiceOfficial('artist.getArtistPageDetails', {
+        artistId: id,
+        p: page,
+        n_song: limit,
+        n_album: limit,
+        category: category,
+        sort_order: sort_order,
+        more: true,
+        includeMetaTags: 0
+      });
+
+      if (!officialData) {
+        break;
+      }
+
+      const pageSongs = Array.isArray(officialData.topSongs) ? officialData.topSongs : [];
+      
+      if (pageSongs.length === 0) {
+        hasMoreSongs = false;
+      } else {
+        // Add only unique songs by ID
+        let newSongsAdded = 0;
+        for (const song of pageSongs) {
+          if (!songIdSet.has(song.id)) {
+            songIdSet.add(song.id);
+            allTopSongs.push(song);
+            newSongsAdded++;
+          }
+        }
+        
+        // If no new songs were added, we've reached the end
+        if (newSongsAdded === 0) {
+          hasMoreSongs = false;
+        } else {
+          page++;
+        }
+      }
+
+      // Store the first page's artist data (bio, similar artists, etc.)
+      if (page === 1) {
+        var artistData = officialData;
+      }
     }
 
-    const artistData = officialData;
+    // Fetch all pages of albums using PRIMARY_API
+    let allTopAlbums = [];
+    let albumIdSet = new Set(); // Track unique album IDs for deduplication
+    let albumPage = 0;
+    let hasMoreAlbums = true;
+    const albumLimit = 50;
+
+    while (hasMoreAlbums && albumPage < maxPages) {
+      try {
+        const response = await axios.get(`${PRIMARY_API}/artists/${id}/albums`, {
+          params: {
+            page: albumPage,
+            limit: albumLimit,
+            sortBy: sort === 'date' ? 'latest' : sort === 'name' ? 'alphabetical' : 'popularity',
+            sortOrder: 'desc'
+          },
+          headers: { 'User-Agent': 'Mozilla/5.0' }
+        });
+
+        const albumsData = response.data?.data;
+        const pageAlbums = albumsData?.albums || [];
+        
+        if (pageAlbums.length === 0) {
+          hasMoreAlbums = false;
+        } else {
+          // Add only unique albums by ID
+          let newAlbumsAdded = 0;
+          for (const album of pageAlbums) {
+            if (!albumIdSet.has(album.id)) {
+              albumIdSet.add(album.id);
+              allTopAlbums.push(album);
+              newAlbumsAdded++;
+            }
+          }
+          
+          // If no new albums were added, we've reached the end
+          if (newAlbumsAdded === 0) {
+            hasMoreAlbums = false;
+          } else {
+            albumPage++;
+          }
+        }
+      } catch (primaryError) {
+        console.log('PRIMARY_API albums failed, falling back to official API');
+        // Fallback to official API if PRIMARY_API fails
+        break;
+      }
+    }
+
+    // If PRIMARY_API didn't work or returned no albums, try official API
+    if (allTopAlbums.length === 0) {
+      let albumPage = 1;
+      hasMoreAlbums = true;
+
+      while (hasMoreAlbums && albumPage <= maxPages) {
+        const officialData = await fetchFromMusicServiceOfficial('artist.getArtistPageDetails', {
+          artistId: id,
+          p: albumPage,
+          n_song: limit,
+          n_album: limit,
+          category: category,
+          sort_order: sort_order,
+          more: true,
+          includeMetaTags: 0
+        });
+
+        if (!officialData) {
+          break;
+        }
+
+        const pageAlbums = Array.isArray(officialData.topAlbums) ? officialData.topAlbums : [];
+        
+        if (pageAlbums.length === 0) {
+          hasMoreAlbums = false;
+        } else {
+          // Add only unique albums by ID
+          let newAlbumsAdded = 0;
+          for (const album of pageAlbums) {
+            if (!albumIdSet.has(album.id)) {
+              albumIdSet.add(album.id);
+              allTopAlbums.push(album);
+              newAlbumsAdded++;
+            }
+          }
+          
+          // If no new albums were added, we've reached the end
+          if (newAlbumsAdded === 0) {
+            hasMoreAlbums = false;
+          } else {
+            albumPage++;
+          }
+        }
+      }
+    }
+
+    // If no songs were fetched, use the first page data anyway
+    if (!artistData) {
+      const officialData = await fetchFromMusicServiceOfficial('artist.getArtistPageDetails', {
+        artistId: id,
+        p: 1,
+        n_song: limit,
+        n_album: limit,
+        category: category,
+        sort_order: sort_order,
+        more: true,
+        includeMetaTags: 0
+      });
+
+      if (!officialData) {
+        console.error(`Failed to fetch artist ${id} from official API: No data returned`);
+        return res.status(500).json({ error: 'Failed to fetch artist from official API' });
+      }
+
+      artistData = officialData;
+      allTopSongs = Array.isArray(artistData.topSongs) ? artistData.topSongs : [];
+    }
     
 
     // Helper for images
@@ -2062,7 +2248,7 @@ app.get('/api/artist/:id', async (req, res) => {
     };
 
     // Normalize Top Songs
-    let topSongs = Array.isArray(artistData.topSongs) ? artistData.topSongs : [];
+    let topSongs = allTopSongs.length > 0 ? allTopSongs : (Array.isArray(artistData.topSongs) ? artistData.topSongs : []);
     
     if (topSongs.length > 0) {
       const songIds = topSongs.map(s => s.id);
@@ -2087,6 +2273,7 @@ app.get('/api/artist/:id', async (req, res) => {
             artists: rich.artists || { primary: [{ name: artistData.name }] },
             downloadUrl: rich.downloadUrl || [],
             playCount: rich.playCount || song.play_count || 0,
+            language: song.language,
             isLocal: isSongLocal(song.id)
           };
         });
@@ -2102,6 +2289,7 @@ app.get('/api/artist/:id', async (req, res) => {
           image: song.image ? [{ quality: '500x500', url: song.image }] : [],
           downloadUrl: [],
           playCount: song.play_count || 0,
+          language: song.language,
           isLocal: isSongLocal(song.id)
         }));
       }
@@ -2148,23 +2336,36 @@ app.get('/api/artist/:id', async (req, res) => {
     }
 
     // Normalize Top Albums
-    let topAlbums = Array.isArray(artistData.topAlbums) ? artistData.topAlbums : [];
+    let topAlbums = allTopAlbums.length > 0 ? allTopAlbums : (Array.isArray(artistData.topAlbums) ? artistData.topAlbums : []);
     normalizedArtist.topAlbums = topAlbums.map(album => {
       // Use the direct album.id field which contains the numeric ID
       let albumId = album.id;
 
-      // Convert image URL from 150x150 to 500x500
-      let imageUrl = album.image;
-      if (imageUrl && typeof imageUrl === 'string') {
-        imageUrl = imageUrl.replace('-150x150.jpg', '-500x500.jpg');
+      // Handle image - PRIMARY_API returns array, official API returns string
+      let imageArray = [];
+      if (Array.isArray(album.image)) {
+        // PRIMARY_API format: array of {quality, url} objects
+        // Use 150x150 for better performance
+        const image150 = album.image.find(img => img.quality === '150x150');
+        const image500 = album.image.find(img => img.quality === '500x500');
+        imageArray = image150 ? [image150] : (image500 ? [image500] : album.image);
+      } else if (typeof album.image === 'string') {
+        // Official API format: string URL
+        let imageUrl = album.image;
+        // Keep 150x150 or convert 500x500 to 150x150
+        if (imageUrl && imageUrl.includes('-500x500.jpg')) {
+          imageUrl = imageUrl.replace('-500x500.jpg', '-150x150.jpg');
+        }
+        imageArray = [{ quality: '150x150', url: imageUrl }];
       }
 
       return {
         id: albumId,
         name: album.title || album.name,
         year: album.year,
-        image: imageUrl ? [{ quality: '500x500', url: imageUrl }] : [],
-        playCount: album.play_count || 0,
+        language: album.language,
+        image: imageArray,
+        playCount: album.play_count || album.playCount || 0,
         isLocal: isAlbumLocal(albumId)
       };
     });

@@ -21,7 +21,7 @@ export default function Sidebar({ searchQuery, onSearch, showToast, onClose, qua
   const handleScan = async () => {
     setIsScanning(true)
     try {
-      const response = await fetch(`${API_BASE}/scan`, { method: 'POST' })
+      const response = await fetch(`${API_BASE}/api/scan`, { method: 'POST' })
       const data = await response.json()
       if (data.success) {
         const removedAlbums = Number.isFinite(data.removedAlbums) ? data.removedAlbums : 0
@@ -75,6 +75,15 @@ export default function Sidebar({ searchQuery, onSearch, showToast, onClose, qua
 
   const handleClearCache = async () => {
     try {
+      // Clear React Query cache from localStorage (keys containing 'react' or 'query')
+      const reactQueryKeys = Object.keys(localStorage).filter(key => 
+        key.toLowerCase().includes('react') || key.toLowerCase().includes('query')
+      )
+      reactQueryKeys.forEach(key => localStorage.removeItem(key))
+
+      // Clear sessionStorage
+      sessionStorage.clear()
+
       // Unregister service worker
       if ('serviceWorker' in navigator) {
         const registrations = await navigator.serviceWorker.getRegistrations()

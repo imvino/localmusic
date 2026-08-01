@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import { ArrowLeft, Disc, Download, Loader2, ChevronDown } from 'lucide-react'
 import { useDownloadStore } from '../stores/downloadStore'
@@ -6,9 +6,9 @@ import MetaTags from '../components/MetaTags'
 import { getiTunesArtwork, decodeHtmlEntities, getArtistImageUrl } from '../utils'
 import { useAlbum, useArtist, usePlaylist } from '../hooks/useApi'
 import { queryClient } from '../App'
+import { hasCustomAlbums, getAlbumsTabLabel, ARTIST_CONFIG } from '../artist-config'
 
 const API_BASE = import.meta.env.VITE_API_URL
-const HARRIS_JAYARAJ_ID = '455243'
 const isProduction = import.meta.env.MODE === 'production'
 
 export default function DiscoverDetailView({ onSongClick, showToast, currentSong, isPlaying, sidebarOpen }) {
@@ -20,15 +20,19 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
   const scrollPositionRef = useRef(0)
   const [downloading, setDownloading] = useState(null)
   const [downloadingAlbum, setDownloadingAlbum] = useState({}) // { albumId: boolean }
-  const [activeTab, setActiveTab] = useState('overview')
+  const [activeTab, setActiveTab] = useState('songs')
   const [songsSortBy, setSongsSortBy] = useState('date')
+  const [languageFilter, setLanguageFilter] = useState('all')
+  const [albumsLanguageFilter, setAlbumsLanguageFilter] = useState('all')
   const isAlbum = location.pathname.includes('/album/')
   const isArtist = location.pathname.includes('/artist/')
   const isPlaylist = location.pathname.includes('/playlist/')
-  const isHarrisJayaraj = isArtist && id === HARRIS_JAYARAJ_ID
+  const hasCustomAlbumsOverride = isArtist && hasCustomAlbums(id)
+  const artistConfig = ARTIST_CONFIG.customAlbums[id]
   const [albumsSortBy, setAlbumsSortBy] = useState('date')
   const [albumsSortDirection, setAlbumsSortDirection] = useState('desc')
   const [customAlbums, setCustomAlbums] = useState(null)
+  const [apiAlbums, setApiAlbums] = useState(null)
   const [iTunesArtwork, setITunesArtwork] = useState(null)
   const meta = location.state?.[isAlbum ? 'album' : isArtist ? 'artist' : 'playlist']
   // Use slug from URL as album name, fallback to state
@@ -44,13 +48,68 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
 
   // Process songs with imageUrl
   const rawSongs = data?.topSongs || data?.songs || []
-  const songs = rawSongs.map(song => ({
+  
+  // Extract distinct languages from songs
+  const distinctLanguages = useMemo(() => {
+    const languages = new Set()
+    rawSongs.forEach(song => {
+      const lang = song.more_info?.language || song.language
+      if (lang) {
+        languages.add(lang)
+      }
+    })
+    return Array.from(languages).sort()
+  }, [rawSongs])
+  
+  // Filter songs by language
+  const filteredSongs = rawSongs.filter(song => {
+    if (languageFilter === 'all') return true
+    const songLanguage = song.more_info?.language || song.language
+    if (!songLanguage) return true
+    return songLanguage.toLowerCase() === languageFilter.toLowerCase()
+  })
+  
+  const songs = filteredSongs.map(song => ({
     ...song,
     imageUrl: song.image?.find(img => img.quality === '500x500')?.url ||
               song.image?.find(img => img.quality === '150x150')?.url
   }))
-  // Use custom albums for Harris Jayaraj, otherwise use API albums
-  const albums = isHarrisJayaraj ? (customAlbums || []) : (data?.topAlbums || [])
+  // Use custom albums for artists with overrides in albums tab, otherwise use API albums
+  const rawAlbums = hasCustomAlbumsOverride && activeTab === 'albums' ? (customAlbums || []) : (data?.topAlbums || [])
+  
+  // For Mix tab: filter API albums to exclude duplicates by ID with custom albums
+  const customAlbumIds = useMemo(() => {
+    if (!customAlbums) return new Set()
+    return new Set(customAlbums.map(album => album.id))
+  }, [customAlbums])
+  
+  const mixAlbums = useMemo(() => {
+    if (!apiAlbums) return []
+    return apiAlbums.filter(album => !customAlbumIds.has(album.id))
+  }, [apiAlbums, customAlbumIds])
+  
+  // Use mixAlbums for Mix tab, otherwise use rawAlbums
+  const displayAlbums = activeTab === 'mix' ? mixAlbums : rawAlbums
+  
+  // Extract distinct languages from albums
+  const distinctAlbumLanguages = useMemo(() => {
+    const languages = new Set()
+    displayAlbums.forEach(album => {
+      const lang = album.language
+      if (lang) {
+        languages.add(lang)
+      }
+    })
+    return Array.from(languages).sort()
+  }, [displayAlbums])
+  
+  // Filter albums by language
+  const albums = displayAlbums.filter(album => {
+    if (albumsLanguageFilter === 'all') return true
+    const albumLanguage = album.language
+    if (!albumLanguage) return true
+    return albumLanguage.toLowerCase() === albumsLanguageFilter.toLowerCase()
+  })
 
   // Save scroll position when component unmounts
   useEffect(() => {
@@ -83,10 +142,10 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
     }
   }, [data, isAlbum, isArtist])
 
-  // Load custom albums for Harris Jayaraj
+  // Load custom albums for artists with overrides
   useEffect(() => {
-    if (isHarrisJayaraj) {
-      fetch(`${API_BASE}/composer-albums/${HARRIS_JAYARAJ_ID}`)
+    if (hasCustomAlbumsOverride && artistConfig) {
+      fetch(`${API_BASE}/api/composer-albums/${id}`)
         .then(res => res.json())
         .then(data => {
           // Transform custom albums to match API format, filtering out not-found albums
@@ -97,9 +156,10 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
               name: album.title,
               year: album.year,
               image: album.image ? [{ quality: '150x150', url: album.image }] : [],
-              songCount: parseInt(album.songCount) || 0,
-              playCount: album.playCount || 0,
-              isLocal: album.isLocal || false
+              songCount: album.songCount || 0,
+              playCount: 0,
+              isLocal: album.isLocal || false,
+              totalTracks: album.totalTracks || null
             }))
           setCustomAlbums(transformedAlbums)
         })
@@ -107,13 +167,20 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
           console.error('Failed to load custom albums:', err)
         })
     }
-  }, [isHarrisJayaraj])
+  }, [hasCustomAlbumsOverride, id, artistConfig])
+
+  // Store API albums separately for artists with custom overrides
+  useEffect(() => {
+    if (hasCustomAlbumsOverride && artistData?.topAlbums) {
+      setApiAlbums(artistData.topAlbums)
+    }
+  }, [hasCustomAlbumsOverride, artistData])
 
   const handleDownload = async (song, e) => {
     e.stopPropagation()
     try {
       setDownloading(song.id)
-      const res = await fetch(`${API_BASE}/download-song`, {
+      const res = await fetch(`${API_BASE}/api/download-song`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ songId: song.id })
@@ -127,7 +194,7 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
         addDownload(resp.downloadId, song.id, song.name, albumDisplayName)
         
         // Connect to SSE for progress updates
-        const eventSource = new EventSource(`${API_BASE}/download-progress/${resp.downloadId}`)
+        const eventSource = new EventSource(`${API_BASE}/api/download-progress/${resp.downloadId}`)
         
         eventSource.onmessage = (event) => {
           const progress = JSON.parse(event.data)
@@ -179,7 +246,7 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
 
     try {
       setDownloadingAlbum(prev => ({ ...prev, [id]: true }))
-      const res = await fetch(`${API_BASE}/download-album`, {
+      const res = await fetch(`${API_BASE}/api/download-album`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ albumId: id })
@@ -191,7 +258,7 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
         addDownload(resp.downloadId, id, `Album: ${albumDisplayName}`, albumDisplayName)
         
         // Connect to SSE for progress updates
-        const eventSource = new EventSource(`${API_BASE}/download-progress/${resp.downloadId}`)
+        const eventSource = new EventSource(`${API_BASE}/api/download-progress/${resp.downloadId}`)
 
         eventSource.onmessage = (event) => {
           const progress = JSON.parse(event.data)
@@ -256,7 +323,7 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
     try {
       console.log('Fetching song details for:', song.id)
       // Fetch the song details to get the playable stream URL
-      const res = await fetch(`${API_BASE}/song/${song.id}`)
+      const res = await fetch(`${API_BASE}/api/song/${song.id}`)
       const result = await res.json()
       
       console.log('Song API response:', result)
@@ -321,7 +388,12 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
     switch (sortBy) {
       case 'date':
         return sorted.sort((a, b) => {
-          const diff = (b.year || 0) - (a.year || 0)
+          // Treat "TBA" as newest (9999) for sorting
+          const getYearValue = (year) => {
+            if (year === 'TBA' || year === 'TBA') return 9999
+            return parseInt(year) || 0
+          }
+          const diff = getYearValue(b.year) - getYearValue(a.year)
           return direction === 'asc' ? -diff : diff
         })
       case 'name':
@@ -441,11 +513,7 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
         <div className="flex-1 min-w-0 text-center md:text-left">
           <div className="flex items-center justify-center md:justify-start gap-2 mb-2">
             <h1 className="text-2xl md:text-3xl font-bold text-white">{data?.name || meta?.name}</h1>
-            {!isProduction && isAlbum && data?.isLocal && (
-              <span className="hidden md:inline bg-green-500 text-white text-xs px-2 py-1 rounded font-medium">
-                LOCAL
-              </span>
-            )}
+            
           </div>
           <p className="text-zinc-400 mb-2">{isAlbum ? 'Album' : isArtist ? 'Artist' : 'Playlist'}</p>
           
@@ -540,16 +608,6 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
       {isArtist && (
         <div className="flex items-center gap-6 mb-6 border-b border-zinc-800">
           <button
-            onClick={() => setActiveTab('overview')}
-            className={`pb-3 text-sm font-medium transition-colors ${
-              activeTab === 'overview'
-                ? 'text-white border-b-2 border-[#fc3c44]'
-                : 'text-zinc-400 hover:text-white'
-            }`}
-          >
-            Overview
-          </button>
-          <button
             onClick={() => setActiveTab('songs')}
             className={`pb-3 text-sm font-medium transition-colors ${
               activeTab === 'songs'
@@ -557,7 +615,7 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
                 : 'text-zinc-400 hover:text-white'
             }`}
           >
-            Songs
+            Popular Songs
           </button>
           <button
             onClick={() => setActiveTab('albums')}
@@ -567,165 +625,58 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
                 : 'text-zinc-400 hover:text-white'
             }`}
           >
-            Albums
+            {getAlbumsTabLabel(id)}
           </button>
+          {hasCustomAlbumsOverride && (
+            <button
+              onClick={() => setActiveTab('mix')}
+              className={`pb-3 text-sm font-medium transition-colors ${
+                activeTab === 'mix'
+                  ? 'text-white border-b-2 border-[#fc3c44]'
+                  : 'text-zinc-400 hover:text-white'
+              }`}
+            >
+              Mix Tap
+            </button>
+          )}
         </div>
       )}
 
       {/* Content based on tab or type */}
       {isArtist ? (
         <>
-          {activeTab === 'overview' && (
-            <div className="space-y-6">
-              {/* Top 10 Songs */}
-              <section>
-                <h2 className="text-lg font-bold text-white mb-4">Top 10 Songs</h2>
-                <div className="space-y-2">
-                  {songs.slice(0, 10).map((song, index) => (
-                    <div
-                      key={song.id}
-                      onClick={() => handlePlay(song, index)}
-                      className={`flex items-center gap-4 p-3 rounded-lg transition-colors cursor-pointer group ${
-                        currentSong?.id === song.id && isPlaying
-                          ? 'bg-zinc-800/80 border border-[#fc3c44]/30'
-                          : 'hover:bg-zinc-800/50'
-                      }`}
-                    >
-                      <span className="text-zinc-500 w-6 text-center">{index + 1}</span>
-                      <div className="w-12 h-12 rounded overflow-hidden bg-zinc-800 flex-shrink-0">
-                        {song.image?.[0]?.url ? (
-                          <img src={song.image[0].url} alt={song.name} className="w-full h-full object-cover" />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center text-zinc-600">
-                            <Disc size={16} />
-                          </div>
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h3 className="text-white font-medium truncate">{decodeHtmlEntities(song.name)}</h3>
-                        <p className="text-zinc-400 text-sm truncate">
-                          {song.artists?.primary?.map((a, idx) => (
-                            <span key={idx}>
-                              {a.id ? (
-                                <>
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation()
-                                      navigate(`/discover/artist/${a.id}`)
-                                    }}
-                                    className="hidden md:inline hover:text-[#fc3c44] hover:underline transition-colors"
-                                  >
-                                    {a.name}
-                                  </button>
-                                  <span className="md:hidden">{a.name}</span>
-                                </>
-                              ) : (
-                                <span>{a.name}</span>
-                              )}
-                              {idx < (song.artists?.primary?.length || 0) - 1 && ', '}
-                            </span>
-                          ))}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        {(() => {
-                          const dl = getDownloadBySongId(song.id)
-                          return dl && dl.status !== 'complete' && (
-                            <div className="flex items-center gap-2">
-                              <div className="w-16 bg-zinc-700 rounded-full h-1.5">
-                                <div 
-                                  className="bg-[#fc3c44] h-1.5 rounded-full transition-all duration-300"
-                                  style={{ width: `${dl.progress}%` }}
-                                />
-                              </div>
-                              <span className="text-xs text-zinc-400">{dl.progress}%</span>
-                            </div>
-                          )
-                        })()}
-                        {!isProduction && song.isLocal && (
-                          <span className="hidden md:inline bg-green-500 text-white text-xs px-2 py-0.5 rounded font-medium">
-                            LOCAL
-                          </span>
-                        )}
-                        <div className="text-zinc-500 text-sm">{Math.floor(song.duration / 60)}:{(song.duration % 60).toString().padStart(2, '0')}</div>
-                      </div>
-                      {!isProduction && (
-                      <button
-                        onClick={(e) => handleDownload(song, e)}
-                        disabled={downloading === song.id || getDownloadBySongId(song.id)?.status === 'downloading'}
-                        className="hidden md:block opacity-0 group-hover:opacity-100 transition-opacity p-2 hover:bg-zinc-700 rounded-full disabled:opacity-50 text-zinc-400 hover:text-white cursor-pointer"
-                        title="Download 320kbps MP3"
-                      >
-                        {downloading === song.id || getDownloadBySongId(song.id)?.status === 'downloading' ? (
-                          <Loader2 size={16} className="animate-spin text-[#fc3c44]" />
-                        ) : (
-                          <Download size={16} />
-                        )}
-                      </button>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </section>
-
-              {/* Artist Bio */}
-              {data?.bio && (
-                <section>
-                  <h2 className="text-lg font-bold text-white mb-4">About</h2>
-                  <p className="text-zinc-400 text-sm leading-relaxed">{data.bio}</p>
-                </section>
-              )}
-
-              {/* Similar Artists */}
-              {data?.similarArtists && data.similarArtists.length > 0 && (
-                <section>
-                  <h2 className="text-lg font-bold text-white mb-4">Similar Artists</h2>
-                  <div className="flex gap-4 flex-wrap">
-                    {data.similarArtists.slice(0, 8).map(artist => (
-                      <button
-                        key={artist.id}
-                        onClick={() => navigate(`/discover/artist/${artist.id}`)}
-                        className="flex flex-col items-center gap-2 group w-20"
-                      >
-                        <div className="w-20 h-20 rounded-full overflow-hidden bg-zinc-800 shadow">
-                          {getArtistImageUrl(artist.image) ? (
-                            <img
-                              src={getArtistImageUrl(artist.image)}
-                              alt={artist.name}
-                              className={`w-full h-full group-hover:scale-105 transition-transform ${getArtistImageUrl(artist.image).includes('logo_512x512') ? 'object-contain p-3' : 'object-cover'}`}
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center">
-                              <Disc size={24} className="text-zinc-500" />
-                            </div>
-                          )}
-                        </div>
-                        <span className="text-xs text-zinc-300 group-hover:text-white transition-colors text-center leading-snug w-full truncate">
-                          {artist.name}
-                        </span>
-                      </button>
-                    ))}
-                  </div>
-                </section>
-              )}
-            </div>
-          )}
-
           {activeTab === 'songs' && (
             <div className="space-y-4">
-              {/* Sort Dropdown */}
-              <div className="flex items-center justify-between">
+              {/* Sort and Language Dropdowns */}
+              <div className="flex items-center justify-between gap-4">
                 <p className="text-zinc-400 text-sm">{sortedSongs.length} songs</p>
-                <div className="relative">
-                  <select
-                    value={songsSortBy}
-                    onChange={(e) => setSongsSortBy(e.target.value)}
-                    className="appearance-none bg-zinc-800 text-white text-sm px-4 py-2 pr-8 rounded-lg border border-zinc-700 focus:outline-none focus:border-zinc-600 cursor-pointer"
-                  >
-                    <option value="date">Date</option>
-                    <option value="name">Name</option>
-                  </select>
-                  <ChevronDown size={16} className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
+                <div className="flex items-center gap-2">
+                  {distinctLanguages.length > 0 && (
+                    <div className="relative">
+                      <select
+                        value={languageFilter}
+                        onChange={(e) => setLanguageFilter(e.target.value)}
+                        className="appearance-none bg-zinc-800 text-white text-sm px-4 py-2 pr-8 rounded-lg border border-zinc-700 focus:outline-none focus:border-zinc-600 cursor-pointer"
+                      >
+                        <option value="all">All Languages</option>
+                        {distinctLanguages.map(lang => (
+                          <option key={lang} value={lang}>{lang}</option>
+                        ))}
+                      </select>
+                      <ChevronDown size={16} className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
+                    </div>
+                  )}
+                  <div className="relative">
+                    <select
+                      value={songsSortBy}
+                      onChange={(e) => setSongsSortBy(e.target.value)}
+                      className="appearance-none bg-zinc-800 text-white text-sm px-4 py-2 pr-8 rounded-lg border border-zinc-700 focus:outline-none focus:border-zinc-600 cursor-pointer"
+                    >
+                      <option value="date">Date</option>
+                      <option value="name">Name</option>
+                    </select>
+                    <ChevronDown size={16} className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
+                  </div>
                 </div>
               </div>
 
@@ -822,36 +773,53 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
 
           {activeTab === 'albums' && (
             <div className="space-y-4">
-              {/* Sort Dropdown */}
-              <div className="flex items-center justify-between">
+              {/* Sort and Language Dropdowns */}
+              <div className="flex items-center justify-between gap-4">
                 <p className="text-zinc-400 text-sm">{sortedAlbums.length} albums</p>
-                <div className="relative">
-                  <select
-                    value={`${albumsSortBy}-${albumsSortDirection}`}
-                    onChange={(e) => {
-                      const [sortBy, direction] = e.target.value.split('-')
-                      setAlbumsSortBy(sortBy)
-                      setAlbumsSortDirection(direction)
-                    }}
-                    className="appearance-none bg-zinc-800 text-white text-sm px-4 py-2 pr-8 rounded-lg border border-zinc-700 focus:outline-none focus:border-zinc-600 cursor-pointer"
-                  >
-                    {isHarrisJayaraj ? (
-                      <>
-                        <option value="date-desc">Date (Newest)</option>
-                        <option value="date-asc">Date (Oldest)</option>
-                        <option value="name-asc">Name (A-Z)</option>
-                        <option value="name-desc">Name (Z-A)</option>
-                      </>
-                    ) : (
-                      <>
-                        <option value="date-desc">Date (Newest)</option>
-                        <option value="date-asc">Date (Oldest)</option>
-                        <option value="name-asc">Name (A-Z)</option>
-                        <option value="name-desc">Name (Z-A)</option>
-                      </>
-                    )}
-                  </select>
-                  <ChevronDown size={16} className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
+                <div className="flex items-center gap-2">
+                  {distinctAlbumLanguages.length > 0 && (
+                    <div className="relative">
+                      <select
+                        value={albumsLanguageFilter}
+                        onChange={(e) => setAlbumsLanguageFilter(e.target.value)}
+                        className="appearance-none bg-zinc-800 text-white text-sm px-4 py-2 pr-8 rounded-lg border border-zinc-700 focus:outline-none focus:border-zinc-600 cursor-pointer"
+                      >
+                        <option value="all">All Languages</option>
+                        {distinctAlbumLanguages.map(lang => (
+                          <option key={lang} value={lang}>{lang}</option>
+                        ))}
+                      </select>
+                      <ChevronDown size={16} className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
+                    </div>
+                  )}
+                  <div className="relative">
+                    <select
+                      value={`${albumsSortBy}-${albumsSortDirection}`}
+                      onChange={(e) => {
+                        const [sortBy, direction] = e.target.value.split('-')
+                        setAlbumsSortBy(sortBy)
+                        setAlbumsSortDirection(direction)
+                      }}
+                      className="appearance-none bg-zinc-800 text-white text-sm px-4 py-2 pr-8 rounded-lg border border-zinc-700 focus:outline-none focus:border-zinc-600 cursor-pointer"
+                    >
+                      {hasCustomAlbumsOverride ? (
+                        <>
+                          <option value="date-desc">Date (Newest)</option>
+                          <option value="date-asc">Date (Oldest)</option>
+                          <option value="name-asc">Name (A-Z)</option>
+                          <option value="name-desc">Name (Z-A)</option>
+                        </>
+                      ) : (
+                        <>
+                          <option value="date-desc">Date (Newest)</option>
+                          <option value="date-asc">Date (Oldest)</option>
+                          <option value="name-asc">Name (A-Z)</option>
+                          <option value="name-desc">Name (Z-A)</option>
+                        </>
+                      )}
+                    </select>
+                    <ChevronDown size={16} className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
+                  </div>
                 </div>
               </div>
 
@@ -878,9 +846,86 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
                           <Disc size={32} className="text-zinc-600" />
                         </div>
                       )}
-                      {!isProduction && album.isLocal && (
-                        <div className="hidden md:block absolute top-2 left-2 bg-green-500 text-white text-xs px-2 py-1 rounded font-medium">
-                          LOCAL
+                      {!isProduction && album.isLocal && album.totalTracks && (
+                        <div className={`hidden md:block absolute top-2 left-2 text-white text-xs px-2 py-1 rounded font-medium ${album.songCount === album.totalTracks ? 'bg-green-500' : 'bg-red-500'}`}>
+                          {`${album.songCount}/${album.totalTracks}`}
+                        </div>
+                      )}
+                    </div>
+                    <div className="text-left">
+                      <h3 className="text-sm font-medium text-white truncate">{album.name}</h3>
+                      <p className="text-xs text-zinc-500">{album.year}</p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'mix' && (
+            <div className="space-y-4">
+              {/* Sort and Language Dropdowns */}
+              <div className="flex items-center justify-between gap-4">
+                <p className="text-zinc-400 text-sm">{sortedAlbums.length} albums</p>
+                <div className="flex items-center gap-2">
+                  {distinctAlbumLanguages.length > 0 && (
+                    <div className="relative">
+                      <select
+                        value={albumsLanguageFilter}
+                        onChange={(e) => setAlbumsLanguageFilter(e.target.value)}
+                        className="appearance-none bg-zinc-800 text-white text-sm px-4 py-2 pr-8 rounded-lg border border-zinc-700 focus:outline-none focus:border-zinc-600 cursor-pointer"
+                      >
+                        <option value="all">All Languages</option>
+                        {distinctAlbumLanguages.map(lang => (
+                          <option key={lang} value={lang}>{lang}</option>
+                        ))}
+                      </select>
+                      <ChevronDown size={16} className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
+                    </div>
+                  )}
+                  <div className="relative">
+                    <select
+                      value={`${albumsSortBy}-${albumsSortDirection}`}
+                      onChange={(e) => {
+                        const [sortBy, direction] = e.target.value.split('-')
+                        setAlbumsSortBy(sortBy)
+                        setAlbumsSortDirection(direction)
+                      }}
+                      className="appearance-none bg-zinc-800 text-white text-sm px-4 py-2 pr-8 rounded-lg border border-zinc-700 focus:outline-none focus:border-zinc-600 cursor-pointer"
+                    >
+                      <>
+                        <option value="date-desc">Date (Newest)</option>
+                        <option value="date-asc">Date (Oldest)</option>
+                        <option value="name-asc">Name (A-Z)</option>
+                        <option value="name-desc">Name (Z-A)</option>
+                      </>
+                    </select>
+                    <ChevronDown size={16} className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Albums Grid */}
+              <div className={`grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 ${sidebarOpen ? 'lg:grid-cols-6' : 'lg:grid-cols-8'}`}>
+                {sortedAlbums.map(album => (
+                  <button
+                    key={album.id}
+                    onClick={() => {
+                      const slug = (album.name || album.title || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+                      navigate(`/discover/album/${album.id}/${slug}`, { state: { album } });
+                    }}
+                    className="flex flex-col gap-2 group"
+                  >
+                    <div className="aspect-square rounded-xl overflow-hidden bg-zinc-800 shadow relative">
+                      {album.image?.[0]?.url ? (
+                        <img
+                          src={album.image[0].url}
+                          alt={album.name}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <Disc size={32} className="text-zinc-600" />
                         </div>
                       )}
                     </div>

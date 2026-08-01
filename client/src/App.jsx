@@ -369,7 +369,7 @@ function AppContent() {
     if (currentSong.isStream && currentSong.id && currentBitrate !== 96) {
       const fetchNewStreamUrl = async () => {
         try {
-          const res = await fetch(`${API_BASE}/stream/${currentSong.id}?bitrate=${currentBitrate}`)
+          const res = await fetch(`${API_BASE}/api/stream/${currentSong.id}?bitrate=${currentBitrate}`)
           if (res.ok) {
             const newStreamUrl = res.url
             if (audio.src !== newStreamUrl) {
@@ -416,7 +416,7 @@ function AppContent() {
     // Fetch stream URL if not already present
     if (!song.streamUrl && song.id) {
       try {
-        const res = await fetch(`${API_BASE}/song/${song.id}`)
+        const res = await fetch(`${API_BASE}/api/song/${song.id}`)
         const result = await res.json()
         if (result.success && result.data && result.data.streamUrl) {
           songWithStream = {
@@ -507,7 +507,7 @@ function AppContent() {
     try {
       // Fetch stream URL if not already present
       if (!song.streamUrl) {
-        const res = await fetch(`${API_BASE}/song/${song.id}`)
+        const res = await fetch(`${API_BASE}/api/song/${song.id}`)
         const result = await res.json()
         if (result.success && result.data && result.data.streamUrl) {
           setCurrentSong({
@@ -562,14 +562,14 @@ function AppContent() {
       setIsSearchingAlbum(true)
       try {
         const searchQuery = `${currentSong.album} ${currentSong.name}`
-        const res = await fetch(`${VERCEL_API_BASE || API_BASE}/search?q=${encodeURIComponent(searchQuery)}`)
+        const res = await fetch(`${VERCEL_API_BASE || API_BASE}/api/search?q=${encodeURIComponent(searchQuery)}`)
         const result = await res.json()
         
         if (result.success && result.data.albums) {
           // Check if song exists in any album
           for (const album of result.data.albums) {
             try {
-              const albumRes = await fetch(`${API_BASE}/album/${album.id}`)
+              const albumRes = await fetch(`${API_BASE}/api/album/${album.id}`)
               const albumData = await albumRes.json()
               
               if (albumData.success && albumData.data.songs) {

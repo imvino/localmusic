@@ -190,7 +190,7 @@ function SongCard({ song, onSongClick, downloadProgress }) {
   const handlePlay = async () => {
     try {
       // Fetch the song details to get the playable stream URL
-      const res = await fetch(`${API_BASE}/song/${song.id}`)
+      const res = await fetch(`${API_BASE}/api/song/${song.id}`)
       const result = await res.json()
       
       if (result.success && result.data) {
@@ -223,14 +223,14 @@ function SongCard({ song, onSongClick, downloadProgress }) {
   const handleDownload = async (e) => {
     e.stopPropagation()
     try {
-      const res = await fetch(`${API_BASE}/download-song`, {
+      const res = await fetch(`${API_BASE}/api/download-song`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ songId: song.id })
       })
       const data = await res.json()
       if (data.success && data.downloadId) {
-        const eventSource = new EventSource(`${API_BASE}/download-progress/${data.downloadId}`)
+        const eventSource = new EventSource(`${API_BASE}/api/download-progress/${data.downloadId}`)
         
         eventSource.onmessage = (event) => {
           const progress = JSON.parse(event.data)

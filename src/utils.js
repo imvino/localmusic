@@ -83,10 +83,21 @@ function detectComposerFromSongs(songs) {
   return candidates[0];
 }
 
-// Helper to get best image URL from array structure
+// Helper to get best image URL from array structure or string
 function getBestImage(imageObj) {
-  if (!imageObj || !Array.isArray(imageObj)) return null;
-  const best = imageObj.find(img => img.quality === '500x500') || imageObj.find(img => img.quality === '150x150');
+  if (!imageObj) return null;
+  
+  // Handle string URL (direct from JioSaavn search API)
+  if (typeof imageObj === 'string') {
+    if (imageObj.includes('share-image-2.png')) {
+      return '/logo_512x512.png';
+    }
+    return imageObj;
+  }
+  
+  // Handle array format
+  if (!Array.isArray(imageObj)) return null;
+  const best = imageObj.find(img => img.quality === '150x150') || imageObj.find(img => img.quality === '500x500');
   let url = best ? best.url : null;
   
   // Replace JioSaavn brand logo with local logo

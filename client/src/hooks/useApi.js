@@ -15,9 +15,8 @@ function getAPIBase(endpoint) {
 // Helper function for fetch with error handling
 async function fetchAPI(endpoint, options = {}) {
   const apiBase = getAPIBase(endpoint)
-  // Prepend /api if using Vercel and endpoint doesn't already have it
-  const isVercelEndpoint = endpoint.startsWith('/search') || endpoint.startsWith('/artist')
-  const url = isVercelEndpoint && apiBase === VERCEL_API_BASE && !endpoint.startsWith('/api')
+  // Prepend /api if endpoint doesn't already have it
+  const url = !endpoint.startsWith('/api')
     ? `${apiBase}/api${endpoint}`
     : `${apiBase}${endpoint}`
   const response = await fetch(url, options)
@@ -96,7 +95,7 @@ export function useHealthCheck(enabled = true) {
   return useQuery({
     queryKey: ['health'],
     queryFn: async () => {
-      const response = await fetch(`${API_BASE}/health`, {
+      const response = await fetch(`${API_BASE}/api/health`, {
         method: 'GET',
         signal: AbortSignal.timeout(5000),
       })
