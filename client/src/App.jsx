@@ -685,7 +685,7 @@ function AppContent() {
           <div className="absolute left-0 top-0 bottom-0 w-64 bg-black">
             <Sidebar
               searchQuery={searchQuery}
-              onSearch={q => setSearchParams({ q })}
+              onSearch={q => setSearchParams({ q }, { replace: true })}
               showToast={showToastMessage}
               onClose={() => setSidebarOpen(false)}
               qualityPreference={qualityPreference}
@@ -699,7 +699,7 @@ function AppContent() {
       <div className={`hidden md:flex ${sidebarOpen ? 'w-56' : 'w-0'} transition-all duration-300 overflow-hidden`}>
         <Sidebar
           searchQuery={searchQuery}
-          onSearch={q => setSearchParams({ q })}
+          onSearch={q => setSearchParams({ q }, { replace: true })}
           showToast={showToastMessage}
           qualityPreference={qualityPreference}
           onQualityChange={setQualityPreference}
@@ -764,9 +764,11 @@ function AppContent() {
                 onChange={e => {
                   const next = e.target.value
                   setLocalSearchQuery(next)
-                  setSearchParams({ q: next })
+                  if (location.pathname === '/search') {
+                    setSearchParams({ q: next }, { replace: true })
+                  }
                   if (next && location.pathname !== '/search') {
-                    navigate('/search')
+                    navigate(`/search?q=${encodeURIComponent(next)}`)
                   }
                 }}
                 onPaste={e => {
@@ -777,7 +779,7 @@ function AppContent() {
                   const currentValue = localSearchQuery
                   const next = currentValue.slice(0, selectionStart) + pastedText + currentValue.slice(selectionEnd)
                   setLocalSearchQuery(next)
-                  if (next) {
+                  if (next && location.pathname !== '/search') {
                     navigate(`/search?q=${encodeURIComponent(next)}`)
                   }
                 }}
@@ -807,9 +809,11 @@ function AppContent() {
                   onChange={e => {
                     const next = e.target.value
                     setLocalSearchQuery(next)
-                    setSearchParams({ q: next })
+                    if (location.pathname === '/search') {
+                      setSearchParams({ q: next }, { replace: true })
+                    }
                     if (next && location.pathname !== '/search') {
-                      navigate('/search')
+                      navigate(`/search?q=${encodeURIComponent(next)}`)
                     }
                   }}
                   onPaste={e => {
@@ -820,7 +824,7 @@ function AppContent() {
                     const currentValue = localSearchQuery
                     const next = currentValue.slice(0, selectionStart) + pastedText + currentValue.slice(selectionEnd)
                     setLocalSearchQuery(next)
-                    if (next) {
+                    if (next && location.pathname !== '/search') {
                       navigate(`/search?q=${encodeURIComponent(next)}`)
                     }
                   }}
