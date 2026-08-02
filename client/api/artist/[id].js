@@ -164,10 +164,12 @@ export default async function handler(req) {
           topSongs: songs.slice(0, limit).map(song => ({
             id: song.id,
             name: song.title || song.song,
-            album: { name: song.album },
+            album: { name: song.album, id: song.albumid },
+            albumId: song.albumid || null,
             year: song.year || 0,
             duration: 0,
             image: song.image ? [{ quality: '500x500', url: song.image }] : [],
+            imageUrl: song.image || null,
             artists: { primary: song.more_info?.singers ? song.more_info.singers.split(', ').map(name => ({ id: encodeURIComponent(name.trim()), name: name.trim() })) : [] },
             downloadUrl: song.api_url?.song ? [{ quality: 'api', url: song.api_url.song }] : [],
             playCount: 0,
@@ -297,13 +299,16 @@ export default async function handler(req) {
 
         normalizedArtist.topSongs = topSongs.map(song => {
           const rich = songDetailsMap[song.id] || {};
+          const imageUrl = rich.image ? (rich.image.find(img => img.quality === '500x500')?.url || rich.image[0]?.url) : (song.image ? song.image.replace('50x50', '500x500') : null);
           return {
             id: song.id,
             name: song.title || song.name,
-            album: { name: rich.album?.name || song.more_info?.album },
+            album: { name: rich.album?.name || song.more_info?.album, id: rich.album?.id || song.more_info?.album?.id },
+            albumId: rich.album?.id || song.more_info?.album?.id || null,
             year: rich.year || song.year,
             duration: rich.duration || song.more_info?.duration,
             image: rich.image || (song.image ? [{ quality: '500x500', url: song.image }] : []),
+            imageUrl: imageUrl,
             artists: rich.artists || { primary: [{ name: artistData.name }] },
             downloadUrl: rich.downloadUrl || [],
             playCount: rich.playCount || song.play_count || 0,
@@ -315,10 +320,12 @@ export default async function handler(req) {
         normalizedArtist.topSongs = topSongs.map(song => ({
           id: song.id,
           name: song.title || song.name,
-          album: { name: song.more_info?.album },
+          album: { name: song.more_info?.album, id: song.more_info?.album?.id },
+          albumId: song.more_info?.album?.id || null,
           year: song.year,
           duration: song.more_info?.duration,
           image: song.image ? [{ quality: '500x500', url: song.image }] : [],
+          imageUrl: song.image || null,
           downloadUrl: [],
           playCount: song.play_count || 0,
           isLocal: false
@@ -344,10 +351,12 @@ export default async function handler(req) {
             normalizedArtist.topSongs = richSongsData.map(song => ({
               id: song.id,
               name: song.name || song.title,
-              album: { name: song.album?.name },
+              album: { name: song.album?.name, id: song.album?.id },
+              albumId: song.album?.id || null,
               year: song.year,
               duration: song.duration,
               image: song.image ? [{ quality: '500x500', url: song.image.find(img => img.quality === '500x500')?.url || song.image[0]?.url }] : [],
+              imageUrl: song.image ? (song.image.find(img => img.quality === '500x500')?.url || song.image[0]?.url) : null,
               artists: song.artists || { primary: [{ name: artistData.name }] },
               downloadUrl: song.downloadUrl || [],
               playCount: song.playCount || 0,

@@ -731,7 +731,6 @@ app.get('/api/album/:id', async (req, res) => {
       const searchAlbum = searchResponse.data?.data?.results?.albums?.[0];
       if (searchAlbum && searchAlbum.id === albumId && searchAlbum.name) {
         albumName = searchAlbum.name;
-        console.log('Found album name from primary API:', albumName);
       }
     } catch (nameFetchError) {
       console.error('Failed to fetch album name from primary API:', nameFetchError.message);
@@ -765,7 +764,6 @@ app.get('/api/album/:id', async (req, res) => {
         const token = tokenMatch ? tokenMatch[1] : null;
         
         if (token) {
-          console.log('Found album token from search API:', token);
           // Fetch album details using the token
           const tokenResponse = await axios.get('https://www.jiosaavn.com/api.php', {
             params: {
@@ -818,10 +816,12 @@ app.get('/api/album/:id', async (req, res) => {
                 artists: { primary: song.more_info?.artistMap?.primary_artists?.map(a => ({ id: a.id, name: a.name })) || [] },
                 composers: [],
                 album: decodeHtmlEntities(tokenData.title || tokenData.name),
+                albumId: albumId,
                 duration: parseInt(song.more_info?.duration) || 0,
                 playCount: song.play_count || 0,
                 year: tokenData.year || 0,
                 image: song.image ? [{ quality: '500x500', url: song.image }] : [],
+                imageUrl: song.image || null,
                 downloadUrl: song.more_info?.encrypted_media_url ? [{ quality: '320kbps', url: song.more_info.encrypted_media_url }] : [],
                 isLocal: isSongLocal(song.id)
               }))
@@ -930,16 +930,19 @@ app.get('/api/album/:id', async (req, res) => {
       totalTracks: totalTracks,
       songs: data.songs ? data.songs.map(song => {
         const songDetails = songDetailsMap[song.id] || {};
+        const imageUrl = getBestImage(song.image);
         return {
           id: song.id,
           name: decodeHtmlEntities(song.name || song.title),
           artists: song.artists,
           composers: song.composers || song.music_director || [],
           album: decodeHtmlEntities(data.name || data.title),
+          albumId: data.id,
           duration: song.duration,
           playCount: song.playCount || song.play_count || 0,
           year: song.year || data.year,
-          image: getBestImage(song.image) ? [{ quality: '500x500', url: getBestImage(song.image) }] : [],
+          image: imageUrl ? [{ quality: '500x500', url: imageUrl }] : [],
+          imageUrl: imageUrl,
           downloadUrl: songDetails.downloadUrl || [],
           isLocal: isSongLocal(song.id)
         };
@@ -985,10 +988,12 @@ app.get('/api/album/:id', async (req, res) => {
           artists: { primary: song.artists?.primary?.map(artist => ({ id: artist.id, name: artist.name })) || [] },
           composers: [],
           album: decodeHtmlEntities(fallbackData.name),
+          albumId: albumId,
           duration: parseDuration(song.duration),
           playCount: 0,
           year: fallbackData.year || 0,
           image: song.image || [],
+          imageUrl: song.image?.[0]?.url || null,
           downloadUrl: song.downloadUrl || [],
           isLocal: isSongLocal(song.id)
         }))
@@ -1067,9 +1072,6 @@ app.get('/api/album/:id', async (req, res) => {
           _marker: 0
         };
         const officialData = await fetchFromMusicServiceOfficial(officialParams.__call, officialParams);
-        console.log('Official API response:', officialData ? 'Success' : 'No data');
-        console.log('Official API has songs?', officialData?.list ? 'Yes' : 'No');
-        console.log('Official API songs count:', officialData?.list?.length || 0);
         
         // Official API returns songs in 'list' array
         const songs = officialData?.list || [];
@@ -1100,10 +1102,12 @@ app.get('/api/album/:id', async (req, res) => {
               artists: { primary: song.more_info?.artistMap?.primary_artists?.map(a => ({ id: a.id, name: a.name })) || [] },
               composers: [],
               album: decodeHtmlEntities(officialData.title || officialData.name),
+              albumId: albumId,
               duration: parseInt(song.more_info?.duration) || 0,
               playCount: song.play_count || 0,
               year: officialData.year || 0,
               image: song.image ? [{ quality: '500x500', url: song.image }] : [],
+              imageUrl: song.image || null,
               downloadUrl: song.more_info?.encrypted_media_url ? [{ quality: '320kbps', url: song.more_info.encrypted_media_url }] : [],
               isLocal: isSongLocal(song.id)
             }))
@@ -1127,7 +1131,6 @@ app.get('/api/album/:id', async (req, res) => {
         const searchAlbum = searchResponse.data?.data?.results?.albums?.[0];
         if (searchAlbum && searchAlbum.id === albumId && searchAlbum.artists && searchAlbum.artists.length > 0) {
           const artistId = searchAlbum.artists[0].id;
-          console.log('Found artist ID:', artistId);
           
           // Get artist details to get the album with perma_url
           const artistResponse = await axios.get(`${PRIMARY_API}/artist/${artistId}`, {
@@ -1143,7 +1146,6 @@ app.get('/api/album/:id', async (req, res) => {
               const token = tokenMatch ? tokenMatch[1] : null;
               
               if (token) {
-                console.log('Found album token:', token);
                 // Fetch album details using the token
                 const tokenResponse = await axios.get('https://www.jiosaavn.com/api.php', {
                   params: {
@@ -1268,6 +1270,7 @@ app.get('/api/song/:id', async (req, res) => {
               year: albumData.year,
               duration: songInAlbum.duration,
               image: songInAlbum.image || albumData.image || [],
+              imageUrl: getBestImage(songInAlbum.image || albumData.image),
               artists: songInAlbum.artists?.primary || [],
               streamUrl: externalStreamUrl || null,
               downloadUrl: downloadUrls,
@@ -1292,6 +1295,10 @@ app.get('/api/song/:id', async (req, res) => {
       
       if (songsData && songsData.length > 0) {
         songData = songsData[0];
+        // Add imageUrl if not present
+        if (!songData.imageUrl && songData.image) {
+          songData.imageUrl = getBestImage(songData.image);
+        }
         const downloadUrls = songData.downloadUrl || [];
         externalStreamUrl = downloadUrls.find(u => u.quality === '320kbps')?.url || 
                             downloadUrls.find(u => u.quality === '160kbps')?.url || null;
@@ -1311,6 +1318,7 @@ app.get('/api/song/:id', async (req, res) => {
             year: fallbackSong.year,
             duration: fallbackSong.duration,
             image: fallbackSong.image || [],
+            imageUrl: getBestImage(fallbackSong.image),
             artists: fallbackSong.artists?.primary || [],
             downloadUrl: fallbackSong.downloadUrl || []
           };
@@ -1352,9 +1360,11 @@ app.get('/api/song/:id', async (req, res) => {
               id: officialSong.id,
               name: officialSong.title || officialSong.song || officialSong.name,
               album: officialSong.more_info?.album,
+              albumId: officialSong.more_info?.album_id || null,
               year: officialSong.year || officialSong.more_info?.release_date?.substring(0, 4),
               duration: parseInt(officialSong.more_info?.duration) || 0,
               image: officialSong.image ? [{ quality: '500x500', url: officialSong.image }] : [],
+              imageUrl: officialSong.image || null,
               artists: {
                 primary: officialSong.more_info?.artistMap?.primary_artists?.map(a => ({
                   id: a.id,
@@ -1385,11 +1395,12 @@ app.get('/api/song/:id', async (req, res) => {
     const song = {
       id: songData.id,
       name: songData.name,
-      album: songData.album?.name,
-      albumId: songData.album?.id,
+      album: songData.album?.name || songData.album,
+      albumId: songData.albumId || songData.album?.id,
       year: songData.year,
       duration: songData.duration,
       image: songData.image || [],
+      imageUrl: songData.imageUrl || getBestImage(songData.image),
       artists: songData.artists,
       streamUrl: externalStreamUrl || null,
       previewUrl: songData.url, // Provide the service page URL as fallback
@@ -1929,12 +1940,10 @@ app.get('/api/artist/:id/albums-test', async (req, res) => {
     let allAlbums = [];
     allPagesData.forEach((pageData, index) => {
       if (pageData?.topAlbums) {
-        console.log(`Page ${index + 1}: Found ${pageData.topAlbums.length} albums`);
         allAlbums = allAlbums.concat(pageData.topAlbums);
       }
     });
 
-    console.log(`Total albums fetched: ${allAlbums.length}`);
 
     // Filter by language (client-side filtering)
     const filteredAlbums = language === 'all' 
@@ -1944,7 +1953,6 @@ app.get('/api/artist/:id/albums-test', async (req, res) => {
           return albumLanguage === language.toLowerCase();
         });
 
-    console.log(`Albums after ${language} filter: ${filteredAlbums.length}`);
 
     // Normalize albums
     const normalizedAlbums = filteredAlbums.map(album => {
@@ -1983,7 +1991,6 @@ app.get('/api/artist/:id/albums-test', async (req, res) => {
       }
     };
 
-    console.log(`Returning page ${page} of ${totalFilteredPages} with ${paginatedAlbums.length} albums`);
 
     res.json(response);
 
@@ -2496,15 +2503,27 @@ app.get('/api/search', async (req, res) => {
         }
 
         // Convert 50x50 to 150x150 for better resolution on artist images
-        const imageUrl = item.image ? item.image.replace('50x50', '150x150') : item.image;
+        // Handle both string URLs and image arrays
+        let imageUrl = null;
+        if (item.image) {
+          if (typeof item.image === 'string') {
+            imageUrl = item.image.replace('50x50', '150x150');
+          } else if (Array.isArray(item.image) && item.image.length > 0) {
+            imageUrl = item.image[0].url || null;
+          }
+        }
 
         // Handle album field - could be string or object
         let album = null;
+        let albumId = item.more_info?.album_id || null;
         if (item.more_info?.album) {
           if (typeof item.more_info.album === 'string') {
-            album = { name: item.more_info.album };
-          } else if (typeof item.more_info.album === 'object') {
             album = item.more_info.album;
+          } else if (typeof item.more_info.album === 'object') {
+            album = item.more_info.album.name || item.more_info.album;
+            if (!albumId) {
+              albumId = item.more_info.album.id || null;
+            }
           }
         }
 
@@ -2525,8 +2544,10 @@ app.get('/api/search', async (req, res) => {
           name: songName,
           artists: artists,
           album: album,
+          albumId: albumId,
           year: item.year || item.more_info?.year || null,
           image: imageUrl ? [{ quality: '150x150', url: imageUrl }] : [],
+          imageUrl: imageUrl || null,
           isLocal: type === 'song' ? isSongLocal(item.id || item.tokenid) :
                    type === 'album' ? isAlbumLocal(item.albumid || item.id || item.tokenid) : false
         };

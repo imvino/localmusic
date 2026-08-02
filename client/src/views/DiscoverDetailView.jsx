@@ -932,6 +932,11 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
                           <Disc size={32} className="text-zinc-600" />
                         </div>
                       )}
+                      {!isProduction && album.isLocal && album.totalTracks && (
+                        <div className={`hidden md:block absolute top-2 left-2 text-white text-xs px-2 py-1 rounded font-medium ${album.songCount === album.totalTracks ? 'bg-green-500' : 'bg-red-500'}`}>
+                          {`${album.songCount}/${album.totalTracks}`}
+                        </div>
+                      )}
                     </div>
                     <div className="text-left">
                       <h3 className="text-sm font-medium text-white truncate">{album.name}</h3>

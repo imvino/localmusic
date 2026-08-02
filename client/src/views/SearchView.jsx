@@ -165,9 +165,7 @@ export default function SearchView({ query, onSongClick, onAlbumClick, onArtistC
                   <button
                     key={song.id}
                     onClick={() => onSongClick({
-                      ...song,
-                      isStream: true,
-                      streamUrl: song.downloadUrl?.[0]?.url
+                      ...song
                     }, onlineResults.songs, index)}
                     className="flex items-center gap-2 md:gap-3 px-2 md:px-3 py-2 md:py-2.5 rounded-xl hover:bg-zinc-800/60 transition-colors text-left w-full group"
                   >

@@ -86,6 +86,8 @@ function AppContent() {
   const [currentBitrate, setCurrentBitrate] = useState(96)
   const audioRef = useRef(null)
   const scrollContainerRef = useRef(null)
+  const previousBitrateRef = useRef(96)
+  const bitrateSwitchTimeoutRef = useRef(null)
 
   // Use TanStack Query for health check
   const { data: healthData, isError: healthError } = useHealthCheck(true)
@@ -187,29 +189,47 @@ function AppContent() {
     const handleTimeUpdate = () => {
       setCurrentTime(audio.currentTime)
       
-      // Adaptive bitrate: upgrade based on buffer health
+      // Adaptive bitrate: upgrade based on buffer health (less aggressive)
       if (currentSong && currentSong.maxBitrate && currentBitrate < currentSong.maxBitrate) {
         const buffered = audio.buffered
         if (buffered.length > 0) {
           const bufferEnd = buffered.end(buffered.length - 1)
           const bufferAhead = bufferEnd - audio.currentTime
           
-          // Upgrade to 160kbps after 5 seconds buffer
-          if (bufferAhead > 5 && currentBitrate === 96) {
-            setCurrentBitrate(160)
+          // Only upgrade if buffer is healthy and we haven't recently switched
+          if (bufferAhead > 15 && currentBitrate === 96 && previousBitrateRef.current === 96) {
+            // Clear any pending switch
+            if (bitrateSwitchTimeoutRef.current) {
+              clearTimeout(bitrateSwitchTimeoutRef.current)
+            }
+            // Debounce the switch to prevent rapid changes
+            bitrateSwitchTimeoutRef.current = setTimeout(() => {
+              previousBitrateRef.current = 160
+              setCurrentBitrate(160)
+            }, 2000)
           }
-          // Upgrade to max bitrate (320kbps) after 10 seconds buffer
-          if (bufferAhead > 10 && currentBitrate === 160) {
-            setCurrentBitrate(currentSong.maxBitrate)
+          // Upgrade to max bitrate after 20 seconds buffer (was 10)
+          if (bufferAhead > 20 && currentBitrate === 160 && previousBitrateRef.current === 160) {
+            if (bitrateSwitchTimeoutRef.current) {
+              clearTimeout(bitrateSwitchTimeoutRef.current)
+            }
+            bitrateSwitchTimeoutRef.current = setTimeout(() => {
+              previousBitrateRef.current = currentSong.maxBitrate
+              setCurrentBitrate(currentSong.maxBitrate)
+            }, 2000)
           }
         }
       }
       
-      // Downgrade if buffer is low
+      // Downgrade if buffer is critically low (was 3, now 1.5)
       if (audio.buffered.length > 0) {
         const bufferEnd = audio.buffered.end(audio.buffered.length - 1)
         const bufferAhead = bufferEnd - audio.currentTime
-        if (bufferAhead < 3 && currentBitrate > 96) {
+        if (bufferAhead < 1.5 && currentBitrate > 96) {
+          if (bitrateSwitchTimeoutRef.current) {
+            clearTimeout(bitrateSwitchTimeoutRef.current)
+          }
+          previousBitrateRef.current = 96
           setCurrentBitrate(96)
         }
       }
@@ -409,8 +429,8 @@ function AppContent() {
     const audio = audioRef.current
     const currentTime = audio.currentTime
     
-    // Only switch if we have a valid stream URL and the bitrate actually changed
-    if (currentSong.isStream && currentSong.id && currentBitrate !== 96) {
+    // Only switch if bitrate actually changed from previous value
+    if (currentSong.isStream && currentSong.id && currentBitrate !== previousBitrateRef.current) {
       const fetchNewStreamUrl = async () => {
         try {
           const res = await fetch(`${API_BASE}/api/stream/${currentSong.id}?bitrate=${currentBitrate}`)
@@ -433,7 +453,16 @@ function AppContent() {
       
       fetchNewStreamUrl()
     }
-  }, [currentBitrate, currentSong])
+  }, [currentBitrate, currentSong?.id])
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (bitrateSwitchTimeoutRef.current) {
+        clearTimeout(bitrateSwitchTimeoutRef.current)
+      }
+    }
+  }, [])
 
 
   const navigateToView = (viewName, data = null, source = 'discover') => {
@@ -453,6 +482,12 @@ function AppContent() {
     // Determine appropriate bitrate based on connection and preference
     const connType = getConnectionType()
     const maxBitrate = getMaxBitrate(connType, qualityPreference)
+    
+    // Reset bitrate tracking for new song
+    previousBitrateRef.current = 96
+    if (bitrateSwitchTimeoutRef.current) {
+      clearTimeout(bitrateSwitchTimeoutRef.current)
+    }
     
     // Start with 96kbps for fast start, will upgrade later
     setCurrentBitrate(96)
@@ -483,6 +518,7 @@ function AppContent() {
 
     setCurrentSong({
       ...songWithStream,
+      album: typeof songWithStream.album === 'object' ? songWithStream.album.name : songWithStream.album,
       artist: songWithStream.artist || songWithStream.artists?.primary?.[0]?.name,
       albumId: songWithStream.album?.id || songWithStream.albumId,
       isStream: true
@@ -567,10 +603,11 @@ function AppContent() {
         if (result.success && result.data && result.data.streamUrl) {
           setCurrentSong({
             ...song,
+            album: result.data.album || song.album,
             streamUrl: result.data.streamUrl,
             downloadUrl: result.data.downloadUrl,
             albumId: result.data.albumId || song.albumId,
-            imageUrl: song.imageUrl || song.image?.find(img => img.quality === '500x500')?.url ||
+            imageUrl: result.data.imageUrl || song.imageUrl || song.image?.find(img => img.quality === '500x500')?.url ||
                       song.image?.find(img => img.quality === '150x150')?.url,
             artist: song.artist || song.artists?.primary?.[0]?.name,
             isStream: true
@@ -582,6 +619,7 @@ function AppContent() {
       } else {
         setCurrentSong({
           ...song,
+          album: typeof song.album === 'object' ? song.album.name : song.album,
           imageUrl: song.imageUrl || song.image?.find(img => img.quality === '500x500')?.url ||
                     song.image?.find(img => img.quality === '150x150')?.url,
           artist: song.artist || song.artists?.primary?.[0]?.name,

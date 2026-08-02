@@ -80,11 +80,13 @@ export default async function handler(req) {
 
         // Handle album field - could be string or object
         let album = null;
+        let albumId = null;
         if (item.more_info?.album) {
           if (typeof item.more_info.album === 'string') {
             album = { name: item.more_info.album };
           } else if (typeof item.more_info.album === 'object') {
             album = item.more_info.album;
+            albumId = item.more_info.album.id || null;
           }
         }
 
@@ -105,8 +107,10 @@ export default async function handler(req) {
           name: songName,
           artists: artists,
           album: album,
+          albumId: albumId,
           year: item.year || item.more_info?.year || null,
           image: imageUrl ? [{ quality: '150x150', url: imageUrl }] : [],
+          imageUrl: imageUrl || null,
           isLocal: false // Edge functions don't have access to local library
         };
       });
