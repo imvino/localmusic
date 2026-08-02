@@ -579,9 +579,6 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
                 {data?.totalDuration && (
                   <span>{Math.floor(data.totalDuration / 60)}:{(data.totalDuration % 60).toString().padStart(2, '0')}</span>
                 )}
-                {data?.playCount && data.playCount > 0 && (
-                  <span>{data.playCount.toLocaleString()} plays</span>
-                )}
               </div>
               {data?.copyright && (
                 <p className="text-zinc-600 text-xs mb-4">{data.copyright}</p>

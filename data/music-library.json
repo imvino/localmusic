@@ -4868,6 +4868,665 @@
         }
       ],
       "totalTracks": 13
+    },
+    {
+      "id": "1133633",
+      "name": "Raam",
+      "localPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Raam 2005",
+      "songs": [
+        {
+          "id": "pmbl1kHh",
+          "name": "Boom Boom",
+          "audioPath": "/Volumes/samsung/Music/Unknown Composer/Raam 2005/02. Boom Boom.mp3"
+        },
+        {
+          "id": "9BQRo0cS",
+          "name": "Aarariraro",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Raam 2005/01. Aarariraro.mp3"
+        },
+        {
+          "id": "0_v2yR1N",
+          "name": "Vidiginidra Pozhudhu",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Raam 2005/05. Vidiginidra Pozhudhu.mp3"
+        },
+        {
+          "id": "79btF_xJ",
+          "name": "Nizhalinai Nijamum",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Raam 2005/04. Nizhalinai Nijamum.mp3"
+        }
+      ],
+      "totalTracks": 6
+    },
+    {
+      "id": "1137164",
+      "name": "Arindhum Ariamalum",
+      "localPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Arindhum Ariamalum 2005",
+      "songs": [
+        {
+          "id": "meE8SrgQ",
+          "name": "Yela Yela",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Arindhum Ariamalum 2005/01. Yela Yela.mp3"
+        },
+        {
+          "id": "8H2M53vY",
+          "name": "Sil Sil",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Arindhum Ariamalum 2005/05. Sil Sil.mp3"
+        },
+        {
+          "id": "5E6nB-Wh",
+          "name": "Thee Pidikka",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Arindhum Ariamalum 2005/04. Thee Pidikka.mp3"
+        },
+        {
+          "id": "_DpzLUxl",
+          "name": "Konjam Konjam",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Arindhum Ariamalum 2005/02. Konjam Konjam.mp3"
+        },
+        {
+          "id": "X4oLCC7F",
+          "name": "En Kannodu",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Arindhum Ariamalum 2005/03. En Kannodu.mp3"
+        }
+      ],
+      "totalTracks": 5
+    },
+    {
+      "id": "2988214",
+      "name": "Dass",
+      "localPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Dass 2005",
+      "songs": [
+        {
+          "id": "7imhNCCE",
+          "name": "Sakka Podu",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Dass 2005/05. Sakka Podu.mp3"
+        },
+        {
+          "id": "fVXiTAjR",
+          "name": "Vaa Vaa",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Dass 2005/04. Vaa Vaa.mp3"
+        },
+        {
+          "id": "RGCalg9k",
+          "name": "Saamikittay",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Dass 2005/03. Saamikittay.mp3"
+        },
+        {
+          "id": "ji2GFn7I",
+          "name": "Yennoda Raasi",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Dass 2005/01. Yennoda Raasi.mp3"
+        }
+      ],
+      "totalTracks": 6
+    },
+    {
+      "id": "1133602",
+      "name": "Kanda Naal Mudhal",
+      "localPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Kanda Naal Mudhal 2005",
+      "songs": [
+        {
+          "id": "G40LCi8Q",
+          "name": "Koo Koovena",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Kanda Naal Mudhal 2005/04. Koo Koovena.mp3"
+        },
+        {
+          "id": "0Vp4nLw2",
+          "name": "Merke Merke",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Kanda Naal Mudhal 2005/05. Merke Merke.mp3"
+        },
+        {
+          "id": "gaWJbvnD",
+          "name": "Pani Thulli",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Kanda Naal Mudhal 2005/06. Pani Thulli.mp3"
+        }
+      ],
+      "totalTracks": 7
+    },
+    {
+      "id": "1133763",
+      "name": "Kalvanyn Kaadhali",
+      "localPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Kalvanyn Kaadhali 2005",
+      "songs": [
+        {
+          "id": "_fEeoj3r",
+          "name": "Eno Kangal",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Kalvanyn Kaadhali 2005/02. Eno Kangal.mp3"
+        },
+        {
+          "id": "Z7teBFqE",
+          "name": "Taj Mahal",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Kalvanyn Kaadhali 2005/04. Taj Mahal.mp3"
+        }
+      ],
+      "totalTracks": 5
+    },
+    {
+      "id": "2166594",
+      "name": "Thimiru",
+      "localPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Thimiru 2006",
+      "songs": [
+        {
+          "id": "Ymnxn4sJ",
+          "name": "Maana Madurai",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Thimiru 2006/02. Maana Madurai.mp3"
+        }
+      ],
+      "totalTracks": 6
+    },
+    {
+      "id": "38211291",
+      "name": "Deepavali",
+      "localPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Deepavali 2007",
+      "songs": [
+        {
+          "id": "OlEbLu3k",
+          "name": "Pogadhe",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Deepavali 2007/05. Pogadhe.mp3"
+        },
+        {
+          "id": "gVOkd7Ps",
+          "name": "Kannan Varum Velai",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Deepavali 2007/02. Kannan Varum Velai.mp3"
+        },
+        {
+          "id": "EOGeqPEk",
+          "name": "Kaadhal Vaithu",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Deepavali 2007/03. Kaadhal Vaithu.mp3"
+        },
+        {
+          "id": "TMnoOB3H",
+          "name": "Dhol Bhaje",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Deepavali 2007/01. Dhol Bhaje.mp3"
+        }
+      ],
+      "totalTracks": 5
+    },
+    {
+      "id": "2988216",
+      "name": "Pudhupettai",
+      "localPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Pudhupettai 2005",
+      "songs": [
+        {
+          "id": "SAIan967",
+          "name": "Pudhupettai Main Theme",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Pudhupettai 2005/01. Pudhupettai Main Theme.mp3"
+        },
+        {
+          "id": "qZpWgiaI",
+          "name": "Neruppu Vaayinil",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Pudhupettai 2005/02. Neruppu Vaayinil.mp3"
+        },
+        {
+          "id": "8PWf-OnA",
+          "name": "Enga Yeriya",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Pudhupettai 2005/03. Enga Yeriya.mp3"
+        },
+        {
+          "id": "GE5sc5sI",
+          "name": "Selling Dope",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Pudhupettai 2005/04. Selling Dope.mp3"
+        },
+        {
+          "id": "KyRLikuY",
+          "name": "Oru Naalil",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Pudhupettai 2005/05. Oru Naalil.mp3"
+        },
+        {
+          "id": "JO_7fqN9",
+          "name": "Going Thru Emotions",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Pudhupettai 2005/06. Going Thru Emotions.mp3"
+        },
+        {
+          "id": "P4VQ0vUT",
+          "name": "Pulpesum Poo Pesum",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Pudhupettai 2005/07. Pulpesum Poo Pesum.mp3"
+        },
+        {
+          "id": "JtmNTa27",
+          "name": "Varriyaa - Night Life",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Pudhupettai 2005/08. Varriyaa - Night Life.mp3"
+        },
+        {
+          "id": "kyxZIOz8",
+          "name": "Clash Of The Titans",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Pudhupettai 2005/09. Clash Of The Titans.mp3"
+        },
+        {
+          "id": "bqbHB-2y",
+          "name": "Oru  Naalil Remix",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Pudhupettai 2005/10. Oru Naalil Remix.mp3"
+        }
+      ],
+      "totalTracks": 10
+    },
+    {
+      "id": "1133626",
+      "name": "Paruthiveeran",
+      "localPath": "/Volumes/samsung/Music/Santhosh Narayanan/Paruthiveeran 2006",
+      "songs": [
+        {
+          "id": "80jF7ypn",
+          "name": "Vuroram Puliamaram",
+          "audioPath": "/Volumes/samsung/Music/Santhosh Narayanan/Paruthiveeran 2006/06. Vuroram Puliamaram.mp3"
+        },
+        {
+          "id": "e7Zq8O_r",
+          "name": "Ariyadha Vayasu",
+          "audioPath": "/Volumes/samsung/Music/Santhosh Narayanan/Paruthiveeran 2006/01. Ariyadha Vayasu.mp3"
+        },
+        {
+          "id": "r-Yhp8Tu",
+          "name": "Iayyayo",
+          "audioPath": "/Volumes/samsung/Music/Santhosh Narayanan/Paruthiveeran 2006/02. Iayyayo.mp3"
+        },
+        {
+          "id": "qJc6uYq8",
+          "name": "Sari Gama Pathani",
+          "audioPath": "/Volumes/samsung/Music/Santhosh Narayanan/Paruthiveeran 2006/04. Sari Gama Pathani.mp3"
+        }
+      ],
+      "totalTracks": 6
+    },
+    {
+      "id": "1052039",
+      "name": "Thottal Poo Malarum",
+      "localPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Thottal Poo Malarum 2007",
+      "songs": [
+        {
+          "id": "y2OK1xwi",
+          "name": "Arabu Naadu",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Thottal Poo Malarum 2007/01. Arabu Naadu.mp3"
+        },
+        {
+          "id": "0-TXDOSm",
+          "name": "Valaiyal Karangalai",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Thottal Poo Malarum 2007/05. Valaiyal Karangalai.mp3"
+        }
+      ],
+      "totalTracks": 6
+    },
+    {
+      "id": "38762679",
+      "name": "Satham Podathey",
+      "localPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Satham Podathey 2023",
+      "songs": [
+        {
+          "id": "OR0z93ve",
+          "name": "Pesugiren Pesugiren",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Satham Podathey 2023/03. Pesugiren Pesugiren.mp3"
+        }
+      ],
+      "totalTracks": 5
+    },
+    {
+      "id": "1132767",
+      "name": "Chennai 600028",
+      "localPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Chennai 600028 2007",
+      "songs": [
+        {
+          "id": "WBa5_wjm",
+          "name": "Jalsa",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Chennai 600028 2007/01. Jalsa.mp3"
+        },
+        {
+          "id": "HyT8YCWr",
+          "name": "Jalsa (Remix)",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Chennai 600028 2007/02. Jalsa (Remix).mp3"
+        },
+        {
+          "id": "0zvvnkgg",
+          "name": "Natpukulle",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Chennai 600028 2007/03. Natpukulle.mp3"
+        },
+        {
+          "id": "38mGJYoP",
+          "name": "Oh ! Oh !",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Chennai 600028 2007/04. Oh ! Oh !.mp3"
+        },
+        {
+          "id": "_cFy-xJa",
+          "name": "Saroja Saman Nikolo",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Chennai 600028 2007/05. Saroja Saman Nikolo.mp3"
+        },
+        {
+          "id": "vn_6vYFv",
+          "name": "Ulle Vaa",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Chennai 600028 2007/06. Ulle Vaa.mp3"
+        },
+        {
+          "id": "Q8VjOpB-",
+          "name": "Un Paarvai",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Chennai 600028 2007/07. Un Paarvai.mp3"
+        },
+        {
+          "id": "jzv8XI43",
+          "name": "Yaaro",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Chennai 600028 2007/08. Yaaro.mp3"
+        },
+        {
+          "id": "i5uvo8u7",
+          "name": "Yaaro (Friendship)",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Chennai 600028 2007/09. Yaaro (Friendship).mp3"
+        }
+      ],
+      "totalTracks": 9
+    },
+    {
+      "id": "1033828",
+      "name": "Kannaamoochi Enadaa",
+      "localPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Kannaamoochi Enadaa 2009",
+      "songs": [
+        {
+          "id": "nGBa5L27",
+          "name": "Megam Megam",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Kannaamoochi Enadaa 2009/02. Megam Megam.mp3"
+        },
+        {
+          "id": "VF8wrU3v",
+          "name": "Sanjaram",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Kannaamoochi Enadaa 2009/04. Sanjaram.mp3"
+        },
+        {
+          "id": "zSapX06b",
+          "name": "Putham Pudhu Kaathu",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Kannaamoochi Enadaa 2009/05. Putham Pudhu Kaathu.mp3"
+        },
+        {
+          "id": "vC_X3EmH",
+          "name": "Kannamoochi Attam Adithan",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Kannaamoochi Enadaa 2009/03. Kannamoochi Attam Adithan.mp3"
+        }
+      ],
+      "totalTracks": 5
+    },
+    {
+      "id": "2364290",
+      "name": "Vazhthukkal",
+      "localPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Vazhthukkal 2008",
+      "songs": [
+        {
+          "id": "b-NmHEgb",
+          "name": "Ummela Aasapattu",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Vazhthukkal 2008/05. Ummela Aasapattu.mp3"
+        },
+        {
+          "id": "yzLALhZV",
+          "name": "Yenthan Vanamum duet",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Vazhthukkal 2008/06. Yenthan Vanamum duet.mp3"
+        },
+        {
+          "id": "g-Z9CY6z",
+          "name": "Yenthan Vanamum",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Vazhthukkal 2008/07. Yenthan Vanamum.mp3"
+        }
+      ],
+      "totalTracks": 7
+    },
+    {
+      "id": "38211290",
+      "name": "Aegan",
+      "localPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Aegan 2008",
+      "songs": [
+        {
+          "id": "qZ8EB0-J",
+          "name": "Hey Baby",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Aegan 2008/03. Hey Baby.mp3"
+        },
+        {
+          "id": "2jj2a5x2",
+          "name": "Hey Sala",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Aegan 2008/01. Hey Sala.mp3"
+        },
+        {
+          "id": "BNKdY-Mn",
+          "name": "Odum Varayil",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Aegan 2008/04. Odum Varayil.mp3"
+        }
+      ],
+      "totalTracks": 5
+    },
+    {
+      "id": "13203661",
+      "name": "Saroja - Tamil",
+      "localPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Saroja - Tamil 2005",
+      "songs": [
+        {
+          "id": "v5qSdtO0",
+          "name": "Aaja Meri Soniye",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Saroja - Tamil 2005/01. Aaja Meri Soniye.mp3"
+        },
+        {
+          "id": "nFywoEpB",
+          "name": "Kodana Kodi",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Saroja - Tamil 2005/02. Kodana Kodi.mp3"
+        },
+        {
+          "id": "zhrP3d0A",
+          "name": "Dosth Bada Dosth",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Saroja - Tamil 2005/03. Dosth Bada Dosth.mp3"
+        },
+        {
+          "id": "SeoPPNuD",
+          "name": "Cheeky Cheeky",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Saroja - Tamil 2005/04. Cheeky Cheeky.mp3"
+        },
+        {
+          "id": "JeL0ZP7F",
+          "name": "Nimirnthu Nil",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Saroja - Tamil 2005/05. Nimirnthu Nil.mp3"
+        },
+        {
+          "id": "ojWSQw5f",
+          "name": "This Is My Life",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Saroja - Tamil 2005/06. This Is My Life.mp3"
+        }
+      ],
+      "totalTracks": 6
+    },
+    {
+      "id": "1658348",
+      "name": "Yaaradi Nee Mohini",
+      "localPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Yaaradi Nee Mohini 2008",
+      "songs": [
+        {
+          "id": "2hqxU8Nc",
+          "name": "Engeyo Paartha",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Yaaradi Nee Mohini 2008/01. Engeyo Paartha.mp3"
+        },
+        {
+          "id": "ynKQsAav",
+          "name": "Oh Baby",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Yaaradi Nee Mohini 2008/02. Oh Baby.mp3"
+        },
+        {
+          "id": "tk2hbgfZ",
+          "name": "Oru Naalaikkul",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Yaaradi Nee Mohini 2008/03. Oru Naalaikkul.mp3"
+        },
+        {
+          "id": "JLEWmAuS",
+          "name": "Venmegam",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Yaaradi Nee Mohini 2008/04. Venmegam.mp3"
+        },
+        {
+          "id": "tIHEHzJX",
+          "name": "Nenjai Kasakki",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Yaaradi Nee Mohini 2008/05. Nenjai Kasakki.mp3"
+        },
+        {
+          "id": "ylBw_wWf",
+          "name": "Penne Ennai Kodu",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Yaaradi Nee Mohini 2008/06. Penne Ennai Kodu.mp3"
+        },
+        {
+          "id": "28mlx_B2",
+          "name": "The Person Is The Loser",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Yaaradi Nee Mohini 2008/07. The Person Is The Loser.mp3"
+        },
+        {
+          "id": "jR68By9L",
+          "name": "Palakkattu Pakkathile",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Yaaradi Nee Mohini 2008/08. Palakkattu Pakkathile.mp3"
+        }
+      ],
+      "totalTracks": 8
+    },
+    {
+      "id": "2666684",
+      "name": "Kungumapoovum Konjumpuraavum",
+      "localPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Kungumapoovum Konjumpuraavum 2009",
+      "songs": [
+        {
+          "id": "c8xhM8_T",
+          "name": "Chinnan Sirisu",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Kungumapoovum Konjumpuraavum 2009/03. Chinnan Sirisu.mp3"
+        }
+      ],
+      "totalTracks": 6
+    },
+    {
+      "id": "12606847",
+      "name": "Vaamanan",
+      "localPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Vaamanan 2009",
+      "songs": [
+        {
+          "id": "EN5xnFhA",
+          "name": "Yedho Seigirai",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Vaamanan 2009/01. Yedho Seigirai.mp3"
+        },
+        {
+          "id": "ndA0Dn3R",
+          "name": "Oru Devathai",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Vaamanan 2009/04. Oru Devathai.mp3"
+        }
+      ],
+      "totalTracks": 5
+    },
+    {
+      "id": "1051768",
+      "name": "Theeratha Vilayaatu Pillai",
+      "localPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Theeratha Vilayaatu Pillai 2009",
+      "songs": [
+        {
+          "id": "zvKjkHlO",
+          "name": "En Jannal Vandha",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Theeratha Vilayaatu Pillai 2009/03. En Jannal Vandha.mp3"
+        },
+        {
+          "id": "c1pXZcLB",
+          "name": "Theeratha Vilaiyattu",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Theeratha Vilayaatu Pillai 2009/04. Theeratha Vilaiyattu.mp3"
+        },
+        {
+          "id": "fx8Md8M8",
+          "name": "Poo Mudhal Pen Varai",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Theeratha Vilayaatu Pillai 2009/02. Poo Mudhal Pen Varai.mp3"
+        }
+      ],
+      "totalTracks": 6
+    },
+    {
+      "id": "1042001",
+      "name": "Paiya",
+      "localPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Paiya 2010",
+      "songs": [
+        {
+          "id": "Cm75zjVD",
+          "name": "Adada Mazhaida",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Paiya 2010/03. Adada Mazhaida.mp3"
+        },
+        {
+          "id": "6okFZZRr",
+          "name": "Thuli Thuli",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Paiya 2010/01. Thuli Thuli.mp3"
+        },
+        {
+          "id": "t3tw9H6X",
+          "name": "Yedho Ondru Ennai",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Paiya 2010/06. Yedho Ondru Ennai.mp3"
+        },
+        {
+          "id": "KLvjpT0S",
+          "name": "En Kadhal Solla",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Paiya 2010/05. En Kadhal Solla.mp3"
+        },
+        {
+          "id": "wcV8_qt0",
+          "name": "Suthudhe Suthudhe",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Paiya 2010/04. Suthudhe Suthudhe.mp3"
+        },
+        {
+          "id": "dztWuczW",
+          "name": "Poongatre Poongatre",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Paiya 2010/02. Poongatre Poongatre.mp3"
+        }
+      ],
+      "totalTracks": 6
+    },
+    {
+      "id": "2666595",
+      "name": "Thillalangadi",
+      "localPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Thillalangadi 2010",
+      "songs": [
+        {
+          "id": "cSqC2HBP",
+          "name": "Sol Pechu",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Thillalangadi 2010/02. Sol Pechu.mp3"
+        },
+        {
+          "id": "IVL4Fab6",
+          "name": "Idhayam Karaikirathe",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Thillalangadi 2010/06. Idhayam Karaikirathe.mp3"
+        },
+        {
+          "id": "oD-k7iXM",
+          "name": "Thothu Ponen",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Thillalangadi 2010/07. Thothu Ponen.mp3"
+        },
+        {
+          "id": "uV5rdTxy",
+          "name": "Pattu Pattu",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Thillalangadi 2010/05. Pattu Pattu.mp3"
+        },
+        {
+          "id": "dYbqADpV",
+          "name": "Pootta Paathadhum",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Thillalangadi 2010/03. Pootta Paathadhum.mp3"
+        },
+        {
+          "id": "uha2TbxP",
+          "name": "Memory Loss",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Thillalangadi 2010/04. Memory Loss.mp3"
+        },
+        {
+          "id": "2cH_qKRV",
+          "name": "Ding Ding",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Thillalangadi 2010/01. Ding Ding.mp3"
+        }
+      ],
+      "totalTracks": 7
+    },
+    {
+      "id": "1020701",
+      "name": "Baana Kaathadi",
+      "localPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Baana Kaathadi 2010",
+      "songs": [
+        {
+          "id": "o4EbFs8R",
+          "name": "Thaakkuthe Kan Thaakkuthe",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Baana Kaathadi 2010/01. Thaakkuthe Kan Thaakkuthe.mp3"
+        },
+        {
+          "id": "81gZaapC",
+          "name": "Paithiyam Pidikudhu",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Baana Kaathadi 2010/02. Paithiyam Pidikudhu.mp3"
+        },
+        {
+          "id": "sdClgmQ9",
+          "name": "En Nenjil",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Baana Kaathadi 2010/04. En Nenjil.mp3"
+        }
+      ],
+      "totalTracks": 5
     }
   ]
 }

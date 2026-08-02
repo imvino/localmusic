@@ -713,15 +713,13 @@ function AppContent() {
                 onPaste={e => {
                   e.preventDefault()
                   const pastedText = e.clipboardData.getData('text')
-                  const input = e.target
-                  const start = input.selectionStart
-                  const end = input.selectionEnd
-                  const currentValue = input.value
-                  const newValue = currentValue.substring(0, start) + pastedText + currentValue.substring(end)
-                  setLocalSearchQuery(newValue)
-                  setSearchParams({ q: newValue })
-                  if (newValue && location.pathname !== '/search') {
-                    navigate('/search')
+                  const selectionStart = e.target.selectionStart
+                  const selectionEnd = e.target.selectionEnd
+                  const currentValue = localSearchQuery
+                  const next = currentValue.slice(0, selectionStart) + pastedText + currentValue.slice(selectionEnd)
+                  setLocalSearchQuery(next)
+                  if (next) {
+                    navigate(`/search?q=${encodeURIComponent(next)}`)
                   }
                 }}
                 className="w-80 bg-zinc-800/70 text-sm text-white placeholder-zinc-500 rounded-full pl-10 pr-4 py-2 outline-none border border-transparent focus:border-zinc-600 transition-colors"
@@ -758,15 +756,13 @@ function AppContent() {
                   onPaste={e => {
                     e.preventDefault()
                     const pastedText = e.clipboardData.getData('text')
-                    const input = e.target
-                    const start = input.selectionStart
-                    const end = input.selectionEnd
-                    const currentValue = input.value
-                    const newValue = currentValue.substring(0, start) + pastedText + currentValue.substring(end)
-                    setLocalSearchQuery(newValue)
-                    setSearchParams({ q: newValue })
-                    if (newValue && location.pathname !== '/search') {
-                      navigate('/search')
+                    const selectionStart = e.target.selectionStart
+                    const selectionEnd = e.target.selectionEnd
+                    const currentValue = localSearchQuery
+                    const next = currentValue.slice(0, selectionStart) + pastedText + currentValue.slice(selectionEnd)
+                    setLocalSearchQuery(next)
+                    if (next) {
+                      navigate(`/search?q=${encodeURIComponent(next)}`)
                     }
                   }}
                   className="w-full bg-zinc-800/70 text-sm text-white placeholder-zinc-500 rounded-full pl-10 pr-4 py-2 outline-none border border-transparent focus:border-zinc-600 transition-colors"
