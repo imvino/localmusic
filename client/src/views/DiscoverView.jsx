@@ -3,7 +3,7 @@ import { Disc, ListMusic, Loader2, Download, Play } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import MetaTags from '../components/MetaTags'
 import HorizontalScroll from '../components/HorizontalScroll'
-import { getiTunesArtwork, decodeHtmlEntities } from '../utils'
+import { decodeHtmlEntities } from '../utils'
 import { useJioFooterDetails, useJioFeaturedPlaylists, useJioNewReleases } from '../hooks/useApi'
 
 const API_BASE = import.meta.env.VITE_API_URL
@@ -24,7 +24,6 @@ function formatPlayCount(count) {
 export default function DiscoverView({ onSongClick }) {
   const navigate = useNavigate()
   const [downloadProgress, setDownloadProgress] = useState({})
-  const [iTunesArtwork, setITunesArtwork] = useState(null)
   const appUrl = import.meta.env.VITE_APP_URL
 
   // Fetch JioSaavn data
@@ -69,12 +68,6 @@ export default function DiscoverView({ onSongClick }) {
     type: song.type
   }))
 
-  // Fetch iTunes artwork
-  useEffect(() => {
-    if (newSongs.length > 0) {
-      getiTunesArtwork(newSongs[0].name, newSongs[0].artist).then(setITunesArtwork)
-    }
-  }, [newSongs])
 
   const handleArtistClick = (artist) => {
     navigate(`/discover/artist/${artist.id}`, { state: { artist } })
@@ -97,7 +90,7 @@ export default function DiscoverView({ onSongClick }) {
       <MetaTags
         title="Discover Tamil Music"
         description="Discover the latest and trending Tamil music, new releases, featured playlists, and top artists on Torsongs."
-        image={iTunesArtwork}
+        image={newSongs[0]?.image || ''}
         url={window.location.href}
         structuredData={{
           '@context': 'https://schema.org',

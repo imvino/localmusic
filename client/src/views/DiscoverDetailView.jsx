@@ -3,7 +3,7 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import { ArrowLeft, Disc, Download, Loader2, ChevronDown } from 'lucide-react'
 import { useDownloadStore } from '../stores/downloadStore'
 import MetaTags from '../components/MetaTags'
-import { getiTunesArtwork, decodeHtmlEntities, getArtistImageUrl } from '../utils'
+import { decodeHtmlEntities, getArtistImageUrl } from '../utils'
 import { useAlbum, useArtist, usePlaylist } from '../hooks/useApi'
 import { queryClient } from '../App'
 import { hasCustomAlbums, getAlbumsTabLabel, ARTIST_CONFIG } from '../artist-config'
@@ -20,6 +20,7 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
   const scrollPositionRef = useRef(0)
   const [downloading, setDownloading] = useState(null)
   const [downloadingAlbum, setDownloadingAlbum] = useState({}) // { albumId: boolean }
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
   const [activeTab, setActiveTab] = useState('songs')
   const [songsSortBy, setSongsSortBy] = useState('date')
   const [languageFilter, setLanguageFilter] = useState('all')
@@ -33,7 +34,6 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
   const [albumsSortDirection, setAlbumsSortDirection] = useState('desc')
   const [customAlbums, setCustomAlbums] = useState(null)
   const [apiAlbums, setApiAlbums] = useState(null)
-  const [iTunesArtwork, setITunesArtwork] = useState(null)
   const meta = location.state?.[isAlbum ? 'album' : isArtist ? 'artist' : 'playlist']
   // Use slug from URL as album name, fallback to state
   const albumName = slug ? slug.replace(/-/g, ' ') : location.state?.albumName
@@ -43,8 +43,36 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
   const { data: artistData, isLoading: artistLoading } = useArtist(isArtist ? id : null, 50, 'all')
   const { data: playlistData, isLoading: playlistLoading } = usePlaylist(isPlaylist ? id : null)
 
+  // Handle window resize for mobile detection
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768)
+    }
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
   const data = albumData || artistData || playlistData
   const loading = albumLoading || artistLoading || playlistLoading
+
+  // Helper to get album image URL based on device
+  const getAlbumImageUrl = (album) => {
+    if (!album.image) return null
+    
+    // Handle string URLs (from custom albums API)
+    if (typeof album.image === 'string') {
+      const quality = isMobile ? '150x150' : '500x500'
+      return album.image.replace(/-150x150\.jpg|-500x500\.jpg/, `-${quality}.jpg`)
+    }
+    
+    // Handle array of image objects (from JioSaavn API)
+    if (Array.isArray(album.image) && album.image.length > 0) {
+      const quality = isMobile ? '150x150' : '500x500'
+      return album.image.find(img => img.quality === quality)?.url || album.image[0].url
+    }
+    
+    return null
+  }
 
   // Process songs with imageUrl
   const rawSongs = data?.topSongs || data?.songs || []
@@ -71,8 +99,7 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
   
   const songs = filteredSongs.map(song => ({
     ...song,
-    imageUrl: song.image?.find(img => img.quality === '500x500')?.url ||
-              song.image?.find(img => img.quality === '150x150')?.url
+    imageUrl: song.image?.find(img => img.quality === (isMobile ? '150x150' : '500x500'))?.url
   }))
   // Use custom albums for artists with overrides in albums tab, otherwise use API albums
   const rawAlbums = hasCustomAlbumsOverride && activeTab === 'albums' ? (customAlbums || []) : (data?.topAlbums || [])
@@ -126,21 +153,6 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
     }
   }, [loading, id])
 
-  // Fetch iTunes artwork when data is loaded
-  useEffect(() => {
-    if (data && data.name) {
-      const fetchArtwork = async () => {
-        const artistName = isArtist ? data.name : (data.artists?.[0]?.name || data.artist?.name)
-        const albumName = isAlbum ? data.name : (isPlaylist ? data.name : null)
-        
-        if (albumName || artistName) {
-          const artwork = await getiTunesArtwork(albumName || artistName, artistName)
-          setITunesArtwork(artwork)
-        }
-      }
-      fetchArtwork()
-    }
-  }, [data, isAlbum, isArtist])
 
   // Load custom albums for artists with overrides
   useEffect(() => {
@@ -155,7 +167,10 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
               id: album.id,
               name: album.title,
               year: album.year,
-              image: album.image ? [{ quality: '150x150', url: album.image }] : [],
+              image: album.image ? [{ 
+                quality: isMobile ? '150x150' : '500x500', 
+                url: album.image.replace(/-150x150\.jpg|-500x500\.jpg/, isMobile ? '-150x150.jpg' : '-500x500.jpg')
+              }] : [],
               songCount: album.songCount || 0,
               playCount: 0,
               isLocal: album.isLocal || false,
@@ -167,7 +182,7 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
           console.error('Failed to load custom albums:', err)
         })
     }
-  }, [hasCustomAlbumsOverride, id, artistConfig])
+  }, [hasCustomAlbumsOverride, id, artistConfig, isMobile])
 
   // Store API albums separately for artists with custom overrides
   useEffect(() => {
@@ -341,8 +356,7 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
             albumId: result.data.albumId || song.album?.id || (isAlbum ? id : null),
             artist: song.artists?.primary?.[0]?.name,
             streamUrl: result.data.streamUrl,
-            imageUrl: song.image?.find(img => img.quality === '500x500')?.url ||
-                       song.image?.find(img => img.quality === '150x150')?.url,
+            imageUrl: song.image?.find(img => img.quality === (isMobile ? '150x150' : '500x500'))?.url,
             isStream: true
           }, songs, displayIndex)
         } else if (result.data.previewUrl) {
@@ -393,7 +407,9 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
             if (year === 'TBA' || year === 'TBA') return 9999
             return parseInt(year) || 0
           }
-          const diff = getYearValue(b.year) - getYearValue(a.year)
+          const aYear = getYearValue(a.year)
+          const bYear = getYearValue(b.year)
+          const diff = bYear - aYear
           return direction === 'asc' ? -diff : diff
         })
       case 'name':
@@ -417,14 +433,14 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
     )
   }
 
-  const imageUrl = data?.image?.find(img => img.quality === '500x500')?.url ||
-                   data?.image?.find(img => img.quality === '150x150')?.url ||
-                   meta?.image?.find(img => img.quality === '500x500')?.url ||
-                   meta?.image?.find(img => img.quality === '150x150')?.url
+  const imageUrl = data?.image?.find(img => img.quality === (isMobile ? '150x150' : '500x500'))?.url ||
+                   data?.image?.[0]?.url ||
+                   meta?.image?.find(img => img.quality === (isMobile ? '150x150' : '500x500'))?.url ||
+                   meta?.image?.[0]?.url
 
     const metaTitle = data?.name || meta?.name;
   const metaDescription = data?.description || `Listen to ${metaTitle} on Torsongs.`;
-  const metaImage = iTunesArtwork || imageUrl;
+  const metaImage = imageUrl;
   const metaUrl = window.location.href;
   const metaType = isAlbum ? 'music.album' : isArtist ? 'music.musician' : 'music.playlist';
 
@@ -660,7 +676,7 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
                       >
                         <option value="all">All Languages</option>
                         {distinctLanguages.map(lang => (
-                          <option key={lang} value={lang}>{lang}</option>
+                          <option key={lang} value={lang}>{lang.charAt(0).toUpperCase() + lang.slice(1)}</option>
                         ))}
                       </select>
                       <ChevronDown size={16} className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
@@ -786,7 +802,7 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
                       >
                         <option value="all">All Languages</option>
                         {distinctAlbumLanguages.map(lang => (
-                          <option key={lang} value={lang}>{lang}</option>
+                          <option key={lang} value={lang}>{lang.charAt(0).toUpperCase() + lang.slice(1)}</option>
                         ))}
                       </select>
                       <ChevronDown size={16} className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
@@ -835,9 +851,9 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
                     className="flex flex-col gap-2 group"
                   >
                     <div className="aspect-square rounded-xl overflow-hidden bg-zinc-800 shadow relative">
-                      {album.image?.[0]?.url ? (
+                      {getAlbumImageUrl(album) ? (
                         <img
-                          src={album.image[0].url}
+                          src={getAlbumImageUrl(album)}
                           alt={album.name}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                         />
@@ -877,7 +893,7 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
                       >
                         <option value="all">All Languages</option>
                         {distinctAlbumLanguages.map(lang => (
-                          <option key={lang} value={lang}>{lang}</option>
+                          <option key={lang} value={lang}>{lang.charAt(0).toUpperCase() + lang.slice(1)}</option>
                         ))}
                       </select>
                       <ChevronDown size={16} className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
@@ -917,9 +933,9 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
                     className="flex flex-col gap-2 group"
                   >
                     <div className="aspect-square rounded-xl overflow-hidden bg-zinc-800 shadow relative">
-                      {album.image?.[0]?.url ? (
+                      {getAlbumImageUrl(album) ? (
                         <img
-                          src={album.image[0].url}
+                          src={getAlbumImageUrl(album)}
                           alt={album.name}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                         />

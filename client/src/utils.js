@@ -1,23 +1,3 @@
-export async function getiTunesArtwork(albumName, artistName) {
-  try {
-    const query = artistName ? `${albumName} ${artistName}` : albumName
-    const response = await fetch(
-      `https://itunes.apple.com/search?term=${encodeURIComponent(query)}&media=music&entity=album&limit=1`
-    )
-    const data = await response.json()
-    if (data.results && data.results.length > 0) {
-      // iTunes provides artwork at 100x100, 600x600, and other sizes
-      // We'll use the 600x600 version by replacing 100x100 with 600x600
-      const artwork = data.results[0].artworkUrl100
-      return artwork.replace('100x100', '600x600')
-    }
-    return null
-  } catch (error) {
-    console.error('Failed to fetch iTunes artwork:', error)
-    return null
-  }
-}
-
 // Helper to decode HTML entities
 export function decodeHtmlEntities(text) {
   if (!text || typeof text !== 'string') return text
