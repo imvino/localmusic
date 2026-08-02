@@ -7,6 +7,10 @@
     "456091": {
       "name": "Yuvan Shankar Raja",
       "metadataFile": "yuvan-shankar-raja-albums-metadata.json"
+    },
+    "456269": {
+      "name": "A.R. Rahman",
+      "metadataFile": "a-r-rahman-albums-metadata.json"
     }
   }
 }

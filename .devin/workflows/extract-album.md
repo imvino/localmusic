@@ -79,7 +79,7 @@ Convert the album list to the format expected by the matching script:
 ]
 ```
 
-**Output File:** `data/{composer-name}-albums.json`
+**Output File:** `data/temp/{composer-name}-albums.json`
 
 ### 3. API Matching with Script
 
@@ -89,8 +89,8 @@ Run the matching script to find corresponding albums on JioSaavn:
 node scripts/match-composer-albums.js \
   --composer "{composer-name}" \
   --artist-id "{artist-id}" \
-  --input data/{composer-name}-albums.json \
-  --output data/{composer-name}-albums-metadata.json
+  --input data/temp/{composer-name}-albums.json \
+  --output data/meta/{composer-name}-albums-metadata.json
 ```
 
 **Script Implementation Details:**
@@ -141,52 +141,34 @@ The script should:
 }
 ```
 
-### 4. Frontend Integration
+### 4. Backend Configuration
 
-Copy the metadata JSON to the public folder:
+Update `config/artist-config.json` to register the new composer:
 
-```bash
-cp data/{composer-name}-albums-metadata.json client/public/data/{composer-name}-albums-metadata.json
-```
-
-Update `client/src/views/DiscoverDetailView.jsx`:
-
-1. Add composer ID constant at the top:
-```javascript
-const {COMPOSER_CONSTANT_NAME}_ID = '{artist-id}'
-```
-Example: `const HARRIS_JAYARAJ_ID = '455243'`
-
-2. Add to custom albums loading logic:
-```javascript
-// Load custom albums for {composer-name}
-useEffect(() => {
-  if (isArtist && id === {COMPOSER_CONSTANT_NAME}_ID) {
-    fetch('/data/{composer-name}-albums-metadata.json')
-      .then(res => res.json())
-      .then(data => {
-        const transformedAlbums = data.albums.map(album => ({
-          id: album.id,
-          name: album.title,
-          year: album.year,
-          image: album.image ? [{ quality: '150x150', url: album.image }] : [],
-          songCount: 0,
-          playCount: 0,
-          isLocal: false
-        }))
-        setCustomAlbums(transformedAlbums)
-      })
-      .catch(err => {
-        console.error('Failed to load custom albums:', err)
-      })
+```json
+{
+  "customAlbums": {
+    "{artist-id}": {
+      "name": "{composer-name}",
+      "metadataFile": "{composer-name}-albums-metadata.json"
+    }
   }
-}, [isArtist, id])
+}
 ```
 
-3. Update albums line to use custom albums:
-```javascript
-const albums = (isArtist && id === {COMPOSER_CONSTANT_NAME}_ID) ? (customAlbums || []) : (data?.topAlbums || [])
+**Example:**
+```json
+{
+  "customAlbums": {
+    "455243": {
+      "name": "Harris Jayaraj",
+      "metadataFile": "harris-jayaraj-albums-metadata.json"
+    }
+  }
+}
 ```
+
+The frontend automatically fetches metadata from `/api/composer-albums/:composerId` - no frontend code changes needed.
 
 ### 4. Verification & Reporting
 

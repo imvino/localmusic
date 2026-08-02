@@ -59,9 +59,9 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
     if (!album.image) return null
     
     // Handle string URLs (from custom albums API)
+    // Always use 150x150 for custom metadata since 500x500 versions may not exist
     if (typeof album.image === 'string') {
-      const quality = isMobile ? '150x150' : '500x500'
-      return album.image.replace(/-150x150\.jpg|-500x500\.jpg/, `-${quality}.jpg`)
+      return album.image.replace(/-500x500\.jpg/, '-150x150.jpg')
     }
     
     // Handle array of image objects (from JioSaavn API)
@@ -153,8 +153,8 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
               name: album.title,
               year: album.year,
               image: album.image ? [{ 
-                quality: isMobile ? '150x150' : '500x500', 
-                url: album.image.replace(/-150x150\.jpg|-500x500\.jpg/, isMobile ? '-150x150.jpg' : '-500x500.jpg')
+                quality: '150x150', 
+                url: album.image.replace(/-500x500\.jpg/, '-150x150.jpg')
               }] : [],
               songCount: album.songCount || 0,
               playCount: 0,

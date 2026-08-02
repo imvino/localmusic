@@ -7,6 +7,9 @@ export const ARTIST_CONFIG = {
     },
     '456091': {
       name: 'Yuvan Shankar Raja'
+    },
+    '456269': {
+      name: 'A.R. Rahman'
     }
   }
 }
