@@ -183,7 +183,12 @@ function SongCard({ song, onSongClick, downloadProgress }) {
   const handlePlay = async () => {
     try {
       // Fetch the song details to get the playable stream URL
-      const res = await fetch(`${API_BASE}/api/song/${song.id}`)
+      // Pass albumId to use album data first (avoids separate API call and handles 404 cases)
+      const albumId = song.album?.id || song.albumId
+      const url = albumId 
+        ? `${API_BASE}/api/song/${song.id}?albumId=${albumId}`
+        : `${API_BASE}/api/song/${song.id}`
+      const res = await fetch(url)
       const result = await res.json()
       
       if (result.success && result.data) {
@@ -196,6 +201,7 @@ function SongCard({ song, onSongClick, downloadProgress }) {
             album: song.album,
             albumId: result.data.albumId || song.albumId,
             streamUrl: result.data.streamUrl,
+            downloadUrl: result.data.downloadUrl,
             imageUrl: imageUrl,
             isStream: true
           }

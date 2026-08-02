@@ -17,7 +17,6 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
   const location = useLocation()
   const { addDownload, updateDownload, removeDownload, getDownloadBySongId } = useDownloadStore()
   const downloads = useDownloadStore(state => state.downloads)
-  const scrollPositionRef = useRef(0)
   const [downloading, setDownloading] = useState(null)
   const [downloadingAlbum, setDownloadingAlbum] = useState({}) // { albumId: boolean }
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
@@ -138,20 +137,6 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
     return albumLanguage.toLowerCase() === albumsLanguageFilter.toLowerCase()
   })
 
-  // Save scroll position when component unmounts
-  useEffect(() => {
-    return () => {
-      scrollPositionRef.current = window.scrollY
-    }
-  }, [])
-
-  // Restore scroll position when loading completes
-  useEffect(() => {
-    if (!loading && scrollPositionRef.current > 0) {
-      window.scrollTo(0, scrollPositionRef.current)
-      scrollPositionRef.current = 0 // Reset after restoring
-    }
-  }, [loading, id])
 
 
   // Load custom albums for artists with overrides
@@ -338,7 +323,12 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
     try {
       console.log('Fetching song details for:', song.id)
       // Fetch the song details to get the playable stream URL
-      const res = await fetch(`${API_BASE}/api/song/${song.id}`)
+      // Pass albumId to use album data first (avoids separate API call and handles 404 cases)
+      const albumId = song.album?.id || (isAlbum ? id : null)
+      const url = albumId 
+        ? `${API_BASE}/api/song/${song.id}?albumId=${albumId}`
+        : `${API_BASE}/api/song/${song.id}`
+      const res = await fetch(url)
       const result = await res.json()
       
       console.log('Song API response:', result)
@@ -356,6 +346,7 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
             albumId: result.data.albumId || song.album?.id || (isAlbum ? id : null),
             artist: song.artists?.primary?.[0]?.name,
             streamUrl: result.data.streamUrl,
+            downloadUrl: result.data.downloadUrl,
             imageUrl: song.image?.find(img => img.quality === (isMobile ? '150x150' : '500x500'))?.url,
             isStream: true
           }, songs, displayIndex)

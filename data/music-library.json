@@ -4572,6 +4572,31 @@
           "id": "5l198DFr",
           "name": "Gangster",
           "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Billa 2 2012/01. Gangster.mp3"
+        },
+        {
+          "id": "rBkkTikk",
+          "name": "Idhayam",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Billa 2 2012/02. Idhayam.mp3"
+        },
+        {
+          "id": "AuIYvIpd",
+          "name": "Yedho Mayakkam",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Billa 2 2012/03. Yedho Mayakkam.mp3"
+        },
+        {
+          "id": "V5b_WXJ8",
+          "name": "Madurai Ponnu",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Billa 2 2012/04. Madurai Ponnu.mp3"
+        },
+        {
+          "id": "qb7uDKPy",
+          "name": "Unakkulle Mirugam",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Billa 2 2012/05. Unakkulle Mirugam.mp3"
+        },
+        {
+          "id": "Pf5r-KVf",
+          "name": "Billa 2 Theme",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Billa 2 2012/06. Billa 2 Theme.mp3"
         }
       ],
       "totalTracks": 6
@@ -5527,6 +5552,461 @@
         }
       ],
       "totalTracks": 5
+    },
+    {
+      "id": "1225045",
+      "name": "Kaadhal Solla Vandhen (Original Motion Picture Soundtrack)",
+      "localPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Kaadhal Solla Vandhen (Original Motion Picture Soundtrack) 2010",
+      "songs": [
+        {
+          "id": "9r-yYri2",
+          "name": "Oh Shala Oh Shala",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Kaadhal Solla Vandhen (Original Motion Picture Soundtrack) 2010/01. Oh Shala Oh Shala.mp3"
+        },
+        {
+          "id": "EEf_jJet",
+          "name": "Enna Enna Aagiren",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Kaadhal Solla Vandhen (Original Motion Picture Soundtrack) 2010/03. Enna Enna Aagiren.mp3"
+        },
+        {
+          "id": "ptUlZrRP",
+          "name": "Swami Varugudhu",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Kaadhal Solla Vandhen (Original Motion Picture Soundtrack) 2010/05. Swami Varugudhu.mp3"
+        },
+        {
+          "id": "O0DNKDCC",
+          "name": "Oru Vaanavillin Pakkathile",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Kaadhal Solla Vandhen (Original Motion Picture Soundtrack) 2010/02. Oru Vaanavillin Pakkathile.mp3"
+        }
+      ],
+      "totalTracks": 5
+    },
+    {
+      "id": "1225046",
+      "name": "Naan Mahaan Alla (Original Motion Picture Soundtrack)",
+      "localPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Naan Mahaan Alla (Original Motion Picture Soundtrack) 2010",
+      "songs": [
+        {
+          "id": "FnOYcMtR",
+          "name": "Va Va Nilava",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Naan Mahaan Alla (Original Motion Picture Soundtrack) 2010/01. Va Va Nilava.mp3"
+        },
+        {
+          "id": "CxjjZlGU",
+          "name": "Iragai Poley",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Naan Mahaan Alla (Original Motion Picture Soundtrack) 2010/02. Iragai Poley.mp3"
+        }
+      ],
+      "totalTracks": 5
+    },
+    {
+      "id": "1037822",
+      "name": "Mankatha",
+      "localPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Mankatha 2011",
+      "songs": [
+        {
+          "id": "8UlPnwAU",
+          "name": "Vaada Bin Laada",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Mankatha 2011/03. Vaada Bin Laada.mp3"
+        },
+        {
+          "id": "zX7sNXI7",
+          "name": "Nee... Naan...",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Mankatha 2011/02. Nee... Naan....mp3"
+        },
+        {
+          "id": "bQqdSKeA",
+          "name": "Nanbane",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Mankatha 2011/05. Nanbane.mp3"
+        },
+        {
+          "id": "N9KAfx6s",
+          "name": "Mankatha Theme Music",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Mankatha 2011/07. Mankatha Theme Music.mp3"
+        },
+        {
+          "id": "636QEUfW",
+          "name": "Machi Open the Bottle",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Mankatha 2011/04. Machi Open the Bottle.mp3"
+        }
+      ],
+      "totalTracks": 8
+    },
+    {
+      "id": "1225047",
+      "name": "Boss Engira Bhaskaran",
+      "localPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Boss Engira Bhaskaran 2010",
+      "songs": [
+        {
+          "id": "OFDoIbvj",
+          "name": "Boss Boss",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Boss Engira Bhaskaran 2010/01. Boss Boss.mp3"
+        },
+        {
+          "id": "UzcSycyi",
+          "name": "Yaar Intha",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Boss Engira Bhaskaran 2010/02. Yaar Intha.mp3"
+        },
+        {
+          "id": "w-3fOBZz",
+          "name": "Thathi Thaavum",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Boss Engira Bhaskaran 2010/03. Thathi Thaavum.mp3"
+        },
+        {
+          "id": "FcA-SB14",
+          "name": "Iyley Iyley",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Boss Engira Bhaskaran 2010/04. Iyley Iyley.mp3"
+        },
+        {
+          "id": "Jh7oJPWV",
+          "name": "Mama Mama",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Boss Engira Bhaskaran 2010/05. Mama Mama.mp3"
+        }
+      ],
+      "totalTracks": 5
+    },
+    {
+      "id": "1053013",
+      "name": "Vaanam",
+      "localPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Vaanam 2010",
+      "songs": [
+        {
+          "id": "CSpUgMF-",
+          "name": "No Money No Honey",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Vaanam 2010/01. No Money No Honey.mp3"
+        },
+        {
+          "id": "GFRpofbT",
+          "name": "Vaanam",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Vaanam 2010/02. Vaanam.mp3"
+        },
+        {
+          "id": "j4lfkDYf",
+          "name": "Cable Raja",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Vaanam 2010/03. Cable Raja.mp3"
+        },
+        {
+          "id": "uH0J11nb",
+          "name": "Evan Di Una Pethan",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Vaanam 2010/05. Evan Di Una Pethan.mp3"
+        }
+      ],
+      "totalTracks": 5
+    },
+    {
+      "id": "1020496",
+      "name": "Avan Ivan",
+      "localPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Avan Ivan 2011",
+      "songs": [
+        {
+          "id": "P4BdwOMK",
+          "name": "Rasathi",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Avan Ivan 2011/01. Rasathi.mp3"
+        },
+        {
+          "id": "ULD-_YHD",
+          "name": "Dia Dia Dole",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Avan Ivan 2011/02. Dia Dia Dole.mp3"
+        }
+      ],
+      "totalTracks": 5
+    },
+    {
+      "id": "1298444",
+      "name": "Kazhugu",
+      "localPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Kazhugu 2011",
+      "songs": [
+        {
+          "id": "UAPEsBeb",
+          "name": "Aambalaikum Pombalaikum",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Kazhugu 2011/01. Aambalaikum Pombalaikum.mp3"
+        },
+        {
+          "id": "Ev0UkTax",
+          "name": "Aathadi Manasudhan",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Kazhugu 2011/02. Aathadi Manasudhan.mp3"
+        },
+        {
+          "id": "W0lehGns",
+          "name": "Aathadi Manasudhan",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Kazhugu 2011/05. Aathadi Manasudhan.mp3"
+        },
+        {
+          "id": "T74pzpfW",
+          "name": "Paathagathi Kannupattu",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Kazhugu 2011/03. Paathagathi Kannupattu.mp3"
+        }
+      ],
+      "totalTracks": 5
+    },
+    {
+      "id": "1106482",
+      "name": "Samar",
+      "localPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Samar 2012",
+      "songs": [
+        {
+          "id": "yIdFRBN_",
+          "name": "Azhagho Azhaghu",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Samar 2012/02. Azhagho Azhaghu.mp3"
+        }
+      ],
+      "totalTracks": 5
+    },
+    {
+      "id": "1144207",
+      "name": "Arrambam",
+      "localPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Arrambam 2013",
+      "songs": [
+        {
+          "id": "sh5T1eTV",
+          "name": "Adadada Arrambame",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Arrambam 2013/01. Adadada Arrambame.mp3"
+        },
+        {
+          "id": "aIptYML2",
+          "name": "En Fuse Pochu",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Arrambam 2013/02. En Fuse Pochu.mp3"
+        },
+        {
+          "id": "KE4Gz2Jh",
+          "name": "Stylish Thamizhachi",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Arrambam 2013/05. Stylish Thamizhachi.mp3"
+        },
+        {
+          "id": "cbGVD6D6",
+          "name": "Melala Vedikudhu",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Arrambam 2013/04. Melala Vedikudhu.mp3"
+        }
+      ],
+      "totalTracks": 5
+    },
+    {
+      "id": "1143473",
+      "name": "Biriyani",
+      "localPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Biriyani 2013",
+      "songs": [
+        {
+          "id": "k63cWven",
+          "name": "Nahna Na Nah",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Biriyani 2013/02. Nahna Na Nah.mp3"
+        },
+        {
+          "id": "oV5yC9NI",
+          "name": "Biriyani",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Biriyani 2013/01. Biriyani.mp3"
+        },
+        {
+          "id": "1yTnOMQn",
+          "name": "Mississippi",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Biriyani 2013/04. Mississippi.mp3"
+        },
+        {
+          "id": "s1b95A_n",
+          "name": "Edhirthu Nill",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Biriyani 2013/06. Edhirthu Nill.mp3"
+        },
+        {
+          "id": "QDoUwilt",
+          "name": "Nahna Na Nah (New Jack Swing Mix)",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Biriyani 2013/07. Nahna Na Nah (New Jack Swing Mix).mp3"
+        },
+        {
+          "id": "V70gCBON",
+          "name": "Nahna Na Nah (Extended Dance Mix)",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Biriyani 2013/08. Nahna Na Nah (Extended Dance Mix).mp3"
+        }
+      ],
+      "totalTracks": 8
+    },
+    {
+      "id": "1154415",
+      "name": "Vadacurry",
+      "localPath": "/Volumes/samsung/Music/Vivek-Mervin/Vadacurry 2014",
+      "songs": [
+        {
+          "id": "aRGh8FYq",
+          "name": "Nenjukulla Nee",
+          "audioPath": "/Volumes/samsung/Music/Vivek-Mervin/Vadacurry 2014/01. Nenjukulla Nee.mp3"
+        }
+      ],
+      "totalTracks": 5
+    },
+    {
+      "id": "1188200",
+      "name": "Anjaan",
+      "localPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Anjaan 2014",
+      "songs": [
+        {
+          "id": "jdewIJHb",
+          "name": "Bang Bang Bang",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Anjaan 2014/01. Bang Bang Bang.mp3"
+        },
+        {
+          "id": "3KOtMDvd",
+          "name": "Ek Do Teen",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Anjaan 2014/03. Ek Do Teen.mp3"
+        },
+        {
+          "id": "uP7MlTHz",
+          "name": "Kadhal Aasai",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Anjaan 2014/04. Kadhal Aasai.mp3"
+        },
+        {
+          "id": "7zk8btKq",
+          "name": "Oru Kan Jaadai",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Anjaan 2014/02. Oru Kan Jaadai.mp3"
+        }
+      ],
+      "totalTracks": 5
+    },
+    {
+      "id": "1215978",
+      "name": "Vai Raja Vai",
+      "localPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Vai Raja Vai 2014",
+      "songs": [
+        {
+          "id": "9bLcYPmD",
+          "name": "Move Your Body",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Vai Raja Vai 2014/05. Move Your Body.mp3"
+        },
+        {
+          "id": "4-UMGhXd",
+          "name": "Naam Vaazhndhidum",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Vai Raja Vai 2014/04. Naam Vaazhndhidum.mp3"
+        },
+        {
+          "id": "vjjdvCpM",
+          "name": "Pachchai Vanna",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Vai Raja Vai 2014/02. Pachchai Vanna.mp3"
+        }
+      ],
+      "totalTracks": 5
+    },
+    {
+      "id": "33104441",
+      "name": "Masss",
+      "localPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Masss 2015",
+      "songs": [
+        {
+          "id": "3Yr-ygIN",
+          "name": "Masss Theme",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Masss 2015/04. Masss Theme.mp3"
+        },
+        {
+          "id": "_SLhicWp",
+          "name": "Therikkudhu Masss",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Masss 2015/05. Therikkudhu Masss.mp3"
+        },
+        {
+          "id": "T24HF2bH",
+          "name": "Naan Aval Illai",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Masss 2015/06. Naan Aval Illai.mp3"
+        },
+        {
+          "id": "cmZVlXGh",
+          "name": "Con Man Theme",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Masss 2015/08. Con Man Theme.mp3"
+        },
+        {
+          "id": "vZ2Et2D9",
+          "name": "Poochandi",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Masss 2015/01. Poochandi.mp3"
+        }
+      ],
+      "totalTracks": 8
+    },
+    {
+      "id": "44295706",
+      "name": "Dharmadurai",
+      "localPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Dharmadurai 2016",
+      "songs": [
+        {
+          "id": "0JUa5Ydx",
+          "name": "Makka Kalanguthappa",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Dharmadurai 2016/04. Makka Kalanguthappa.mp3"
+        },
+        {
+          "id": "b6scznee",
+          "name": "Aandipatti",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Dharmadurai 2016/02. Aandipatti.mp3"
+        }
+      ],
+      "totalTracks": 5
+    },
+    {
+      "id": "27527377",
+      "name": "Yaakkai",
+      "localPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Yaakkai 2016",
+      "songs": [
+        {
+          "id": "NoitKghK",
+          "name": "Solli Tholaiyen Ma",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Yaakkai 2016/02. Solli Tholaiyen Ma.mp3"
+        },
+        {
+          "id": "Puyxa43T",
+          "name": "Neee",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Yaakkai 2016/01. Neee.mp3"
+        }
+      ],
+      "totalTracks": 4
+    },
+    {
+      "id": "13938677",
+      "name": "Sandakozhi 2",
+      "localPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Sandakozhi 2 2018",
+      "songs": [
+        {
+          "id": "nyBGCYfk",
+          "name": "Kambathu Ponnu",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Sandakozhi 2 2018/01. Kambathu Ponnu.mp3"
+        }
+      ],
+      "totalTracks": 6
+    },
+    {
+      "id": "14479394",
+      "name": "Maari 2",
+      "localPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Maari 2 2018",
+      "songs": [
+        {
+          "id": "_GIuQbB_",
+          "name": "Rowdy Baby",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Maari 2 2018/01. Rowdy Baby.mp3"
+        }
+      ],
+      "totalTracks": 3
+    },
+    {
+      "id": "25620372",
+      "name": "Dikkiloona",
+      "localPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Dikkiloona 2020",
+      "songs": [
+        {
+          "id": "vWPLqwTQ",
+          "name": "Per Vachaalum Vaikkaama",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Dikkiloona 2020/03. Per Vachaalum Vaikkaama.mp3"
+        }
+      ],
+      "totalTracks": 4
+    },
+    {
+      "id": "27528495",
+      "name": "Nenjam Marappathillai (Original Motion Picture Soundtrack)",
+      "localPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Nenjam Marappathillai (Original Motion Picture Soundtrack) 2016",
+      "songs": [
+        {
+          "id": "UjflAVes",
+          "name": "Kannungala Chellangala - \"Tribute To Kaviarasar Kannadasan\"",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Nenjam Marappathillai (Original Motion Picture Soundtrack) 2016/02. Kannungala Chellangala - &quot;Tribute To Kaviarasar Kannadasan&quot;.mp3"
+        },
+        {
+          "id": "iSvZGNvA",
+          "name": "En Pondaati Ooruku Poita",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Nenjam Marappathillai (Original Motion Picture Soundtrack) 2016/04. En Pondaati Ooruku Poita.mp3"
+        }
+      ],
+      "totalTracks": 4
     }
   ]
 }

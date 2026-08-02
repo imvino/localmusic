@@ -361,6 +361,7 @@ const streamHandler = async (req, res, bitrate = '320') => {
     // If not local, try to proxy from external stream URL
     try {
       let streamUrl;
+      const fallbackUrl = req.query.url; // Fallback downloadUrl from query param
       
       // Try primary API first (nepotuneapi.vercel.app)
       try {
@@ -423,6 +424,12 @@ const streamHandler = async (req, res, bitrate = '320') => {
             console.error('Official API also failed for stream:', officialError.message);
           }
         }
+      }
+      
+      // If primary stream URL failed or is unavailable, use fallback URL if provided
+      if (!streamUrl && fallbackUrl) {
+        console.log('Using fallback downloadUrl for stream');
+        streamUrl = fallbackUrl;
       }
       
       if (!streamUrl) {
@@ -1211,6 +1218,7 @@ app.get('/api/album/:id', async (req, res) => {
 app.get('/api/song/:id', async (req, res) => {
   try {
     const { id } = req.params;
+    const { albumId } = req.query;
     
     // Check if song is local first
     let localAudioPath = null;
@@ -1234,6 +1242,44 @@ app.get('/api/song/:id', async (req, res) => {
         isLocal: true
       };
       return res.json({ success: true, data: song });
+    }
+    
+    // If albumId provided, try to get song from album data first (avoids separate API call)
+    if (albumId) {
+      try {
+        const albumResponse = await axios.get(`${MUSIC_API_BASE}/albums`, {
+          params: { id: albumId },
+          headers: { 'User-Agent': 'Mozilla/5.0' }
+        });
+        
+        const albumData = albumResponse.data?.data;
+        if (albumData && albumData.songs) {
+          const songInAlbum = albumData.songs.find(s => s.id === id);
+          if (songInAlbum) {
+            const downloadUrls = songInAlbum.downloadUrl || [];
+            const externalStreamUrl = downloadUrls.find(u => u.quality === '320kbps')?.url || 
+                                      downloadUrls.find(u => u.quality === '160kbps')?.url || null;
+            
+            const song = {
+              id: songInAlbum.id,
+              name: songInAlbum.name,
+              album: albumData.name,
+              albumId: albumData.id,
+              year: albumData.year,
+              duration: songInAlbum.duration,
+              image: songInAlbum.image || albumData.image || [],
+              artists: songInAlbum.artists?.primary || [],
+              streamUrl: externalStreamUrl || null,
+              downloadUrl: downloadUrls,
+              isLocal: false
+            };
+            
+            return res.json({ success: true, data: song });
+          }
+        }
+      } catch (albumError) {
+        console.log(`Failed to fetch song from album ${albumId}, falling back to song API:`, albumError.message);
+      }
     }
     
     // Otherwise, fetch from nepotuneapi.vercel.app API with fallback

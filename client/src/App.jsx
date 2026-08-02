@@ -26,6 +26,9 @@ const VERCEL_API_BASE = import.meta.env.VITE_VERCEL_API_URL
 // Check if we're in production mode
 const isProduction = import.meta.env.MODE === 'production'
 
+// Module-level scroll position storage (persists across component unmounts)
+const scrollPositionStorage = new Map()
+
 // Clerk publishable key (will be set via environment variable)
 const clerkPublishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY || ''
 
@@ -82,6 +85,7 @@ function AppContent() {
   })
   const [currentBitrate, setCurrentBitrate] = useState(96)
   const audioRef = useRef(null)
+  const scrollContainerRef = useRef(null)
 
   // Use TanStack Query for health check
   const { data: healthData, isError: healthError } = useHealthCheck(true)
@@ -355,6 +359,49 @@ function AppContent() {
     localStorage.setItem('qualityPreference', qualityPreference)
   }, [qualityPreference])
 
+  // Save scroll position on scroll (debounced)
+  useEffect(() => {
+    let timeoutId
+    const handleScroll = () => {
+      clearTimeout(timeoutId)
+      timeoutId = setTimeout(() => {
+        const scrollable = scrollContainerRef.current
+        const scrollPosition = scrollable ? scrollable.scrollTop : window.scrollY
+        scrollPositionStorage.set(location.pathname, scrollPosition)
+      }, 100)
+    }
+
+    const scrollable = scrollContainerRef.current
+    if (scrollable) {
+      scrollable.addEventListener('scroll', handleScroll)
+    }
+    window.addEventListener('scroll', handleScroll)
+
+    return () => {
+      clearTimeout(timeoutId)
+      if (scrollable) {
+        scrollable.removeEventListener('scroll', handleScroll)
+      }
+      window.removeEventListener('scroll', handleScroll)
+    }
+  }, [location.pathname])
+
+  // Restore scroll position when location changes
+  useEffect(() => {
+    const savedPosition = scrollPositionStorage.get(location.pathname)
+    if (savedPosition && savedPosition > 0) {
+      // Small delay to ensure DOM is ready
+      setTimeout(() => {
+        const scrollable = scrollContainerRef.current
+        if (scrollable) {
+          scrollable.scrollTop = savedPosition
+        } else {
+          window.scrollTo(0, savedPosition)
+        }
+      }, 100)
+    }
+  }, [location.pathname])
+
   // Handle bitrate switching - reload stream with new bitrate from current position
   useEffect(() => {
     if (!audioRef.current || !currentSong || !currentSong.id) return
@@ -413,12 +460,18 @@ function AppContent() {
     // Fetch stream URL if not already present
     if (!song.streamUrl && song.id) {
       try {
-        const res = await fetch(`${API_BASE}/api/song/${song.id}`)
+        // Pass albumId to use album data first (avoids separate API call and handles 404 cases)
+        const albumId = song.album?.id || song.albumId
+        const url = albumId 
+          ? `${API_BASE}/api/song/${song.id}?albumId=${albumId}`
+          : `${API_BASE}/api/song/${song.id}`
+        const res = await fetch(url)
         const result = await res.json()
         if (result.success && result.data && result.data.streamUrl) {
           songWithStream = {
             ...song,
             streamUrl: result.data.streamUrl,
+            downloadUrl: result.data.downloadUrl,
             albumId: result.data.albumId || song.albumId,
             maxBitrate: maxBitrate
           }
@@ -504,12 +557,18 @@ function AppContent() {
     try {
       // Fetch stream URL if not already present
       if (!song.streamUrl) {
-        const res = await fetch(`${API_BASE}/api/song/${song.id}`)
+        // Pass albumId to use album data first (avoids separate API call and handles 404 cases)
+        const albumId = song.album?.id || song.albumId
+        const url = albumId 
+          ? `${API_BASE}/api/song/${song.id}?albumId=${albumId}`
+          : `${API_BASE}/api/song/${song.id}`
+        const res = await fetch(url)
         const result = await res.json()
         if (result.success && result.data && result.data.streamUrl) {
           setCurrentSong({
             ...song,
             streamUrl: result.data.streamUrl,
+            downloadUrl: result.data.downloadUrl,
             albumId: result.data.albumId || song.albumId,
             imageUrl: song.imageUrl || song.image?.find(img => img.quality === '500x500')?.url ||
                       song.image?.find(img => img.quality === '150x150')?.url,
@@ -773,7 +832,7 @@ function AppContent() {
         </div>
         
         {/* Main Content - Add bottom padding on mobile for player and nav */}
-        <div className="flex-1 overflow-y-auto bg-zinc-950 pb-32 md:pb-0">
+        <div ref={scrollContainerRef} className="flex-1 overflow-y-auto bg-zinc-950 pb-32 md:pb-0">
           <Routes>
             <Route path="/discover" element={<DiscoverView onSongClick={handleSongSelect} showToast={showToastMessage} />} />
             <Route path="/discover/album/:id/:slug?" element={<DiscoverDetailView onSongClick={handleSongSelect} showToast={showToastMessage} currentSong={currentSong} isPlaying={isPlaying} sidebarOpen={sidebarOpen} />} />
