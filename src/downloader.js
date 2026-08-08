@@ -434,9 +434,9 @@ async function downloadSingleSong(songId, onProgress) {
     albumData.year = correctYear;
 
     // 6. Download files (to temp file first, then convert to MP3)
-    const songFilename = `${trackNum}. ${sanitizeFilename(songData.name)}.mp3`;
+    const songFilename = `${trackNum}. ${sanitizeFilename(decodeHtmlEntities(songData.name))}.mp3`;
     const songPath = path.join(albumDir, songFilename);
-    const tempMp4Path = path.join(albumDir, `.tmp_${sanitizeFilename(songData.name)}.mp4`);
+    const tempMp4Path = path.join(albumDir, `.tmp_${sanitizeFilename(decodeHtmlEntities(songData.name))}.mp4`);
     const downloadUrl = get320kbpsUrl(songData.downloadUrl);
 
     if (!downloadUrl) throw new Error('No download URL available');
@@ -552,7 +552,7 @@ async function downloadAlbum(albumId, onProgress) {
       for (let i = 0; i < fullSongs.length; i++) {
         const songData = fullSongs[i];
         const trackNum = (i + 1).toString().padStart(2, '0');
-        const songFilename = `${trackNum}. ${sanitizeFilename(songData.name)}.mp3`;
+        const songFilename = `${trackNum}. ${sanitizeFilename(decodeHtmlEntities(songData.name))}.mp3`;
         const songPath = path.join(albumDir, songFilename);
         
         if (!fs.existsSync(songPath)) {
@@ -596,9 +596,9 @@ async function downloadAlbum(albumId, onProgress) {
     for (let i = 0; i < fullSongs.length; i++) {
       const songData = fullSongs[i];
       const trackNum = (i + 1).toString().padStart(2, '0');
-      const songFilename = `${trackNum}. ${sanitizeFilename(songData.name)}.mp3`;
+      const songFilename = `${trackNum}. ${sanitizeFilename(decodeHtmlEntities(songData.name))}.mp3`;
       const songPath = path.join(albumDir, songFilename);
-      const tempMp4Path = path.join(albumDir, `.tmp_${sanitizeFilename(songData.name)}.mp4`);
+      const tempMp4Path = path.join(albumDir, `.tmp_${sanitizeFilename(decodeHtmlEntities(songData.name))}.mp4`);
 
       const downloadUrl = get320kbpsUrl(songData.downloadUrl);
       if (!downloadUrl) {
@@ -672,7 +672,7 @@ async function downloadAlbum(albumId, onProgress) {
       .filter((song, idx) => results[idx]?.success)
       .map((song, idx) => {
         const trackNum = (idx + 1).toString().padStart(2, '0');
-        const songFilename = `${trackNum}. ${sanitizeFilename(song.name)}.mp3`;
+        const songFilename = `${trackNum}. ${sanitizeFilename(decodeHtmlEntities(song.name))}.mp3`;
         return {
           id: song.id,
           name: song.name,

@@ -266,10 +266,6 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
 
           if (progress.status === 'complete') {
             eventSource.close()
-            // Update local state to mark all songs as downloaded
-            setSongs(prevSongs => 
-              prevSongs.map(s => ({ ...s, isLocal: true }))
-            )
             // Invalidate album cache to refresh local badge
             queryClient.invalidateQueries({ queryKey: ['album', id] })
             // Clear progress after a delay

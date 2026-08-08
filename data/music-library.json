@@ -1248,13 +1248,6 @@
           "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Vinnaithaandi Varuvaayaa 2010/08. Aaromale (Female Version).mp3",
           "albumId": "12449181",
           "album": "Vinnaithaandi Varuvaayaa"
-        },
-        {
-          "id": "1l1FUvSh",
-          "name": "Jessy's Land",
-          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Vinnaithaandi Varuvaayaa 2010/09. Jessy's Land.mp3",
-          "albumId": "12449181",
-          "album": "Vinnaithaandi Varuvaayaa"
         }
       ],
       "totalTracks": 9
@@ -1877,13 +1870,6 @@
           "album": "Ratchakan"
         },
         {
-          "id": "lyosW8uE",
-          "name": "Pogum Vazhiyellam",
-          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Ratchakan 2026/07. Pogum Vazhiyellam.mp3",
-          "albumId": "72302147",
-          "album": "Ratchakan"
-        },
-        {
           "id": "IYfvQraP",
           "name": "Mercury Pookkal",
           "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Ratchakan 2026/08. Mercury Pookkal.mp3",
@@ -2488,20 +2474,6 @@
           "album": "24 (Tamil)"
         },
         {
-          "id": "BDpymRFY",
-          "name": "Punnagaye",
-          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/24 (Tamil) 2016/03. Punnagaye.mp3",
-          "albumId": "33164394",
-          "album": "24 (Tamil)"
-        },
-        {
-          "id": "ECe-GzqJ",
-          "name": "Aararoo",
-          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/24 (Tamil) 2016/04. Aararoo.mp3",
-          "albumId": "33164394",
-          "album": "24 (Tamil)"
-        },
-        {
           "id": "TfV3Ph55",
           "name": "My Twin Brother",
           "audioPath": "/Volumes/samsung/Music/A.R. Rahman/24 (Tamil) 2016/05. My Twin Brother.mp3",
@@ -2967,20 +2939,6 @@
           "album": "Duet"
         },
         {
-          "id": "PysuflmT",
-          "name": "Kavidhaikku Porul Thandha",
-          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Duet 1994/03. Kavidhaikku Porul Thandha.mp3",
-          "albumId": "50791305",
-          "album": "Duet"
-        },
-        {
-          "id": "-dvUz94M",
-          "name": "Sithathinaal",
-          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Duet 1994/04. Sithathinaal.mp3",
-          "albumId": "50791305",
-          "album": "Duet"
-        },
-        {
           "id": "_0tL3N99",
           "name": "Kathirikka Kathirikka",
           "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Duet 1994/05. Kathirikka Kathirikka.mp3",
@@ -2995,13 +2953,6 @@
           "album": "Duet"
         },
         {
-          "id": "GHA4MSrJ",
-          "name": "Naan Paadum Sandham",
-          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Duet 1994/07. Naan Paadum Sandham.mp3",
-          "albumId": "50791305",
-          "album": "Duet"
-        },
-        {
           "id": "hIn6qXeJ",
           "name": "En Kaadhale-Male",
           "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Duet 1994/08. En Kaadhale-Male.mp3",
@@ -3009,30 +2960,9 @@
           "album": "Duet"
         },
         {
-          "id": "JujyBsBF",
-          "name": "Duet Theme",
-          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Duet 1994/09. Duet Theme.mp3",
-          "albumId": "50791305",
-          "album": "Duet"
-        },
-        {
           "id": "tpwyRmaJ",
           "name": "En Kaadhale-Female",
           "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Duet 1994/10. En Kaadhale-Female.mp3",
-          "albumId": "50791305",
-          "album": "Duet"
-        },
-        {
-          "id": "p_MLWpi4",
-          "name": "Love Is Torture",
-          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Duet 1994/11. Love Is Torture.mp3",
-          "albumId": "50791305",
-          "album": "Duet"
-        },
-        {
-          "id": "xyUDMW-U",
-          "name": "Sax Lullaby",
-          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Duet 1994/12. Sax Lullaby.mp3",
           "albumId": "50791305",
           "album": "Duet"
         },
@@ -4308,7 +4238,7 @@
         {
           "id": "xGniQtAd",
           "name": "One Name (From \"Jailer 2\")",
-          "audioPath": "/Volumes/samsung/Music/Anirudh Ravichander/One Name (From -Jailer 2-) 2026/01. One Name (From &quot;Jailer 2&quot;).mp3",
+          "audioPath": "/Volumes/samsung/Music/Anirudh Ravichander/One Name (From -Jailer 2-) 2026/01. One Name (From \"Jailer 2\").mp3",
           "albumId": "77613884",
           "album": "One Name (From \"Jailer 2\")"
         }
@@ -6750,14 +6680,6 @@
       "localPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Raam 2005",
       "songs": [
         {
-          "id": "pmbl1kHh",
-          "name": "Boom Boom",
-          "audioPath": "/Volumes/samsung/Music/Unknown Composer/Raam 2005/02. Boom Boom.mp3",
-          "albumId": "1133633",
-          "imageUrl": "https://c.saavncdn.com/144/Raam-2005-150x150.jpg",
-          "album": "Raam"
-        },
-        {
           "id": "9BQRo0cS",
           "name": "Aarariraro",
           "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Raam 2005/01. Aarariraro.mp3",
@@ -6780,6 +6702,11 @@
           "albumId": "1133633",
           "imageUrl": "https://c.saavncdn.com/144/Raam-2005-150x150.jpg",
           "album": "Raam"
+        },
+        {
+          "id": "pmbl1kHh",
+          "name": "Boom Boom",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Raam 2005/02. Boom Boom.mp3"
         }
       ],
       "totalTracks": 6
@@ -8304,7 +8231,7 @@
         {
           "id": "UjflAVes",
           "name": "Kannungala Chellangala - \"Tribute To Kaviarasar Kannadasan\"",
-          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Nenjam Marappathillai (Original Motion Picture Soundtrack) 2016/02. Kannungala Chellangala - &quot;Tribute To Kaviarasar Kannadasan&quot;.mp3",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Nenjam Marappathillai (Original Motion Picture Soundtrack) 2016/02. Kannungala Chellangala - \"Tribute To Kaviarasar Kannadasan\".mp3",
           "albumId": "27528495",
           "imageUrl": "https://c.saavncdn.com/849/Nenjam-Marappathillai-Original-Motion-Picture-Soundtrack-Tamil-2016-20250920011343-150x150.jpg",
           "album": "Nenjam Marappathillai (Original Motion Picture Soundtrack)"
@@ -8319,6 +8246,1632 @@
         }
       ],
       "totalTracks": 4
+    },
+    {
+      "id": "17304252",
+      "name": "Vandicholai Chinnarasu",
+      "localPath": "/Volumes/samsung/Music/A.R. Rahman/Vandicholai Chinnarasu 1994",
+      "songs": [
+        {
+          "id": "tvXTcku8",
+          "name": "Senthamizh Nattu Thamizhachiea",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Vandicholai Chinnarasu 1994/01. Senthamizh Nattu Thamizhachiea.mp3"
+        }
+      ],
+      "totalTracks": 5
+    },
+    {
+      "id": "1243807",
+      "name": "Thiruda Thiruda",
+      "localPath": "/Volumes/samsung/Music/A.R. Rahman/Thiruda Thiruda 1993",
+      "songs": [
+        {
+          "id": "6-bjxE3B",
+          "name": "Veerapandi Kotayyile",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Thiruda Thiruda 1993/04. Veerapandi Kotayyile.mp3"
+        },
+        {
+          "id": "b4rNmAUl",
+          "name": "Konjam Nilavu",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Thiruda Thiruda 1993/03. Konjam Nilavu.mp3"
+        }
+      ],
+      "totalTracks": 6
+    },
+    {
+      "id": "50791255",
+      "name": "Indian",
+      "localPath": "/Volumes/samsung/Music/A.R. Rahman/Indian 1996",
+      "songs": [
+        {
+          "id": "hevirhOR",
+          "name": "Akkadannu Naanga Udai Potta",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Indian 1996/01. Akkadannu Naanga Udai Potta.mp3"
+        },
+        {
+          "id": "ak5OYds1",
+          "name": "Maaya Machindhra",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Indian 1996/02. Maaya Machindhra.mp3"
+        },
+        {
+          "id": "oyH3gVrC",
+          "name": "Kappal Yeari Poyachu",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Indian 1996/03. Kappal Yeari Poyachu.mp3"
+        },
+        {
+          "id": "1MSxZxa2",
+          "name": "Pachai Kiligal",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Indian 1996/04. Pachai Kiligal.mp3"
+        },
+        {
+          "id": "0jQ-tMh0",
+          "name": "Telephone Mani Pol",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Indian 1996/05. Telephone Mani Pol.mp3"
+        }
+      ],
+      "totalTracks": 5
+    },
+    {
+      "id": "1133745",
+      "name": "Jodi",
+      "localPath": "/Volumes/samsung/Music/A.R. Rahman/Jodi 2019",
+      "songs": [
+        {
+          "id": "dIbeiVlk",
+          "name": "Anjathey Jeeva",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Jodi 2019/01. Anjathey Jeeva.mp3"
+        },
+        {
+          "id": "p4O4VEL0",
+          "name": "Velli Malare",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Jodi 2019/07. Velli Malare.mp3"
+        },
+        {
+          "id": "aO6_71Hb",
+          "name": "Kaadhal Kaditham",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Jodi 2019/02. Kaadhal Kaditham.mp3"
+        },
+        {
+          "id": "YWNJVQLm",
+          "name": "Ram Bum Bum",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Jodi 2019/06. Ram Bum Bum.mp3"
+        },
+        {
+          "id": "kplxiL8I",
+          "name": "Oru Poiyavathu",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Jodi 2019/04. Oru Poiyavathu.mp3"
+        }
+      ],
+      "totalTracks": 7
+    },
+    {
+      "id": "68895769",
+      "name": "Kaadhalan",
+      "localPath": "/Volumes/samsung/Music/A.R. Rahman/Kaadhalan 1995",
+      "songs": [
+        {
+          "id": "N3fvTcnY",
+          "name": "Urvashi Uravashi (Tamil)",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Kaadhalan 1995/01. Urvashi Uravashi (Tamil).mp3"
+        },
+        {
+          "id": "2ZqrGSVI",
+          "name": "Ennavale Adi Ennavale",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Kaadhalan 1995/02. Ennavale Adi Ennavale.mp3"
+        },
+        {
+          "id": "Gg4HcXuD",
+          "name": "Errani Kurrathanni (Koli Kunju)",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Kaadhalan 1995/03. Errani Kurrathanni (Koli Kunju).mp3"
+        },
+        {
+          "id": "Php7OzH9",
+          "name": "Katru Kuthirayile",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Kaadhalan 1995/04. Katru Kuthirayile.mp3"
+        },
+        {
+          "id": "veZxaUw3",
+          "name": "Pettai Rap",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Kaadhalan 1995/05. Pettai Rap.mp3"
+        },
+        {
+          "id": "1iEfJ1Jv",
+          "name": "Indiraiyo Ival Sundariyo",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Kaadhalan 1995/06. Indiraiyo Ival Sundariyo.mp3"
+        },
+        {
+          "id": "OsXFujal",
+          "name": "Kathalikkum Penin Kaikal",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Kaadhalan 1995/07. Kathalikkum Penin Kaikal.mp3"
+        },
+        {
+          "id": "cPNWAY1g",
+          "name": "Kollaiyele Thennai Vaithu",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Kaadhalan 1995/08. Kollaiyele Thennai Vaithu.mp3"
+        },
+        {
+          "id": "-Q6uY8yz",
+          "name": "Mukkala Mukkabla (Tamil)",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Kaadhalan 1995/09. Mukkala Mukkabla (Tamil).mp3"
+        }
+      ],
+      "totalTracks": 9
+    },
+    {
+      "id": "11497736",
+      "name": "Mr. Romeo",
+      "localPath": "/Volumes/samsung/Music/A.R. Rahman/Mr. Romeo 1996",
+      "songs": [
+        {
+          "id": "rHXWZODH",
+          "name": "Romeo Attam Potal",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Mr. Romeo 1996/01. Romeo Attam Potal.mp3"
+        },
+        {
+          "id": "pu_E4l10",
+          "name": "Mellisaiyae",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Mr. Romeo 1996/02. Mellisaiyae.mp3"
+        },
+        {
+          "id": "NaO1mmEO",
+          "name": "Thaneerai Khadalikum",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Mr. Romeo 1996/03. Thaneerai Khadalikum.mp3"
+        },
+        {
+          "id": "GMmOLyMU",
+          "name": "Muthu Muthu Mazhai",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Mr. Romeo 1996/04. Muthu Muthu Mazhai.mp3"
+        },
+        {
+          "id": "dF1ZxJBw",
+          "name": "Yar Adhu",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Mr. Romeo 1996/05. Yar Adhu.mp3"
+        },
+        {
+          "id": "CcZy1_YE",
+          "name": "Monalisa",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Mr. Romeo 1996/06. Monalisa.mp3"
+        }
+      ],
+      "totalTracks": 6
+    },
+    {
+      "id": "3128455",
+      "name": "May Madham",
+      "localPath": "/Volumes/samsung/Music/A.R. Rahman/May Madham 1994",
+      "songs": [
+        {
+          "id": "fspPrblv",
+          "name": "Madrasa Suthi Paakka",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/May Madham 1994/01. Madrasa Suthi Paakka.mp3"
+        },
+        {
+          "id": "XR4h7Bna",
+          "name": "Maargazhi Poovea",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/May Madham 1994/02. Maargazhi Poovea.mp3"
+        },
+        {
+          "id": "aEL-vLpx",
+          "name": "En Meal Vizhundha Mazhai",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/May Madham 1994/03. En Meal Vizhundha Mazhai.mp3"
+        },
+        {
+          "id": "9Nb8BC-C",
+          "name": "Aadi Paaru Mangaatha",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/May Madham 1994/04. Aadi Paaru Mangaatha.mp3"
+        },
+        {
+          "id": "xkvN49Mx",
+          "name": "Minnalea En Vazhvin",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/May Madham 1994/05. Minnalea En Vazhvin.mp3"
+        },
+        {
+          "id": "kVftefry",
+          "name": "Paalakaattu Machaanukku",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/May Madham 1994/06. Paalakaattu Machaanukku.mp3"
+        }
+      ],
+      "totalTracks": 6
+    },
+    {
+      "id": "3128504",
+      "name": "Gentleman",
+      "localPath": "/Volumes/samsung/Music/A.R. Rahman/Gentleman 1993",
+      "songs": [
+        {
+          "id": "hGhMZfIF",
+          "name": "Ottagtha Katikko",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Gentleman 1993/01. Ottagtha Katikko.mp3"
+        },
+        {
+          "id": "cgfJ_5bF",
+          "name": "En Veettu Thottathil",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Gentleman 1993/02. En Veettu Thottathil.mp3"
+        },
+        {
+          "id": "aRCvu7vN",
+          "name": "Chikkubukku Chikkubukku Railea",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Gentleman 1993/03. Chikkubukku Chikkubukku Railea.mp3"
+        },
+        {
+          "id": "6l09K9ls",
+          "name": "Paarkadhe Paarkadhe",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Gentleman 1993/04. Paarkadhe Paarkadhe.mp3"
+        },
+        {
+          "id": "hWsEZVpF",
+          "name": "Usilambatti Pen Kutti Muthu",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Gentleman 1993/05. Usilambatti Pen Kutti Muthu.mp3"
+        }
+      ],
+      "totalTracks": 5
+    },
+    {
+      "id": "68908662",
+      "name": "Roja (Tamil)",
+      "localPath": "/Volumes/samsung/Music/A.R. Rahman/Roja (Tamil) 1992",
+      "songs": [
+        {
+          "id": "yD2M78uW",
+          "name": "Pudhu Vellai Mazhai",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Roja (Tamil) 1992/04. Pudhu Vellai Mazhai.mp3"
+        }
+      ],
+      "totalTracks": 6
+    },
+    {
+      "id": "1243806",
+      "name": "Pudhiya Mugam",
+      "localPath": "/Volumes/samsung/Music/A.R. Rahman/Pudhiya Mugam 1993",
+      "songs": [
+        {
+          "id": "_moNZQrr",
+          "name": "Netru Illatha Maatram",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Pudhiya Mugam 1993/01. Netru Illatha Maatram.mp3"
+        },
+        {
+          "id": "_C_G4P_o",
+          "name": "Kannukku Mai Azhagu (Male)",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Pudhiya Mugam 1993/03. Kannukku Mai Azhagu (Male).mp3"
+        }
+      ],
+      "totalTracks": 6
+    },
+    {
+      "id": "58712808",
+      "name": "Kizhakku Cheemayile",
+      "localPath": "/Volumes/samsung/Music/A.R. Rahman/Kizhakku Cheemayile 1993",
+      "songs": [
+        {
+          "id": "tfjaz_LD",
+          "name": "Aathangarai Maramea Adhil (Original Motion Picture Soundtrack)",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Kizhakku Cheemayile 1993/01. Aathangarai Maramea Adhil (Original Motion Picture Soundtrack).mp3"
+        },
+        {
+          "id": "FS9H6k0-",
+          "name": "Yeadhukku Pondaatti (Original Motion Picture Soundtrack)",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Kizhakku Cheemayile 1993/05. Yeadhukku Pondaatti (Original Motion Picture Soundtrack).mp3"
+        },
+        {
+          "id": "FSx55GlC",
+          "name": "Maanoothu Mandhaielea (Original Motion Picture Soundtrack)",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Kizhakku Cheemayile 1993/04. Maanoothu Mandhaielea (Original Motion Picture Soundtrack).mp3"
+        }
+      ],
+      "totalTracks": 5
+    },
+    {
+      "id": "50791263",
+      "name": "Pudhiya Mannargal",
+      "localPath": "/Volumes/samsung/Music/A.R. Rahman/Pudhiya Mannargal 1994",
+      "songs": [
+        {
+          "id": "VzScu4Og",
+          "name": "Nee Kattum Selai",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Pudhiya Mannargal 1994/04. Nee Kattum Selai.mp3"
+        }
+      ],
+      "totalTracks": 5
+    },
+    {
+      "id": "50791246",
+      "name": "Karuthamma",
+      "localPath": "/Volumes/samsung/Music/A.R. Rahman/Karuthamma 1994",
+      "songs": [
+        {
+          "id": "12FH9Gfz",
+          "name": "Theanmearkku Paruva",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Karuthamma 1994/03. Theanmearkku Paruva.mp3"
+        }
+      ],
+      "totalTracks": 6
+    },
+    {
+      "id": "3161475",
+      "name": "Bombay",
+      "localPath": "/Volumes/samsung/Music/A.R. Rahman/Bombay 1998",
+      "songs": [
+        {
+          "id": "_zocOvJB",
+          "name": "Andha Arabi Kadaloram",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Bombay 1998/05. Andha Arabi Kadaloram.mp3"
+        },
+        {
+          "id": "7mzD6VKc",
+          "name": "Kuchi Kuchi Rakkamma",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Bombay 1998/07. Kuchi Kuchi Rakkamma.mp3"
+        },
+        {
+          "id": "L_OcPVfR",
+          "name": "Uyirae",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Bombay 1998/06. Uyirae.mp3"
+        },
+        {
+          "id": "tq6mrFDx",
+          "name": "Poovukkenna Poottu",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Bombay 1998/08. Poovukkenna Poottu.mp3"
+        }
+      ],
+      "totalTracks": 9
+    },
+    {
+      "id": "69170364",
+      "name": "Indira",
+      "localPath": "/Volumes/samsung/Music/A.R. Rahman/Indira 1993",
+      "songs": [
+        {
+          "id": "dJ1DxQu7",
+          "name": "Odakaara",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Indira 1993/02. Odakaara.mp3"
+        },
+        {
+          "id": "mDTo_BmO",
+          "name": "Nila Kaaigiradhu",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Indira 1993/06. Nila Kaaigiradhu.mp3"
+        }
+      ],
+      "totalTracks": 6
+    },
+    {
+      "id": "3128519",
+      "name": "Love Birds",
+      "localPath": "/Volumes/samsung/Music/A.R. Rahman/Love Birds 1995",
+      "songs": [
+        {
+          "id": "d8qiGHFI",
+          "name": "Come On",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Love Birds 1995/04. Come On.mp3"
+        },
+        {
+          "id": "1poNbUgS",
+          "name": "Samba Samba",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Love Birds 1995/01. Samba Samba.mp3"
+        },
+        {
+          "id": "fhinCiTn",
+          "name": "No Problem",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Love Birds 1995/02. No Problem.mp3"
+        },
+        {
+          "id": "lNLCtHXU",
+          "name": "Malargalae",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Love Birds 1995/03. Malargalae.mp3"
+        }
+      ],
+      "totalTracks": 5
+    },
+    {
+      "id": "76212644",
+      "name": "Kadhal Desam",
+      "localPath": "/Volumes/samsung/Music/A.R. Rahman/Kadhal Desam 1996",
+      "songs": [
+        {
+          "id": "6YFP-r1-",
+          "name": "Ennai Kaanavillaiye",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Kadhal Desam 1996/01. Ennai Kaanavillaiye.mp3"
+        },
+        {
+          "id": "0V6c8sCJ",
+          "name": "Hello Doctor",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Kadhal Desam 1996/02. Hello Doctor.mp3"
+        },
+        {
+          "id": "qGG--CY7",
+          "name": "Kalluri Salai",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Kadhal Desam 1996/03. Kalluri Salai.mp3"
+        },
+        {
+          "id": "7GkuVl_Z",
+          "name": "Mustafa Mustafa",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Kadhal Desam 1996/04. Mustafa Mustafa.mp3"
+        }
+      ],
+      "totalTracks": 6
+    },
+    {
+      "id": "17304232",
+      "name": "Minsara Kanavu",
+      "localPath": "/Volumes/samsung/Music/A.R. Rahman/Minsara Kanavu 1997",
+      "songs": [
+        {
+          "id": "Ze8jTXL-",
+          "name": "Strawberry Kanne Vinveli Penne",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Minsara Kanavu 1997/05. Strawberry Kanne Vinveli Penne.mp3"
+        },
+        {
+          "id": "e1M15tNG",
+          "name": "Huu Huu Lalala-Manamadurai",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Minsara Kanavu 1997/02. Huu Huu Lalala-Manamadurai.mp3"
+        },
+        {
+          "id": "CUpE8B84",
+          "name": "Anbendru Mazhaieley Agilangal",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Minsara Kanavu 1997/03. Anbendru Mazhaieley Agilangal.mp3"
+        },
+        {
+          "id": "vjeF2gT5",
+          "name": "Thanga Thamari Magale",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Minsara Kanavu 1997/04. Thanga Thamari Magale.mp3"
+        },
+        {
+          "id": "HjatqdrK",
+          "name": "Poo Pookkum Osai Adhai",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Minsara Kanavu 1997/01. Poo Pookkum Osai Adhai.mp3"
+        },
+        {
+          "id": "Gj2KOsf3",
+          "name": "Vennilave Vennilave Vinnai",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Minsara Kanavu 1997/06. Vennilave Vennilave Vinnai.mp3"
+        }
+      ],
+      "totalTracks": 6
+    },
+    {
+      "id": "3174199",
+      "name": "Iruvar",
+      "localPath": "/Volumes/samsung/Music/A.R. Rahman/Iruvar 1997",
+      "songs": [
+        {
+          "id": "iyFjMsto",
+          "name": "Kannai Kattikkollathae",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Iruvar 1997/01. Kannai Kattikkollathae.mp3"
+        },
+        {
+          "id": "tls5nTq8",
+          "name": "Aayirathil Oruvan",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Iruvar 1997/05. Aayirathil Oruvan.mp3"
+        },
+        {
+          "id": "bDG6c4cF",
+          "name": "Naru Mugaiyae",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Iruvar 1997/06. Naru Mugaiyae.mp3"
+        },
+        {
+          "id": "qnJ2rzLT",
+          "name": "Hello Mr. Ethirkatchi",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Iruvar 1997/08. Hello Mr. Ethirkatchi.mp3"
+        }
+      ],
+      "totalTracks": 8
+    },
+    {
+      "id": "3128520",
+      "name": "En Swasa Kaatre",
+      "localPath": "/Volumes/samsung/Music/A.R. Rahman/En Swasa Kaatre 2000",
+      "songs": [
+        {
+          "id": "GtFGnLnr",
+          "name": "Nayagra",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/En Swasa Kaatre 2000/02. Nayagra.mp3"
+        },
+        {
+          "id": "R9_o9X2F",
+          "name": "Jumballakka",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/En Swasa Kaatre 2000/01. Jumballakka.mp3"
+        },
+        {
+          "id": "ZFtZ6gUp",
+          "name": "Thirakkaatha",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/En Swasa Kaatre 2000/03. Thirakkaatha.mp3"
+        },
+        {
+          "id": "ZV0rFkea",
+          "name": "Oru Thuli",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/En Swasa Kaatre 2000/05. Oru Thuli.mp3"
+        }
+      ],
+      "totalTracks": 6
+    },
+    {
+      "id": "1133892",
+      "name": "Thaalam",
+      "localPath": "/Volumes/samsung/Music/A.R. Rahman/Thaalam 2019",
+      "songs": [
+        {
+          "id": "sf26YFXU",
+          "name": "Kaadhal Yogi",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Thaalam 2019/03. Kaadhal Yogi.mp3"
+        },
+        {
+          "id": "IDOmDonX",
+          "name": "Thaalathil",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Thaalam 2019/07. Thaalathil.mp3"
+        },
+        {
+          "id": "77hEFJhq",
+          "name": "Thaalathil (Western)",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Thaalam 2019/08. Thaalathil (Western).mp3"
+        }
+      ],
+      "totalTracks": 8
+    },
+    {
+      "id": "3161386",
+      "name": "Sangamam",
+      "localPath": "/Volumes/samsung/Music/A.R. Rahman/Sangamam 1999",
+      "songs": [
+        {
+          "id": "lMXBAISC",
+          "name": "Aalaala Kandaa",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Sangamam 1999/01. Aalaala Kandaa.mp3"
+        },
+        {
+          "id": "uPn0jTOU",
+          "name": "Varaaha Nathi",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Sangamam 1999/05. Varaaha Nathi.mp3"
+        },
+        {
+          "id": "h2-kCWSY",
+          "name": "Mazhai Thuli",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Sangamam 1999/06. Mazhai Thuli.mp3"
+        },
+        {
+          "id": "0Lek_Zh_",
+          "name": "Sowkkiyama",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Sangamam 1999/02. Sowkkiyama.mp3"
+        }
+      ],
+      "totalTracks": 6
+    },
+    {
+      "id": "58169743",
+      "name": "Taj Mahal",
+      "localPath": "/Volumes/samsung/Music/A.R. Rahman/Taj Mahal 1999",
+      "songs": [
+        {
+          "id": "UY08IqLu",
+          "name": "Tirupatchi Aruvallu",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Taj Mahal 1999/01. Tirupatchi Aruvallu.mp3"
+        },
+        {
+          "id": "0Te70deH",
+          "name": "Sotta Sotta (Male Version)",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Taj Mahal 1999/02. Sotta Sotta (Male Version).mp3"
+        },
+        {
+          "id": "ZDBlVeHC",
+          "name": "Eetchi Elumichi",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Taj Mahal 1999/05. Eetchi Elumichi.mp3"
+        },
+        {
+          "id": "VulQuRKY",
+          "name": "Eetchi Elumichi - 1",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Taj Mahal 1999/10. Eetchi Elumichi - 1.mp3"
+        },
+        {
+          "id": "ol0lRm74",
+          "name": "Sotta Sotta (Female Version)",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Taj Mahal 1999/09. Sotta Sotta (Female Version).mp3"
+        }
+      ],
+      "totalTracks": 14
+    },
+    {
+      "id": "2616750",
+      "name": "Alaipayuthey",
+      "localPath": "/Volumes/samsung/Music/A.R. Rahman/Alaipayuthey 2000",
+      "songs": [
+        {
+          "id": "TQoUo4qS",
+          "name": "Endrendrum Punnagai",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Alaipayuthey 2000/01. Endrendrum Punnagai.mp3"
+        },
+        {
+          "id": "0i8f9k7s",
+          "name": "Yaro Yarodi",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Alaipayuthey 2000/03. Yaro Yarodi.mp3"
+        },
+        {
+          "id": "PZFR_-3c",
+          "name": "Pachai Nirame",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Alaipayuthey 2000/06. Pachai Nirame.mp3"
+        },
+        {
+          "id": "blx0H5JU",
+          "name": "Kadhal Sadugudu",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Alaipayuthey 2000/08. Kadhal Sadugudu.mp3"
+        },
+        {
+          "id": "zA0vt3oG",
+          "name": "September Madham",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Alaipayuthey 2000/07. September Madham.mp3"
+        },
+        {
+          "id": "cyTFo8f9",
+          "name": "Snehidhane",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Alaipayuthey 2000/09. Snehidhane.mp3"
+        }
+      ],
+      "totalTracks": 9
+    },
+    {
+      "id": "2166466",
+      "name": "Rhythm",
+      "localPath": "/Volumes/samsung/Music/A.R. Rahman/Rhythm 2000",
+      "songs": [
+        {
+          "id": "wq73Uh1g",
+          "name": "Anbay",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Rhythm 2000/01. Anbay.mp3"
+        },
+        {
+          "id": "XWDv_dKB",
+          "name": "Haiyo Paththikkichchu (Fire)",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Rhythm 2000/02. Haiyo Paththikkichchu (Fire).mp3"
+        },
+        {
+          "id": "6tVDjR0V",
+          "name": "Kaattrae En Vaasal (Wind)",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Rhythm 2000/03. Kaattrae En Vaasal (Wind).mp3"
+        },
+        {
+          "id": "FViBlzpY",
+          "name": "Nilamay Poru Nilamay (Land)",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Rhythm 2000/05. Nilamay Poru Nilamay (Land).mp3"
+        },
+        {
+          "id": "wl4GMqT_",
+          "name": "Nadhiyae (Theemthanana)",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Rhythm 2000/04. Nadhiyae (Theemthanana).mp3"
+        }
+      ],
+      "totalTracks": 5
+    },
+    {
+      "id": "2166591",
+      "name": "Thenali",
+      "localPath": "/Volumes/samsung/Music/A.R. Rahman/Thenali 2000",
+      "songs": [
+        {
+          "id": "phMZ7ooe",
+          "name": "Alangatti Mazhai",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Thenali 2000/01. Alangatti Mazhai.mp3"
+        },
+        {
+          "id": "NvIihM2k",
+          "name": "Atthini Chitthini",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Thenali 2000/02. Atthini Chitthini.mp3"
+        },
+        {
+          "id": "7BaNIeEw",
+          "name": "Injarango",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Thenali 2000/03. Injarango.mp3"
+        },
+        {
+          "id": "LddUz3yu",
+          "name": "Thenali Thenali",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Thenali 2000/06. Thenali Thenali.mp3"
+        },
+        {
+          "id": "80UFbLeB",
+          "name": "Swasamae",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Thenali 2000/05. Swasamae.mp3"
+        },
+        {
+          "id": "5jNb5sng",
+          "name": "Porkalam",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Thenali 2000/04. Porkalam.mp3"
+        }
+      ],
+      "totalTracks": 6
+    },
+    {
+      "id": "1074256",
+      "name": "Paarthale Paravasam",
+      "localPath": "/Volumes/samsung/Music/A.R. Rahman/Paarthale Paravasam 2001",
+      "songs": [
+        {
+          "id": "T0LW9cAD",
+          "name": "Neethan Enthan",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Paarthale Paravasam 2001/02. Neethan Enthan.mp3"
+        }
+      ],
+      "totalTracks": 8
+    },
+    {
+      "id": "1050071",
+      "name": "Star",
+      "localPath": "/Volumes/samsung/Music/A.R. Rahman/Star 2001",
+      "songs": [
+        {
+          "id": "wj4I6Syh",
+          "name": "Machcha Machchiniyae",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Star 2001/01. Machcha Machchiniyae.mp3"
+        },
+        {
+          "id": "UuSp5_Xg",
+          "name": "Manasukkul Oru Puyal",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Star 2001/02. Manasukkul Oru Puyal.mp3"
+        },
+        {
+          "id": "bnhJIGno",
+          "name": "Rasiga En Rasiga",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Star 2001/04. Rasiga En Rasiga.mp3"
+        },
+        {
+          "id": "xjWKLcgo",
+          "name": "Thom Karuvil Irunthom",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Star 2001/05. Thom Karuvil Irunthom.mp3"
+        },
+        {
+          "id": "JpkPPody",
+          "name": "Nenthukitten",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Star 2001/03. Nenthukitten.mp3"
+        }
+      ],
+      "totalTracks": 5
+    },
+    {
+      "id": "54308710",
+      "name": "Kannathil Muthamittal",
+      "localPath": "/Volumes/samsung/Music/A.R. Rahman/Kannathil Muthamittal 2002",
+      "songs": [
+        {
+          "id": "Xv8O6Q_O",
+          "name": "Oru Dheivam Thantha Poove (Female)",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Kannathil Muthamittal 2002/01. Oru Dheivam Thantha Poove (Female).mp3"
+        },
+        {
+          "id": "t-MmS_SE",
+          "name": "Oru Dheivam Thantha Poove (Male)",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Kannathil Muthamittal 2002/02. Oru Dheivam Thantha Poove (Male).mp3"
+        }
+      ],
+      "totalTracks": 7
+    },
+    {
+      "id": "1133572",
+      "name": "Baba",
+      "localPath": "/Volumes/samsung/Music/A.R. Rahman/Baba 2002",
+      "songs": [
+        {
+          "id": "79mbKiqj",
+          "name": "Baba Kichchu",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Baba 2002/01. Baba Kichchu.mp3"
+        },
+        {
+          "id": "RvZRx8zn",
+          "name": "Maya Maya",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Baba 2002/03. Maya Maya.mp3"
+        },
+        {
+          "id": "V4gEHjbY",
+          "name": "Shakthi Kodu",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Baba 2002/05. Shakthi Kodu.mp3"
+        },
+        {
+          "id": "Gclg-gb5",
+          "name": "Dippu Dippu",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Baba 2002/02. Dippu Dippu.mp3"
+        }
+      ],
+      "totalTracks": 5
+    },
+    {
+      "id": "1133575",
+      "name": "Boys",
+      "localPath": "/Volumes/samsung/Music/A.R. Rahman/Boys 2003",
+      "songs": [
+        {
+          "id": "saqT_wTP",
+          "name": "Maro Maro",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Boys 2003/04. Maro Maro.mp3"
+        },
+        {
+          "id": "ZuD4M8e6",
+          "name": "Girl Friend",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Boys 2003/03. Girl Friend.mp3"
+        },
+        {
+          "id": "uixgi8X_",
+          "name": "Dating",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Boys 2003/02. Dating.mp3"
+        },
+        {
+          "id": "D-xs_rZD",
+          "name": "Boom Boom",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Boys 2003/01. Boom Boom.mp3"
+        },
+        {
+          "id": "lPeXLSod",
+          "name": "Ale Ale",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Boys 2003/05. Ale Ale.mp3"
+        },
+        {
+          "id": "aLBoLST3",
+          "name": "Secret Of Success",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Boys 2003/06. Secret Of Success.mp3"
+        }
+      ],
+      "totalTracks": 6
+    },
+    {
+      "id": "72291015",
+      "name": "Enakku 20 Unakku 18",
+      "localPath": "/Volumes/samsung/Music/A.R. Rahman/Enakku 20 Unakku 18 2003",
+      "songs": [
+        {
+          "id": "WcDqmXSS",
+          "name": "Asathura Asathura (From \"Ennakku 20 Unakku 18\")",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Enakku 20 Unakku 18 2003/01. Asathura Asathura (From \"Ennakku 20 Unakku 18\").mp3"
+        },
+        {
+          "id": "McPfulTZ",
+          "name": "Azhaginna Azhagi (From \"Ennakku 20 Unakku 18\")",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Enakku 20 Unakku 18 2003/02. Azhaginna Azhagi (From \"Ennakku 20 Unakku 18\").mp3"
+        },
+        {
+          "id": "AiZH5eLX",
+          "name": "Kama Kama (From \"Ennakku 20 Unakku 18\")",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Enakku 20 Unakku 18 2003/03. Kama Kama (From \"Ennakku 20 Unakku 18\").mp3"
+        },
+        {
+          "id": "8_vAnxH0",
+          "name": "Oru Namban (From \"Ennakku 20 Unakku 18\")",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Enakku 20 Unakku 18 2003/04. Oru Namban (From \"Ennakku 20 Unakku 18\").mp3"
+        },
+        {
+          "id": "AO60AxuP",
+          "name": "Santhipoma (From \"Ennakku 20 Unakku 18\")",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Enakku 20 Unakku 18 2003/05. Santhipoma (From \"Ennakku 20 Unakku 18\").mp3"
+        }
+      ],
+      "totalTracks": 6
+    },
+    {
+      "id": "33299097",
+      "name": "Kangalaal Kaidhu Sei",
+      "localPath": "/Volumes/samsung/Music/A.R. Rahman/Kangalaal Kaidhu Sei 2004",
+      "songs": [
+        {
+          "id": "MxQnMqsE",
+          "name": "Azhagiya Cindrella",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Kangalaal Kaidhu Sei 2004/02. Azhagiya Cindrella.mp3"
+        },
+        {
+          "id": "u0Xmewuk",
+          "name": "Aaha Thamizhamma",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Kangalaal Kaidhu Sei 2004/05. Aaha Thamizhamma.mp3"
+        }
+      ],
+      "totalTracks": 5
+    },
+    {
+      "id": "63512480",
+      "name": "New",
+      "localPath": "/Volumes/samsung/Music/A.R. Rahman/New 2025",
+      "songs": [
+        {
+          "id": "0bh2lCdY",
+          "name": "Sakkarai",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/New 2025/02. Sakkarai.mp3"
+        },
+        {
+          "id": "hDccFz_E",
+          "name": "Kalayil Thinamum",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/New 2025/04. Kalayil Thinamum.mp3"
+        },
+        {
+          "id": "4LF-bLTT",
+          "name": "New New",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/New 2025/01. New New.mp3"
+        },
+        {
+          "id": "A11FdlJv",
+          "name": "Thottal Poo Malarum",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/New 2025/03. Thottal Poo Malarum.mp3"
+        },
+        {
+          "id": "Hb79pqz0",
+          "name": "If You Wanna",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/New 2025/05. If You Wanna.mp3"
+        },
+        {
+          "id": "eurzDson",
+          "name": "Kumbakonam",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/New 2025/07. Kumbakonam.mp3"
+        }
+      ],
+      "totalTracks": 7
+    },
+    {
+      "id": "2666604",
+      "name": "Aayitha Ezhutu",
+      "localPath": "/Volumes/samsung/Music/A.R. Rahman/Aayitha Ezhutu 2004",
+      "songs": [
+        {
+          "id": "ZhgvGJVp",
+          "name": "Jana Gana Mana",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Aayitha Ezhutu 2004/02. Jana Gana Mana.mp3"
+        },
+        {
+          "id": "vm4plPD4",
+          "name": "Yaakkai Thiri",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Aayitha Ezhutu 2004/06. Yaakkai Thiri.mp3"
+        },
+        {
+          "id": "MHZPu_sU",
+          "name": "Nenjam Ellam",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Aayitha Ezhutu 2004/05. Nenjam Ellam.mp3"
+        },
+        {
+          "id": "O8zwFtOy",
+          "name": "Hey Goodbye Nanba",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Aayitha Ezhutu 2004/01. Hey Goodbye Nanba.mp3"
+        },
+        {
+          "id": "BXQMq-ZX",
+          "name": "Dol Dol",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Aayitha Ezhutu 2004/04. Dol Dol.mp3"
+        },
+        {
+          "id": "e7L-Y_by",
+          "name": "Sandai Kozhi",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Aayitha Ezhutu 2004/03. Sandai Kozhi.mp3"
+        }
+      ],
+      "totalTracks": 6
+    },
+    {
+      "id": "72290807",
+      "name": "Anbe Aaruyire",
+      "localPath": "/Volumes/samsung/Music/A.R. Rahman/Anbe Aaruyire 2013",
+      "songs": [
+        {
+          "id": "8Ekvy3yJ",
+          "name": "Maramkothiye (From \"Ah…Aah\")",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Anbe Aaruyire 2013/01. Maramkothiye (From \"Ah…Aah\").mp3"
+        },
+        {
+          "id": "xm5rjZZS",
+          "name": "Mayilrage (From \"Anbe Aaruyire\")",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Anbe Aaruyire 2013/02. Mayilrage (From \"Anbe Aaruyire\").mp3"
+        },
+        {
+          "id": "MmbYLjYI",
+          "name": "Anbe Aaruyire (From \"Anbe Aaruyire\")",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Anbe Aaruyire 2013/04. Anbe Aaruyire (From \"Anbe Aaruyire\").mp3"
+        }
+      ],
+      "totalTracks": 6
+    },
+    {
+      "id": "1133588",
+      "name": "Godfather",
+      "localPath": "/Volumes/samsung/Music/Su Cong/Godfather 2006",
+      "songs": [
+        {
+          "id": "d7lM59jv",
+          "name": "Innisai",
+          "audioPath": "/Volumes/samsung/Music/Su Cong/Godfather 2006/03. Innisai.mp3"
+        },
+        {
+          "id": "LAuHn05h",
+          "name": "Innisai ( Remix )",
+          "audioPath": "/Volumes/samsung/Music/Su Cong/Godfather 2006/04. Innisai ( Remix ).mp3"
+        },
+        {
+          "id": "Uklz2rw-",
+          "name": "Ilamai",
+          "audioPath": "/Volumes/samsung/Music/Su Cong/Godfather 2006/01. Ilamai.mp3"
+        },
+        {
+          "id": "vjn83Cpe",
+          "name": "Kaama Kairai",
+          "audioPath": "/Volumes/samsung/Music/Su Cong/Godfather 2006/05. Kaama Kairai.mp3"
+        },
+        {
+          "id": "aOAi1p8H",
+          "name": "Thotha Puram",
+          "audioPath": "/Volumes/samsung/Music/Su Cong/Godfather 2006/08. Thotha Puram.mp3"
+        },
+        {
+          "id": "-wW2Kj84",
+          "name": "Kaatril",
+          "audioPath": "/Volumes/samsung/Music/Su Cong/Godfather 2006/06. Kaatril.mp3"
+        },
+        {
+          "id": "CLkgoQVc",
+          "name": "Theeyil Vizhuntha",
+          "audioPath": "/Volumes/samsung/Music/Su Cong/Godfather 2006/07. Theeyil Vizhuntha.mp3"
+        }
+      ],
+      "totalTracks": 8
+    },
+    {
+      "id": "24195856",
+      "name": "Jodhaa Akbar (Tamil)",
+      "localPath": "/Volumes/samsung/Music/A.R. Rahman/Jodhaa Akbar (Tamil) 2007",
+      "songs": [
+        {
+          "id": "iIPc23Zx",
+          "name": "Azeem O Shaan",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Jodhaa Akbar (Tamil) 2007/01. Azeem O Shaan.mp3"
+        },
+        {
+          "id": "TgumBwb0",
+          "name": "Muzhumathi",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Jodhaa Akbar (Tamil) 2007/05. Muzhumathi.mp3"
+        },
+        {
+          "id": "lLzMPcJS",
+          "name": "Khwaja Endan Khwaja",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Jodhaa Akbar (Tamil) 2007/03. Khwaja Endan Khwaja.mp3"
+        }
+      ],
+      "totalTracks": 7
+    },
+    {
+      "id": "1046405",
+      "name": "Sakkarakatti",
+      "localPath": "/Volumes/samsung/Music/A.R. Rahman/Sakkarakatti 2008",
+      "songs": [
+        {
+          "id": "dh4zODPX",
+          "name": "Taxi Taxi",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Sakkarakatti 2008/01. Taxi Taxi.mp3"
+        },
+        {
+          "id": "4uklEa4f",
+          "name": "Marudaani",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Sakkarakatti 2008/02. Marudaani.mp3"
+        },
+        {
+          "id": "nbS_fF2l",
+          "name": "Chinnama Chilakamma",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Sakkarakatti 2008/04. Chinnama Chilakamma.mp3"
+        }
+      ],
+      "totalTracks": 6
+    },
+    {
+      "id": "12449191",
+      "name": "Raavanan",
+      "localPath": "/Volumes/samsung/Music/A.R. Rahman/Raavanan 2010",
+      "songs": [
+        {
+          "id": "eoBmsWxh",
+          "name": "Veera",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Raavanan 2010/01. Veera.mp3"
+        },
+        {
+          "id": "41VQDqwe",
+          "name": "Usure Pogudhey",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Raavanan 2010/02. Usure Pogudhey.mp3"
+        },
+        {
+          "id": "njDnKlic",
+          "name": "Kodu Poatta",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Raavanan 2010/03. Kodu Poatta.mp3"
+        },
+        {
+          "id": "6yYBpXOh",
+          "name": "Kaattu Sirukki",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Raavanan 2010/04. Kaattu Sirukki.mp3"
+        },
+        {
+          "id": "xu3D439E",
+          "name": "Kalvare",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Raavanan 2010/05. Kalvare.mp3"
+        },
+        {
+          "id": "qYvNv_Rt",
+          "name": "Kedakkari",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Raavanan 2010/06. Kedakkari.mp3"
+        },
+        {
+          "id": "VoQEU1qR",
+          "name": "Naan Varuvene",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Raavanan 2010/07. Naan Varuvene.mp3"
+        }
+      ],
+      "totalTracks": 11
+    },
+    {
+      "id": "1215985",
+      "name": "Enthiran",
+      "localPath": "/Volumes/samsung/Music/A.R. Rahman/Enthiran 2010",
+      "songs": [
+        {
+          "id": "ueV4Xv8b",
+          "name": "Arima Arima",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Enthiran 2010/05. Arima Arima.mp3"
+        },
+        {
+          "id": "Mnvoxjs_",
+          "name": "Irumbile Oru Idhaiyam",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Enthiran 2010/03. Irumbile Oru Idhaiyam.mp3"
+        },
+        {
+          "id": "Ps9P4Yj0",
+          "name": "Boom Boom Robot Da",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Enthiran 2010/07. Boom Boom Robot Da.mp3"
+        },
+        {
+          "id": "WhEx1Dvs",
+          "name": "Kadhal Anukkal",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Enthiran 2010/02. Kadhal Anukkal.mp3"
+        },
+        {
+          "id": "34BMKQZo",
+          "name": "Puthiya Manidha",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Enthiran 2010/01. Puthiya Manidha.mp3"
+        },
+        {
+          "id": "cp6JnpmL",
+          "name": "Kilimanjaro",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Enthiran 2010/06. Kilimanjaro.mp3"
+        },
+        {
+          "id": "BqSAvLhn",
+          "name": "Chitti Dance Showcase",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Enthiran 2010/04. Chitti Dance Showcase.mp3"
+        }
+      ],
+      "totalTracks": 7
+    },
+    {
+      "id": "1132302",
+      "name": "Kadal",
+      "localPath": "/Volumes/samsung/Music/A.R. Rahman/Kadal 2012",
+      "songs": [
+        {
+          "id": "AvZ1RMT0",
+          "name": "Nenjukkule",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Kadal 2012/05. Nenjukkule.mp3"
+        },
+        {
+          "id": "5uvDNjDo",
+          "name": "Elay Keechan",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Kadal 2012/04. Elay Keechan.mp3"
+        },
+        {
+          "id": "YySiJH3z",
+          "name": "Moongil Thottam",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Kadal 2012/03. Moongil Thottam.mp3"
+        },
+        {
+          "id": "W5c1iQz0",
+          "name": "Adiye",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Kadal 2012/02. Adiye.mp3"
+        }
+      ],
+      "totalTracks": 7
+    },
+    {
+      "id": "1140798",
+      "name": "Maryan",
+      "localPath": "/Volumes/samsung/Music/A.R. Rahman/Maryan 2013",
+      "songs": [
+        {
+          "id": "00vceW1I",
+          "name": "Nenjae Yezhu",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Maryan 2013/01. Nenjae Yezhu.mp3"
+        },
+        {
+          "id": "o6NgFBE1",
+          "name": "Innum Konjam Neram",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Maryan 2013/02. Innum Konjam Neram.mp3"
+        },
+        {
+          "id": "-f7Mlr4Q",
+          "name": "Yenga Pona Raasa",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Maryan 2013/05. Yenga Pona Raasa.mp3"
+        },
+        {
+          "id": "D2TLSW08",
+          "name": "I Love My Africa",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Maryan 2013/06. I Love My Africa.mp3"
+        },
+        {
+          "id": "oi2MEaBA",
+          "name": "Netru Aval Irundhaal",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Maryan 2013/03. Netru Aval Irundhaal.mp3"
+        },
+        {
+          "id": "UaBmZpSc",
+          "name": "Sonapareeya",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Maryan 2013/04. Sonapareeya.mp3"
+        },
+        {
+          "id": "XJYDxNwh",
+          "name": "Kadal Raasa Naan",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Maryan 2013/07. Kadal Raasa Naan.mp3"
+        }
+      ],
+      "totalTracks": 7
+    },
+    {
+      "id": "1151783",
+      "name": "Kochadaiiyaan",
+      "localPath": "/Volumes/samsung/Music/A.R. Rahman/Kochadaiiyaan 2013",
+      "songs": [
+        {
+          "id": "g0J8e0Su",
+          "name": "Engae Pogudho Vaanam",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Kochadaiiyaan 2013/01. Engae Pogudho Vaanam.mp3"
+        }
+      ],
+      "totalTracks": 9
+    },
+    {
+      "id": "33098367",
+      "name": "Lingaa (Tamil)",
+      "localPath": "/Volumes/samsung/Music/A.R. Rahman/Lingaa (Tamil) 2014",
+      "songs": [
+        {
+          "id": "MAz832so",
+          "name": "Mona Gasolina",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Lingaa (Tamil) 2014/01. Mona Gasolina.mp3"
+        },
+        {
+          "id": "W2_cu3OX",
+          "name": "En Mannavaa",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Lingaa (Tamil) 2014/03. En Mannavaa.mp3"
+        },
+        {
+          "id": "xxhQBL2w",
+          "name": "Indiane Vaa",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Lingaa (Tamil) 2014/02. Indiane Vaa.mp3"
+        }
+      ],
+      "totalTracks": 5
+    },
+    {
+      "id": "1197391",
+      "name": "I",
+      "localPath": "/Volumes/samsung/Music/A.R. Rahman/I 2014",
+      "songs": [
+        {
+          "id": "VF4bXxJA",
+          "name": "Ennodu Nee Irundhaal",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/I 2014/02. Ennodu Nee Irundhaal.mp3"
+        },
+        {
+          "id": "A3wgmkxR",
+          "name": "Mersalaayitten",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/I 2014/01. Mersalaayitten.mp3"
+        },
+        {
+          "id": "xPfYbSX7",
+          "name": "Pookkalae Sattru Oyivedungal",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/I 2014/04. Pookkalae Sattru Oyivedungal.mp3"
+        }
+      ],
+      "totalTracks": 7
+    },
+    {
+      "id": "3194931",
+      "name": "O Kadhal Kanmani",
+      "localPath": "/Volumes/samsung/Music/A.R. Rahman/O Kadhal Kanmani 2015",
+      "songs": [
+        {
+          "id": "Ru7bdET4",
+          "name": "Kaara Aattakkaara",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/O Kadhal Kanmani 2015/01. Kaara Aattakkaara.mp3"
+        },
+        {
+          "id": "btxTrciK",
+          "name": "Mental Manadhil",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/O Kadhal Kanmani 2015/04. Mental Manadhil.mp3"
+        },
+        {
+          "id": "LJE8xo1i",
+          "name": "Mental Manadhil (Female)",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/O Kadhal Kanmani 2015/07. Mental Manadhil (Female).mp3"
+        }
+      ],
+      "totalTracks": 9
+    },
+    {
+      "id": "10460089",
+      "name": "Kaatru Veliyidai",
+      "localPath": "/Volumes/samsung/Music/A.R. Rahman/Kaatru Veliyidai 2017",
+      "songs": [
+        {
+          "id": "tmCVbCY2",
+          "name": "Saarattu Vandiyila",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Kaatru Veliyidai 2017/04. Saarattu Vandiyila.mp3"
+        },
+        {
+          "id": "xpR_x1bQ",
+          "name": "Azhagiye",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Kaatru Veliyidai 2017/02. Azhagiye.mp3"
+        },
+        {
+          "id": "jD-VDWw1",
+          "name": "Vaan",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Kaatru Veliyidai 2017/03. Vaan.mp3"
+        }
+      ],
+      "totalTracks": 6
+    },
+    {
+      "id": "13971681",
+      "name": "Chekka Chivantha Vaanam",
+      "localPath": "/Volumes/samsung/Music/A.R. Rahman/Chekka Chivantha Vaanam 2018",
+      "songs": [
+        {
+          "id": "ZG0pemnt",
+          "name": "Bhoomi Bhoomi",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Chekka Chivantha Vaanam 2018/01. Bhoomi Bhoomi.mp3"
+        },
+        {
+          "id": "46JrZRWY",
+          "name": "Hayati",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Chekka Chivantha Vaanam 2018/05. Hayati.mp3"
+        },
+        {
+          "id": "t8RgVWCW",
+          "name": "Mazhai Kuruvi",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Chekka Chivantha Vaanam 2018/02. Mazhai Kuruvi.mp3"
+        },
+        {
+          "id": "B7sS_RSL",
+          "name": "Kalla Kalavaani",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Chekka Chivantha Vaanam 2018/04. Kalla Kalavaani.mp3"
+        },
+        {
+          "id": "dBQ0pjF_",
+          "name": "Sevandhu Pochu Nenju",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Chekka Chivantha Vaanam 2018/03. Sevandhu Pochu Nenju.mp3"
+        }
+      ],
+      "totalTracks": 7
+    },
+    {
+      "id": "14006238",
+      "name": "Sarkar (Tamil)",
+      "localPath": "/Volumes/samsung/Music/A.R. Rahman/Sarkar (Tamil) 2018",
+      "songs": [
+        {
+          "id": "8yEh4y64",
+          "name": "Simtaangaran",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Sarkar (Tamil) 2018/01. Simtaangaran.mp3"
+        },
+        {
+          "id": "WLfq_pYc",
+          "name": "OMG Ponnu",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Sarkar (Tamil) 2018/04. OMG Ponnu.mp3"
+        },
+        {
+          "id": "cWJoQtdP",
+          "name": "CEO in the House",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Sarkar (Tamil) 2018/05. CEO in the House.mp3"
+        },
+        {
+          "id": "7hdofP0l",
+          "name": "Top Tucker",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Sarkar (Tamil) 2018/03. Top Tucker.mp3"
+        },
+        {
+          "id": "_xG2QHkb",
+          "name": "Oru Viral Puratchi",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Sarkar (Tamil) 2018/02. Oru Viral Puratchi.mp3"
+        }
+      ],
+      "totalTracks": 5
+    },
+    {
+      "id": "11700387",
+      "name": "2.0 (Tamil) [Original Motion Picture Soundtrack]",
+      "localPath": "/Volumes/samsung/Music/A.R. Rahman/2.0 (Tamil) [Original Motion Picture Soundtrack] 2018",
+      "songs": [
+        {
+          "id": "aFBP7LP_",
+          "name": "Endhira Logathu Sundariye (From \"2. 0\")",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/2.0 (Tamil) [Original Motion Picture Soundtrack] 2018/01. Endhira Logathu Sundariye (From \"2. 0\").mp3"
+        },
+        {
+          "id": "ui3mj3j3",
+          "name": "Raajali (From \"2. 0\")",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/2.0 (Tamil) [Original Motion Picture Soundtrack] 2018/02. Raajali (From \"2. 0\").mp3"
+        },
+        {
+          "id": "S1uFk2a5",
+          "name": "Pullinangal (From \"2. 0\")",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/2.0 (Tamil) [Original Motion Picture Soundtrack] 2018/03. Pullinangal (From \"2. 0\").mp3"
+        }
+      ],
+      "totalTracks": 3
+    },
+    {
+      "id": "14501532",
+      "name": "Sarvam Thaala Mayam",
+      "localPath": "/Volumes/samsung/Music/A.R. Rahman/Sarvam Thaala Mayam 2019",
+      "songs": [
+        {
+          "id": "dumlPGBg",
+          "name": "Sarvam Thaala Mayam",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Sarvam Thaala Mayam 2019/01. Sarvam Thaala Mayam.mp3"
+        },
+        {
+          "id": "SoMVPMrW",
+          "name": "Peter Beatu Yethu",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Sarvam Thaala Mayam 2019/03. Peter Beatu Yethu.mp3"
+        }
+      ],
+      "totalTracks": 6
+    },
+    {
+      "id": "17334386",
+      "name": "Bigil",
+      "localPath": "/Volumes/samsung/Music/A.R. Rahman/Bigil 2019",
+      "songs": [
+        {
+          "id": "eTzVoWQe",
+          "name": "Singappenney",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Bigil 2019/01. Singappenney.mp3"
+        },
+        {
+          "id": "9ZsGIwO5",
+          "name": "Verithanam",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Bigil 2019/02. Verithanam.mp3"
+        },
+        {
+          "id": "JyKELKrH",
+          "name": "Bigil Bigil Bigiluma",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Bigil 2019/05. Bigil Bigil Bigiluma.mp3"
+        },
+        {
+          "id": "-Nn9rlop",
+          "name": "Unakaga",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Bigil 2019/03. Unakaga.mp3"
+        }
+      ],
+      "totalTracks": 5
+    },
+    {
+      "id": "28320036",
+      "name": "Navarasa",
+      "localPath": "/Volumes/samsung/Music/Karthik/Navarasa 2021",
+      "songs": [
+        {
+          "id": "QkFUdVod",
+          "name": "Thooriga",
+          "audioPath": "/Volumes/samsung/Music/Karthik/Navarasa 2021/02. Thooriga.mp3"
+        },
+        {
+          "id": "sHfKPgJH",
+          "name": "Naanum",
+          "audioPath": "/Volumes/samsung/Music/Karthik/Navarasa 2021/08. Naanum.mp3"
+        }
+      ],
+      "totalTracks": 12
+    },
+    {
+      "id": "36403892",
+      "name": "Cobra",
+      "localPath": "/Volumes/samsung/Music/A.R. Rahman/Cobra 2020",
+      "songs": [
+        {
+          "id": "2KWXOl-q",
+          "name": "Adheeraa",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Cobra 2020/02. Adheeraa.mp3"
+        }
+      ],
+      "totalTracks": 5
+    },
+    {
+      "id": "31484135",
+      "name": "Vendhu Thanindhathu Kaadu (Original Motion Picture Soundtrack)",
+      "localPath": "/Volumes/samsung/Music/A.R. Rahman/Vendhu Thanindhathu Kaadu (Original Motion Picture Soundtrack) 2021",
+      "songs": [
+        {
+          "id": "1-8RxwUZ",
+          "name": "Kaalathukkum Nee Venum",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Vendhu Thanindhathu Kaadu (Original Motion Picture Soundtrack) 2021/02. Kaalathukkum Nee Venum.mp3"
+        },
+        {
+          "id": "HifBw1Ku",
+          "name": "Marakkuma Nenjam",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Vendhu Thanindhathu Kaadu (Original Motion Picture Soundtrack) 2021/04. Marakkuma Nenjam.mp3"
+        },
+        {
+          "id": "FfoGTeLj",
+          "name": "Mallipoo",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Vendhu Thanindhathu Kaadu (Original Motion Picture Soundtrack) 2021/09. Mallipoo.mp3"
+        }
+      ],
+      "totalTracks": 9
+    },
+    {
+      "id": "53496710",
+      "name": "Ponniyin Selvan Part - 1",
+      "localPath": "/Volumes/samsung/Music/A.R. Rahman/Ponniyin Selvan Part - 1 2022",
+      "songs": [
+        {
+          "id": "1ORhfVzc",
+          "name": "Ponni Nadhi (From \"Ponniyin Selvan Part - 1\")",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Ponniyin Selvan Part - 1 2022/04. Ponni Nadhi (From \"Ponniyin Selvan Part - 1\").mp3"
+        }
+      ],
+      "totalTracks": 6
+    },
+    {
+      "id": "43664743",
+      "name": "Pathu Thala",
+      "localPath": "/Volumes/samsung/Music/A.R. Rahman/Pathu Thala 2023",
+      "songs": [
+        {
+          "id": "njYEPZ_4",
+          "name": "Nee Singam Dhan",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Pathu Thala 2023/03. Nee Singam Dhan.mp3"
+        }
+      ],
+      "totalTracks": 4
+    },
+    {
+      "id": "43946054",
+      "name": "Osarattum Pathu Thala (From \"Pathu Thala\")",
+      "localPath": "/Volumes/samsung/Music/A.R. Rahman/Osarattum Pathu Thala (From -Pathu Thala-) 2023",
+      "songs": [
+        {
+          "id": "uVAEjP2n",
+          "name": "Osarattum Pathu Thala (From \"Pathu Thala\")",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Osarattum Pathu Thala (From -Pathu Thala-) 2023/01. Osarattum Pathu Thala (From \"Pathu Thala\").mp3"
+        }
+      ],
+      "totalTracks": 1
+    },
+    {
+      "id": "45678116",
+      "name": "Maamannan",
+      "localPath": "/Volumes/samsung/Music/A.R. Rahman/Maamannan 2023",
+      "songs": [
+        {
+          "id": "f5qzTLRh",
+          "name": "Nenjame Nenjame",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Maamannan 2023/02. Nenjame Nenjame.mp3"
+        }
+      ],
+      "totalTracks": 7
+    },
+    {
+      "id": "46670088",
+      "name": "Nenjame Nenjame (Reprise) (From \"Maamannan\")",
+      "localPath": "/Volumes/samsung/Music/A.R. Rahman/Nenjame Nenjame (Reprise) (From -Maamannan-) 2023",
+      "songs": [
+        {
+          "id": "aGUHVRYp",
+          "name": "Nenjame Nenjame (Reprise) [From \"Maamannan\"]",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Nenjame Nenjame (Reprise) (From -Maamannan-) 2023/01. Nenjame Nenjame (Reprise) [From \"Maamannan\"].mp3"
+        }
+      ],
+      "totalTracks": 1
+    },
+    {
+      "id": "55919675",
+      "name": "Raayan",
+      "localPath": "/Volumes/samsung/Music/A.R. Rahman/Raayan 2024",
+      "songs": [
+        {
+          "id": "U3toC5j0",
+          "name": "Adangaatha Asuran",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Raayan 2024/01. Adangaatha Asuran.mp3"
+        }
+      ],
+      "totalTracks": 5
     }
   ]
 }

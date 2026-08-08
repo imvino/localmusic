@@ -708,11 +708,10 @@ function AppContent() {
 
   return (
     <div className="flex h-screen bg-black text-white overflow-hidden flex-col md:flex-row">
-      <audio 
-        ref={audioRef} 
-        className="hidden" 
-        playsInline 
-        webkit-playsinline 
+      <audio
+        ref={audioRef}
+        className="hidden"
+        playsInline
         crossOrigin="anonymous"
       />
       
