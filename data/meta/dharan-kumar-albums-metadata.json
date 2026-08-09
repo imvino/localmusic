@@ -1,0 +1,267 @@
+{
+  "artistId": "544482",
+  "artistName": "Dharan Kumar",
+  "source": "Wikipedia + JioSaavn API",
+  "extractedAt": "2026-08-09T10:24:50.949Z",
+  "totalAlbums": 32,
+  "foundAlbums": 27,
+  "notFoundAlbums": 5,
+  "albums": [
+    {
+      "title": "Parijatham",
+      "year": 2006,
+      "language": "Tamil",
+      "id": "12284325",
+      "image": "https://c.saavncdn.com/026/Parijatham-Tamil-2005-20180216-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Sivi",
+      "year": 2007,
+      "language": "Tamil",
+      "id": "44295607",
+      "image": "https://c.saavncdn.com/712/Sivi-Tamil-2021-20230407030243-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Yaaradi Nee Mohini",
+      "year": 2008,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Laadam",
+      "year": 2009,
+      "language": "Tamil",
+      "id": "2666636",
+      "image": "https://c.saavncdn.com/824/Laadam-Tamil-2008-20190629141125-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Naan Aval Adhu",
+      "year": 2009,
+      "language": "Tamil",
+      "id": "1658256",
+      "image": "https://c.saavncdn.com/795/Naan-Aval-Adhu-Tamil-2008-20200518122809-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Siddu +2",
+      "year": 2009,
+      "language": "Tamil",
+      "id": "2666975",
+      "image": "https://c.saavncdn.com/991/Siddu-2-First-Attempt-Tamil-2010-20200627073928-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Thambikku Indha Ooru",
+      "year": 2010,
+      "language": "Tamil",
+      "id": "2666679",
+      "image": "https://c.saavncdn.com/561/Thambikku-Indha-Ooru-Tamil-2010-20200627073911-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Podaa Podi",
+      "year": 2012,
+      "language": "Tamil",
+      "id": "1095924",
+      "image": "https://c.saavncdn.com/729/Podaa-Podi-Tamil-2012-20190822132050-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Samar",
+      "year": 2013,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Virattu",
+      "year": 2013,
+      "language": "Tamil",
+      "id": "12449210",
+      "image": "https://c.saavncdn.com/353/Virattu-Tamil-2013-20190822134536-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Endrendrum",
+      "year": 2013,
+      "language": "Tamil",
+      "id": "1142512",
+      "image": "https://c.saavncdn.com/286/Endrendrum-Tamil-2013-20190822135847-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Thagaraaru",
+      "year": 2013,
+      "language": "Tamil",
+      "id": "1147183",
+      "image": "https://c.saavncdn.com/427/Thagaraaru-Tamil-2013-20190822141505-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Inga Enna Solluthu",
+      "year": 2013,
+      "language": "Tamil",
+      "id": "1164218",
+      "image": "https://c.saavncdn.com/530/Inga-Enna-Solludhu-Original-Motion-Picture-Soundtrack-Tamil-2013-20250910160530-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Aaha Kalyanam",
+      "year": 2014,
+      "language": "Tamil",
+      "id": "1149883",
+      "image": "https://c.saavncdn.com/364/Aaha-Kalyanam1-Tamil-2014-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Naaigal Jaakirathai",
+      "year": 2014,
+      "language": "Tamil",
+      "id": "1195586",
+      "image": "https://c.saavncdn.com/239/Naaigal-Jaakirathai-Tamil-2014-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Kaaval",
+      "year": 2015,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Manal Kayiru 2",
+      "year": 2016,
+      "language": "Tamil",
+      "id": "23845305",
+      "image": "https://c.saavncdn.com/139/Manal-Kayiru-2-Tamil-2016-20260210193755-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Kadhal Kasakuthaiya",
+      "year": 2017,
+      "language": "Tamil",
+      "id": "11398861",
+      "image": "https://c.saavncdn.com/861/Kadhal-Kasakuthaiya-Tamil-2017-20170828112749-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Abhiyum Anuvum",
+      "year": 2018,
+      "language": "Tamil",
+      "id": "11428593",
+      "image": "https://c.saavncdn.com/400/Abhiyum-Anuvum-Tamil-2017-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Maanik",
+      "year": 2018,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Zhagaram",
+      "year": 2019,
+      "language": "Tamil",
+      "id": "44295394",
+      "image": "https://c.saavncdn.com/201/Idhu-Varai-Naan-From-Zhagaram-Tamil-2018-20230407025942-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Natpuna Ennanu Theriyuma",
+      "year": 2019,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Puppy",
+      "year": 2019,
+      "language": "Tamil",
+      "id": "17548585",
+      "image": "https://c.saavncdn.com/399/Puppy-Tamil-2019-20191009115400-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "50/50",
+      "year": 2019,
+      "language": "Tamil",
+      "id": "44115801",
+      "image": "https://c.saavncdn.com/825/50-50-Tamil-2019-20230401052436-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Irandam Kuththu",
+      "year": 2020,
+      "language": "Tamil",
+      "id": "28194933",
+      "image": "https://c.saavncdn.com/873/Irandam-Kuththu-Tamil-2020-20210702195824-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Devadas Brothers",
+      "year": 2021,
+      "language": "Tamil",
+      "id": "29674982",
+      "image": "https://c.saavncdn.com/068/Devadas-Brothers-Tamil-2021-20210915141841-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Naduvan",
+      "year": 2021,
+      "language": "Tamil",
+      "id": "26139804",
+      "image": "https://c.saavncdn.com/076/Naduvan-Original-Motion-Picture-Soundtrack--Tamil-2021-20210324133622-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Murungakkai Chips",
+      "year": 2021,
+      "language": "Tamil",
+      "id": "29086904",
+      "image": "https://c.saavncdn.com/951/Murungakkai-Chips-Original-Motion-Picture-Soundtrack--Tamil-2021-20210817170847-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Pistha",
+      "year": 2022,
+      "language": "Tamil",
+      "id": "18025260",
+      "image": "https://c.saavncdn.com/591/Pistha-Tamil-2019-20220930182859-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Aruvaa Sanda",
+      "year": 2022,
+      "language": "Tamil",
+      "id": "44115772",
+      "image": "https://c.saavncdn.com/452/Aruva-Sanda-Tamil-2022-20230401052430-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Nitham Oru Vaanam",
+      "year": 2022,
+      "language": "Tamil",
+      "id": "38943472",
+      "image": "https://c.saavncdn.com/809/Nitham-Oru-Vaanam-Tamil-2022-20221104115905-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Made in Korea",
+      "year": 2026,
+      "language": "Tamil",
+      "id": "73679030",
+      "image": "https://c.saavncdn.com/569/Made-in-Korea-Soundtrack-from-the-Netflix-Film-Tamil-2026-20260322031005-150x150.jpg",
+      "found": true
+    }
+  ]
+}

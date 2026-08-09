@@ -4,7 +4,8 @@ import { useNavigate } from 'react-router-dom'
 import MetaTags from '../components/MetaTags'
 import HorizontalScroll from '../components/HorizontalScroll'
 import { decodeHtmlEntities } from '../utils'
-import { useJioFooterDetails, useJioFeaturedPlaylists, useJioNewReleases } from '../hooks/useApi'
+import { useJioFeaturedPlaylists, useJioNewReleases } from '../hooks/useApi'
+import { useArtistConfig } from '../artist-config'
 
 const API_BASE = import.meta.env.VITE_API_URL
 const isProduction = import.meta.env.MODE === 'production'
@@ -26,28 +27,24 @@ export default function DiscoverView({ onSongClick }) {
   const [downloadProgress, setDownloadProgress] = useState({})
   const appUrl = import.meta.env.VITE_APP_URL
 
-  // Fetch JioSaavn data
-  const { data: footerData, isLoading: footerLoading } = useJioFooterDetails()
+  // Fetch artist config and JioSaavn data
+  const { config: artistConfig, loading: configLoading } = useArtistConfig()
   const { data: featuredPlaylistsData, isLoading: playlistsLoading } = useJioFeaturedPlaylists()
   const { data: newReleasesData, isLoading: songsLoading } = useJioNewReleases()
 
-  const loading = footerLoading || playlistsLoading || songsLoading
+  const loading = configLoading || playlistsLoading || songsLoading
 
-  // Process top artists
-  const topArtists = (footerData?.artist || []).slice(0, 6).map(artist => ({
-    id: artist.id,
-    name: artist.title,
-    image: artist.image || '',
-    views: '0'
-  }))
-
-  // Process top playlists from footer
-  const topPlaylists = (footerData?.playlist || []).slice(0, 15).map(playlist => ({
-    id: playlist.id,
-    name: playlist.title,
-    image: playlist.image || '',
-    songCount: 0
-  }))
+  // Process top artists from config
+  const artistIds = Object.keys(artistConfig.customAlbums || {})
+  const topArtists = artistIds.map(artistId => {
+    const artistInfo = artistConfig.customAlbums[artistId]
+    return {
+      id: artistId,
+      name: artistInfo.name,
+      image: artistInfo.image || '',
+      views: '0'
+    }
+  })
 
   // Process featured playlists
   const featuredPlaylists = (featuredPlaylistsData || []).slice(0, 10).map(playlist => ({
@@ -135,17 +132,6 @@ export default function DiscoverView({ onSongClick }) {
           <PlaylistCard playlist={playlist} onPlaylistClick={handlePlaylistClick} />
         )}
         emptyMessage="No featured playlists found"
-      />
-
-      {/* Top Playlists */}
-      <HorizontalScroll
-        title="Top Playlists"
-        icon={ListMusic}
-        items={topPlaylists}
-        renderItem={(playlist) => (
-          <PlaylistCard playlist={playlist} onPlaylistClick={handlePlaylistClick} />
-        )}
-        emptyMessage="No top playlists found"
       />
     </div>
   )

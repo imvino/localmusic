@@ -54,11 +54,24 @@ async function verifyAlbum(albumId, expectedTitle) {
     }
     
     // Check composer (should include the specified composer)
+    // First check composers field, then check artists array with music role
+    // Normalize spaces for comparison (e.g., "G. V." vs "G.V.")
+    const normalizeName = (name) => name.replace(/\s+/g, '').toLowerCase();
+    const normalizedComposer = normalizeName(composer);
+    
     const composers = data.composers || [];
-    const hasComposer = composers.some(c => 
-      c && (c.name || c).toLowerCase().includes(composer.toLowerCase())
+    const hasComposerInComposers = composers.some(c => 
+      c && normalizeName(c.name || c).includes(normalizedComposer)
     );
-    if (!hasComposer) {
+    
+    let hasComposerInArtists = false;
+    if (!hasComposerInComposers && data.artists && data.artists.all) {
+      hasComposerInArtists = data.artists.all.some(a => 
+        a && a.name && normalizeName(a.name).includes(normalizedComposer)
+      );
+    }
+    
+    if (!hasComposerInComposers && !hasComposerInArtists) {
       console.log(`  ✗ Album ${albumId} composer does not include ${composer}`);
       return false;
     }
@@ -87,6 +100,17 @@ async function main() {
   const wikipediaData = JSON.parse(fs.readFileSync(inputFile, 'utf8'));
   console.log(`Processing ${wikipediaData.length} albums from Wikipedia...\n`);
   
+  // Fetch all albums for the artist from JioSaavn API
+  console.log(`Fetching all albums for artist ${artistId}...`);
+  const artistResponse = await axios.get(`${API_BASE}/artist/${artistId}`);
+  if (!artistResponse.data.success || !artistResponse.data.data) {
+    console.error('Failed to fetch artist data');
+    process.exit(1);
+  }
+  
+  const artistAlbums = artistResponse.data.data.topAlbums || [];
+  console.log(`Found ${artistAlbums.length} albums on JioSaavn for this artist\n`);
+  
   const albumsWithMetadata = [];
   let foundCount = 0;
   let notFoundCount = 0;
@@ -95,46 +119,26 @@ async function main() {
     const albumName = album.albumName || album.name;
     const year = album.year;
     
-    // Try multiple search queries with fallback
-    const searchQueries = [
-      `${albumName} ${composer} tamil`,
-      `${albumName} ${composer}`,
-      albumName
-    ];
-    
+    // Try to find matching album in artist's album list
     let verifiedMatch = null;
-    let usedQuery = null;
     
-    for (const searchQuery of searchQueries) {
-      console.log(`Searching for: ${searchQuery}`);
+    for (const artistAlbum of artistAlbums) {
+      if (!artistAlbum.id) continue;
       
-      // Search for album
-      const searchResults = await fetchFromMusicServiceOfficial('search.getAlbumResults', {
-        q: searchQuery,
-        p: 1,
-        n: 10
-      });
+      // Check language first (should be Tamil)
+      const language = (artistAlbum.language || '').toLowerCase();
+      if (!language.includes('tamil')) continue;
       
-      if (searchResults && searchResults.results) {
-        const results = Object.values(searchResults.results);
-        
-        // Try each result and verify it
-        for (const result of results) {
-          if (result.id) {
-            const isVerified = await verifyAlbum(result.id, albumName);
-            if (isVerified) {
-              verifiedMatch = result;
-              usedQuery = searchQuery;
-              break;
-            }
-          }
-        }
-        
-        if (verifiedMatch) break;
+      // Check name with fuzzy match
+      const apiName = artistAlbum.name || '';
+      if (!fuzzyMatchAlbumName(albumName, apiName)) continue;
+      
+      // Verify the album to check composer
+      const isVerified = await verifyAlbum(artistAlbum.id, albumName);
+      if (isVerified) {
+        verifiedMatch = artistAlbum;
+        break;
       }
-      
-      // Add delay between fallback queries to avoid rate limiting
-      await new Promise(resolve => setTimeout(resolve, 2000));
     }
     
     let albumMetadata = {
@@ -151,16 +155,16 @@ async function main() {
       albumMetadata.image = getBestImage(verifiedMatch.image);
       albumMetadata.found = true;
       foundCount++;
-      console.log(`✓ Found and verified: ${albumName} (ID: ${albumMetadata.id}) using query: "${usedQuery}"`);
+      console.log(`✓ Found and verified: ${albumName} (ID: ${albumMetadata.id})`);
     } else {
       notFoundCount++;
-      console.log(`✗ No verified match found for: ${albumName} (tried all fallback queries)`);
+      console.log(`✗ No verified match found for: ${albumName}`);
     }
     
     albumsWithMetadata.push(albumMetadata);
     
-    // Add delay between albums to avoid rate limiting
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    // Add delay between album verifications to avoid rate limiting
+    await new Promise(resolve => setTimeout(resolve, 500));
   }
   
   // Create final metadata structure

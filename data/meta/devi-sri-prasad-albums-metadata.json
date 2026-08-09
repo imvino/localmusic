@@ -1,0 +1,203 @@
+{
+  "artistId": "455170",
+  "artistName": "Devi Sri Prasad",
+  "source": "Wikipedia + JioSaavn API",
+  "extractedAt": "2026-08-09T09:26:21.632Z",
+  "totalAlbums": 24,
+  "foundAlbums": 22,
+  "notFoundAlbums": 2,
+  "albums": [
+    {
+      "title": "Inidhu Inidhu Kadhal Inidhu",
+      "year": 2003,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Ice",
+      "year": 2003,
+      "language": "Tamil",
+      "id": "33136004",
+      "image": "https://c.saavncdn.com/026/Ice-Tamil-2025-20250930143633-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Maayavi",
+      "year": 2005,
+      "language": "Tamil",
+      "id": "16041105",
+      "image": "https://c.saavncdn.com/006/Maayavi-Tamil-2006-20190531160602-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Sachein",
+      "year": 2005,
+      "language": "Tamil",
+      "id": "16041116",
+      "image": "https://c.saavncdn.com/009/Sachien-Tamil-2009-20190531160602-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Mazhai",
+      "year": 2005,
+      "language": "Tamil",
+      "id": "10785966",
+      "image": "https://c.saavncdn.com/082/Mazhai-Tamil-2005-20201214110038-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Aaru",
+      "year": 2005,
+      "language": "Tamil",
+      "id": "1133561",
+      "image": "https://c.saavncdn.com/072/Aaru-2005-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Unakkum Enakkum",
+      "year": 2006,
+      "language": "Tamil",
+      "id": "2762856",
+      "image": "https://c.saavncdn.com/231/Something-Something-Unakkum-Enakkum-Tamil-2006-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Santosh Subramaniam",
+      "year": 2008,
+      "language": "Tamil",
+      "id": "1982497",
+      "image": "https://c.saavncdn.com/828/Santhosh-Subramaniyam-Tamil-2008-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Villu",
+      "year": 2009,
+      "language": "Tamil",
+      "id": "38214154",
+      "image": "https://c.saavncdn.com/320/Villu-Tamil-2009-20251230163348-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Kanthaswamy",
+      "year": 2009,
+      "language": "Tamil",
+      "id": "12449218",
+      "image": "https://c.saavncdn.com/848/Kanthaswamy-Tamil-2009-20190629141253-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Kutty",
+      "year": 2010,
+      "language": "Tamil",
+      "id": "2666587",
+      "image": "https://c.saavncdn.com/733/Kutty-Tamil-2010-20200627073711-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Singam",
+      "year": 2010,
+      "language": "Tamil",
+      "id": "2666963",
+      "image": "https://c.saavncdn.com/750/Singam-Tamil-2010-20190731134123-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Manmadan Ambu",
+      "year": 2010,
+      "language": "Tamil",
+      "id": "1037824",
+      "image": "https://c.saavncdn.com/931/Manmadan-Ambu-Tamil-2010-20191126113359-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Venghai",
+      "year": 2011,
+      "language": "Tamil",
+      "id": "2666590",
+      "image": "https://c.saavncdn.com/871/Venghai-Tamil-2011-20190731131116-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Alex Pandian",
+      "year": 2013,
+      "language": "Tamil",
+      "id": "25247353",
+      "image": "https://c.saavncdn.com/157/Alex-Pandiyan-Tamil-2013-20210622233744-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Singam II",
+      "year": 2013,
+      "language": "Tamil",
+      "id": "78700565",
+      "image": "https://c.saavncdn.com/320/Singam-2-Tamil-2013-20260731023421-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Veeram",
+      "year": 2014,
+      "language": "Tamil",
+      "id": "1224509",
+      "image": "https://c.saavncdn.com/455/Veeram-Tamil-2013-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Bramman",
+      "year": 2014,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Puli",
+      "year": 2015,
+      "language": "Tamil",
+      "id": "1298035",
+      "image": "https://c.saavncdn.com/401/Puli-Tamil-2015-20260120201356-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Saamy Square",
+      "year": 2018,
+      "language": "Tamil",
+      "id": "13479121",
+      "image": "https://c.saavncdn.com/955/Saamy-Square-Tamil-2018-20180723125921-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "The Warriorr",
+      "year": 2022,
+      "language": "Tamil",
+      "id": "34444042",
+      "image": "https://c.saavncdn.com/000/The-Warriorr-Tamil-Tamil-2022-20220706185247-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Rathnam",
+      "year": 2024,
+      "language": "Tamil",
+      "id": "51741948",
+      "image": "https://c.saavncdn.com/000/Rathnam-Tamil-Tamil-2024-20240429175946-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Kanguva",
+      "year": 2024,
+      "language": "Tamil",
+      "id": "60414152",
+      "image": "https://c.saavncdn.com/247/Kanguva-Tamil-Tamil-2024-20241211104206-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Kuberaa",
+      "year": 2025,
+      "language": "Tamil",
+      "id": "63918411",
+      "image": "https://c.saavncdn.com/079/Kuberaa-Tamil-Tamil-2025-20250718113545-150x150.jpg",
+      "found": true
+    }
+  ]
+}

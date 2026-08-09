@@ -10694,45 +10694,6 @@
       "totalTracks": 9
     },
     {
-      "id": "53752959",
-      "name": "Coolie Disco (From \"Coolie\")",
-      "localPath": "/Volumes/samsung/Music/Anirudh Ravichander/Coolie Disco (From -Coolie-) 2024",
-      "songs": [
-        {
-          "id": "F-56awXj",
-          "name": "Coolie Disco (From \"Coolie\")",
-          "audioPath": "/Volumes/samsung/Music/Anirudh Ravichander/Coolie Disco (From -Coolie-) 2024/01. Coolie Disco (From -Coolie-).mp3"
-        }
-      ],
-      "totalTracks": 1
-    },
-    {
-      "id": "66532010",
-      "name": "Powerhouse (From \"Coolie\") (Tamil)",
-      "localPath": "/Volumes/samsung/Music/Anirudh Ravichander/Powerhouse (From -Coolie-) (Tamil) 2025",
-      "songs": [
-        {
-          "id": "OjIzI3Gd",
-          "name": "Powerhouse (From \"Coolie\") (Tamil)",
-          "audioPath": "/Volumes/samsung/Music/Anirudh Ravichander/Powerhouse (From -Coolie-) (Tamil) 2025/01. Powerhouse (From -Coolie-) (Tamil).mp3"
-        }
-      ],
-      "totalTracks": 1
-    },
-    {
-      "id": "66229070",
-      "name": "Monica (From \"Coolie\") (Tamil)",
-      "localPath": "/Volumes/samsung/Music/Anirudh Ravichander/Monica (From -Coolie-) (Tamil) 2025",
-      "songs": [
-        {
-          "id": "UqBtaUhw",
-          "name": "Monica (From \"Coolie\") (Tamil)",
-          "audioPath": "/Volumes/samsung/Music/Anirudh Ravichander/Monica (From -Coolie-) (Tamil) 2025/01. Monica (From -Coolie-) (Tamil).mp3"
-        }
-      ],
-      "totalTracks": 1
-    },
-    {
       "id": "66860831",
       "name": "Coolie (Original Motion Picture Soundtrack)",
       "localPath": "/Volumes/samsung/Music/Anirudh Ravichander/Coolie (Original Motion Picture Soundtrack) 2024",
@@ -10818,6 +10779,55 @@
         }
       ],
       "totalTracks": 9
+    },
+    {
+      "id": "74260975",
+      "name": "Love Insurance Kompany",
+      "localPath": "/Volumes/samsung/Music/Anirudh Ravichander/Love Insurance Kompany 2024",
+      "songs": [
+        {
+          "id": "ZrNejm9i",
+          "name": "Dheema",
+          "audioPath": "/Volumes/samsung/Music/Anirudh Ravichander/Love Insurance Kompany 2024/01. Dheema.mp3"
+        },
+        {
+          "id": "JjzxYegW",
+          "name": "Enakenna Yaarum Illaye",
+          "audioPath": "/Volumes/samsung/Music/Anirudh Ravichander/Love Insurance Kompany 2024/06. Enakenna Yaarum Illaye.mp3"
+        },
+        {
+          "id": "Nqg-Jv8O",
+          "name": "Adaavadi",
+          "audioPath": "/Volumes/samsung/Music/Anirudh Ravichander/Love Insurance Kompany 2024/04. Adaavadi.mp3"
+        }
+      ],
+      "totalTracks": 6
+    },
+    {
+      "id": "61222265",
+      "name": "Hukum Reloaded - Tamil (From \"Jailer 2\")",
+      "localPath": "/Volumes/samsung/Music/Anirudh Ravichander/Hukum Reloaded - Tamil (From -Jailer 2-) 2025",
+      "songs": [
+        {
+          "id": "qd8xWKJ4",
+          "name": "Hukum Reloaded - Tamil (From \"Jailer 2\")",
+          "audioPath": "/Volumes/samsung/Music/Anirudh Ravichander/Hukum Reloaded - Tamil (From -Jailer 2-) 2025/01. Hukum Reloaded - Tamil (From -Jailer 2-).mp3"
+        }
+      ],
+      "totalTracks": 1
+    },
+    {
+      "id": "1225049",
+      "name": "Easan (Original Motion Picture Soundtrack)",
+      "localPath": "/Volumes/samsung/Music/James Vasanthan/Easan (Original Motion Picture Soundtrack) 2010",
+      "songs": [
+        {
+          "id": "HJwYVu2s",
+          "name": "Jilla Vittu",
+          "audioPath": "/Volumes/samsung/Music/James Vasanthan/Easan (Original Motion Picture Soundtrack) 2010/04. Jilla Vittu.mp3"
+        }
+      ],
+      "totalTracks": 7
     }
   ]
 }

@@ -2,19 +2,38 @@
   "customAlbums": {
     "455243": {
       "name": "Harris Jayaraj",
-      "metadataFile": "harris-jayaraj-albums-metadata.json"
+      "metadataFile": "harris-jayaraj-albums-metadata.json",
+      "image": "https://c.saavncdn.com/artists/Harris_Jayaraj_002_20230718071330_150x150.jpg"
     },
     "456091": {
       "name": "Yuvan Shankar Raja",
-      "metadataFile": "yuvan-shankar-raja-albums-metadata.json"
+      "metadataFile": "yuvan-shankar-raja-albums-metadata.json",
+      "image": "https://c.saavncdn.com/artists/Yuvan_Shankar_Raja_002_20180802174245_150x150.jpg"
     },
     "456269": {
       "name": "A.R. Rahman",
-      "metadataFile": "a-r-rahman-albums-metadata.json"
+      "metadataFile": "a-r-rahman-albums-metadata.json",
+      "image": "https://c.saavncdn.com/artists/AR_Rahman_002_20210120084455_150x150.jpg"
     },
     "455663": {
       "name": "Anirudh Ravichander",
-      "metadataFile": "anirudh-ravichander-albums-metadata.json"
+      "metadataFile": "anirudh-ravichander-albums-metadata.json",
+      "image": "https://c.saavncdn.com/artists/Anirudh_Ravichander_003_20260121134149_150x150.jpg"
+    },
+    "455170": {
+      "name": "Devi Sri Prasad",
+      "metadataFile": "devi-sri-prasad-albums-metadata.json",
+      "image": "https://c.saavncdn.com/artists/Devi_Sri_Prasad_008_20250619062824_150x150.jpg"
+    },
+    "544482": {
+      "name": "Dharan Kumar",
+      "metadataFile": "dharan-kumar-albums-metadata.json",
+      "image": "https://c.saavncdn.com/artists/Dharan_Kumar_000_20230316091716_150x150.jpg"
+    },
+    "455454": {
+      "name": "G. V. Prakash Kumar",
+      "metadataFile": "g-v-prakash-kumar-albums-metadata.json",
+      "image": "https://c.saavncdn.com/artists/G_V__Prakash_Kumar_003_20251113063655_150x150.jpg"
     }
   }
 }
