@@ -1,23 +1,39 @@
 // Artist configuration for custom overrides and label changes
-export const ARTIST_CONFIG = {
-  // Artists with custom album overrides from local metadata
-  customAlbums: {
-    '455243': {
-      name: 'Harris Jayaraj'
-    },
-    '456091': {
-      name: 'Yuvan Shankar Raja'
-    },
-    '456269': {
-      name: 'A.R. Rahman'
-    }
-  }
-}
+// This is fetched from the API to maintain a single source of truth
+import { useState, useEffect } from 'react';
 
-// Helper functions
-export const hasCustomAlbums = (artistId) => ARTIST_CONFIG.customAlbums[artistId] !== undefined
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
+// Hook to fetch and use artist config
+export const useArtistConfig = () => {
+  const [config, setConfig] = useState({ customAlbums: {} });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchConfig = async () => {
+      try {
+        const response = await fetch(`${API_BASE}/api/artist-config`);
+        if (response.ok) {
+          const data = await response.json();
+          setConfig(data);
+        }
+      } catch (error) {
+        console.error('Failed to fetch artist config:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchConfig();
+  }, []);
+
+  return { config, loading };
+};
+
+// Helper functions (use the config from the hook)
+export const hasCustomAlbums = (config, artistId) => config.customAlbums[artistId] !== undefined
 
 // Default to "Mix Tape" for all artists, but use "Albums" for artists with custom overrides
-export const getAlbumsTabLabel = (artistId) => {
-  return hasCustomAlbums(artistId) ? 'Albums' : 'Mix Tape'
+export const getAlbumsTabLabel = (config, artistId) => {
+  return hasCustomAlbums(config, artistId) ? 'Albums' : 'Mix Tape'
 }

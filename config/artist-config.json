@@ -11,6 +11,10 @@
     "456269": {
       "name": "A.R. Rahman",
       "metadataFile": "a-r-rahman-albums-metadata.json"
+    },
+    "455663": {
+      "name": "Anirudh Ravichander",
+      "metadataFile": "anirudh-ravichander-albums-metadata.json"
     }
   }
 }

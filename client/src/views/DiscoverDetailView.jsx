@@ -6,7 +6,7 @@ import MetaTags from '../components/MetaTags'
 import { decodeHtmlEntities, getArtistImageUrl } from '../utils'
 import { useAlbum, useArtist, usePlaylist } from '../hooks/useApi'
 import { queryClient } from '../App'
-import { hasCustomAlbums, getAlbumsTabLabel, ARTIST_CONFIG } from '../artist-config'
+import { useArtistConfig, hasCustomAlbums, getAlbumsTabLabel } from '../artist-config'
 
 const API_BASE = import.meta.env.VITE_API_URL
 const isProduction = import.meta.env.MODE === 'production'
@@ -17,6 +17,7 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
   const location = useLocation()
   const { addDownload, updateDownload, removeDownload, getDownloadBySongId } = useDownloadStore()
   const downloads = useDownloadStore(state => state.downloads)
+  const { config: artistConfig } = useArtistConfig()
   const [downloading, setDownloading] = useState(null)
   const [downloadingAlbum, setDownloadingAlbum] = useState({}) // { albumId: boolean }
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
@@ -27,8 +28,8 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
   const isAlbum = location.pathname.includes('/album/')
   const isArtist = location.pathname.includes('/artist/')
   const isPlaylist = location.pathname.includes('/playlist/')
-  const hasCustomAlbumsOverride = isArtist && hasCustomAlbums(id)
-  const artistConfig = ARTIST_CONFIG.customAlbums[id]
+  const hasCustomAlbumsOverride = isArtist && hasCustomAlbums(artistConfig, id)
+  const artistInfo = artistConfig.customAlbums[id]
   const [albumsSortBy, setAlbumsSortBy] = useState('date')
   const [albumsSortDirection, setAlbumsSortDirection] = useState('desc')
   const [customAlbums, setCustomAlbums] = useState(null)
@@ -625,7 +626,7 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
                 : 'text-zinc-400 hover:text-white'
             }`}
           >
-            {getAlbumsTabLabel(id)}
+            {getAlbumsTabLabel(artistConfig, id)}
           </button>
           {hasCustomAlbumsOverride && (
             <button

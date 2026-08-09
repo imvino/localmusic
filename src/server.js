@@ -141,6 +141,21 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: Date.now() })
 });
 
+// Serve artist configuration
+app.get('/api/artist-config', (req, res) => {
+  try {
+    const configPath = path.join(__dirname, '../config/artist-config.json');
+    if (fs.existsSync(configPath)) {
+      const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+      res.json(config);
+    } else {
+      res.json({ customAlbums: {} });
+    }
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to read artist config' });
+  }
+});
+
 // Serve music files statically (only in development)
 if (!isProduction) {
   app.use('/music', express.static(MUSIC_DIR));

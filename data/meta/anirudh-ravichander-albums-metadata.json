@@ -1,0 +1,371 @@
+{
+  "artistId": "455663",
+  "artistName": "Anirudh Ravichander",
+  "source": "Wikipedia + JioSaavn API",
+  "extractedAt": "2026-08-08T20:08:36.046Z",
+  "totalAlbums": 45,
+  "foundAlbums": 44,
+  "notFoundAlbums": 1,
+  "albums": [
+    {
+      "title": "3",
+      "year": 2012,
+      "language": "Tamil",
+      "id": "1017243",
+      "image": "https://c.saavncdn.com/195/3-Tamil-2011-20210522203119-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Ethir Neechal",
+      "year": 2013,
+      "language": "Tamil",
+      "id": "1106479",
+      "image": "https://c.saavncdn.com/259/Ethir-Neechal-2012-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "David",
+      "year": 2013,
+      "language": "Tamil",
+      "id": "1106499",
+      "image": "https://c.saavncdn.com/470/David-2012-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Vanakkam Chennai",
+      "year": 2013,
+      "language": "Tamil",
+      "id": "1142687",
+      "image": "https://c.saavncdn.com/671/Vanakkam-Chennai-Tamil-2013-20260120201340-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Irandaam Ulagam",
+      "year": 2013,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Velaiilla Pattadhari",
+      "year": 2014,
+      "language": "Tamil",
+      "id": "47614072",
+      "image": "https://c.saavncdn.com/085/Velai-Illa-Pattadhaari-Tamil-2014-20260105193912-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Maan Karate",
+      "year": 2014,
+      "language": "Tamil",
+      "id": "1152107",
+      "image": "https://c.saavncdn.com/217/Maan-Karate-Tamil-2014-20190822142455-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Kaththi",
+      "year": 2014,
+      "language": "Tamil",
+      "id": "42212717",
+      "image": "https://c.saavncdn.com/689/Kaththi-Tamil-2025-20250930143442-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Kaaki Sattai",
+      "year": 2015,
+      "language": "Tamil",
+      "id": "47614338",
+      "image": "https://c.saavncdn.com/829/Kaaki-Sattai-Tamil-2014-20260209193524-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Maari",
+      "year": 2015,
+      "language": "Tamil",
+      "id": "1251943",
+      "image": "https://c.saavncdn.com/098/Maari-Tamil-2015-20200806144615-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Naanum Rowdydhaan",
+      "year": 2015,
+      "language": "Tamil",
+      "id": "1463183",
+      "image": "https://c.saavncdn.com/139/Naanum-Rowdy-Dhaan-Tamil-2015-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Vedalam",
+      "year": 2015,
+      "language": "Tamil",
+      "id": "1518043",
+      "image": "https://c.saavncdn.com/323/Vedalam-Tamil-2015-20260120201356-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Thanga Magan",
+      "year": 2015,
+      "language": "Tamil",
+      "id": "1656877",
+      "image": "https://c.saavncdn.com/430/Thangamagan-Tamil-2015-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Remo",
+      "year": 2016,
+      "language": "Tamil",
+      "id": "2615094",
+      "image": "https://c.saavncdn.com/110/Remo-Tamil-2016-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Rum",
+      "year": 2017,
+      "language": "Tamil",
+      "id": "2936239",
+      "image": "https://c.saavncdn.com/374/Rum-Tamil-2016-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Vivegam",
+      "year": 2017,
+      "language": "Tamil",
+      "id": "11310194",
+      "image": "https://c.saavncdn.com/303/Vivegam-Tamil-2017-20170807081008-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Velaikkaran",
+      "year": 2017,
+      "language": "Tamil",
+      "id": "11895043",
+      "image": "https://c.saavncdn.com/626/Velaikkaran-Tamil-2017-20171203115305-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Thaanaa Serndha Koottam",
+      "year": 2018,
+      "language": "Tamil",
+      "id": "12026438",
+      "image": "https://c.saavncdn.com/068/Thaanaa-Serndha-Koottam-Tamil-2018-20180103181741-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Kolamaavu Kokila",
+      "year": 2018,
+      "language": "Tamil",
+      "id": "12379182",
+      "image": "https://c.saavncdn.com/903/Kolamaavu-Kokila-CoCo-Tamil-2018-20180705-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "U Turn",
+      "year": 2018,
+      "language": "Tamil",
+      "id": "13785146",
+      "image": "https://c.saavncdn.com/282/The-Karma-Theme-From-U-Turn--Tamil-2018-20180903145222-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Petta",
+      "year": 2019,
+      "language": "Tamil",
+      "id": "14597019",
+      "image": "https://c.saavncdn.com/166/Petta-Tamil-2018-20181210095910-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Thumbaa",
+      "year": 2019,
+      "language": "Tamil",
+      "id": "16138971",
+      "image": "https://c.saavncdn.com/822/Thumbaa-Tamil-2019-20190610124016-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Darbar",
+      "year": 2020,
+      "language": "Tamil",
+      "id": "47954709",
+      "image": "https://c.saavncdn.com/327/Darbar-Tamil-Original-Motion-Picture-Soundtrack-Tamil-2020-20260327193525-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Dharala Prabhu",
+      "year": 2020,
+      "language": "Tamil",
+      "id": "19429149",
+      "image": "https://c.saavncdn.com/053/Dharala-Prabhu-Tamil-2020-20200312121442-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Paava Kadhaigal",
+      "year": 2020,
+      "language": "Tamil",
+      "id": "24757785",
+      "image": "https://c.saavncdn.com/916/Paava-Kadhaigal-Tamil-2021-20210118134651-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Master",
+      "year": 2021,
+      "language": "Tamil",
+      "id": "19479273",
+      "image": "https://c.saavncdn.com/347/Master-Tamil-2020-20200316084627-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Doctor",
+      "year": 2021,
+      "language": "Tamil",
+      "id": "30087392",
+      "image": "https://c.saavncdn.com/312/Doctor-Tamil-2021-20211005133149-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Naai Sekar",
+      "year": 2022,
+      "language": "Tamil",
+      "id": "32065937",
+      "image": "https://c.saavncdn.com/854/Naai-Sekar-Original-Motion-Picture-Soundtrack--Tamil-2022-20220110152333-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Beast",
+      "year": 2022,
+      "language": "Tamil",
+      "id": "34735026",
+      "image": "https://c.saavncdn.com/510/Beast-Tamil-2022-20220504184736-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Kaathuvaakula Rendu Kaadhal",
+      "year": 2022,
+      "language": "Tamil",
+      "id": "34588482",
+      "image": "https://c.saavncdn.com/403/Kaathuvaakula-Rendu-Kaadhal-Original-Motion-Picture-Soundtrack-Tamil-2022-20220428131043-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Don",
+      "year": 2022,
+      "language": "Tamil",
+      "id": "34932966",
+      "image": "https://c.saavncdn.com/435/Don-Tamil-2022-20220512162818-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Vikram",
+      "year": 2022,
+      "language": "Tamil",
+      "id": "35003732",
+      "image": "https://c.saavncdn.com/973/Vikram-Tamil-2022-20220515182605-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Thiruchitrambalam",
+      "year": 2022,
+      "language": "Tamil",
+      "id": "38587235",
+      "image": "https://c.saavncdn.com/238/Thiruchitrambalam-Tamil-2022-20220927091058-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Jailer",
+      "year": 2023,
+      "language": "Tamil",
+      "id": "47094777",
+      "image": "https://c.saavncdn.com/187/Jailer-Tamil-2023-20230728081443-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Leo",
+      "year": 2023,
+      "language": "Tamil",
+      "id": "49113982",
+      "image": "https://c.saavncdn.com/415/Leo-Original-Motion-Picture-Soundtrack-English-2023-20231019170311-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Indian 2",
+      "year": 2024,
+      "language": "Tamil",
+      "id": "54862342",
+      "image": "https://c.saavncdn.com/736/Indian-2-Original-Motion-Picture-Soundtrack-Tamil-2024-20240611104646-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Vettaiyan",
+      "year": 2024,
+      "language": "Tamil",
+      "id": "58811310",
+      "image": "https://c.saavncdn.com/803/Vettaiyan-Original-Motion-Picture-Soundtrack-Tamil-2024-20241014154253-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Vidaamuyarchi",
+      "year": 2025,
+      "language": "Tamil",
+      "id": "62094435",
+      "image": "https://c.saavncdn.com/113/Vidaamuyarchi-Tamil-2025-20250217133052-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Coolie",
+      "year": 2025,
+      "language": "Tamil",
+      "id": "66860831",
+      "image": "https://c.saavncdn.com/981/Coolie-Disco-From-Coolie-Tamil-2024-20240509170935-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Madharaasi",
+      "year": 2025,
+      "language": "Tamil",
+      "id": "67590085",
+      "image": "https://c.saavncdn.com/071/Madharaasi-Original-Motion-Picture-Soundtrack-Tamil-2025-20250830012902-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Love Insurance Kompany",
+      "year": 2026,
+      "language": "Tamil",
+      "id": "58839526",
+      "image": "https://c.saavncdn.com/651/Dheema-From-Love-Insurance-Kompany-Tamil-2024-20241015191442-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Jana Nayagan",
+      "year": 2026,
+      "language": "Tamil",
+      "id": "78362084",
+      "image": "https://c.saavncdn.com/810/Jana-Nayagan-Tamil-Tamil-2026-20260722221103-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "DC",
+      "year": 2026,
+      "language": "Tamil",
+      "id": "78425642",
+      "image": "https://c.saavncdn.com/606/DC-Original-Motion-Picture-Soundtrack-Tamil-2026-20260727061230-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Jailer 2",
+      "year": 2026,
+      "language": "Tamil",
+      "id": "77613884",
+      "image": "https://c.saavncdn.com/651/One-Name-From-Jailer-2-English-2026-20260703080039-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Arasan",
+      "year": 2026,
+      "language": "Tamil",
+      "id": "68945494",
+      "image": "https://c.saavncdn.com/299/Arasan-Theme-From-Arasan-Unknown-2025-20251022095104-150x150.jpg",
+      "found": true
+    }
+  ]
+}
