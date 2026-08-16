@@ -555,165 +555,6 @@
       "totalTracks": 6
     },
     {
-      "id": "41106332",
-      "name": "Varisu",
-      "localPath": "/Volumes/samsung/Music/Thaman S/Varisu 2022",
-      "songs": [
-        {
-          "id": "dI35QrYI",
-          "name": "Ranjithame",
-          "audioPath": "/Volumes/samsung/Music/Thaman S/Varisu 2022/01. Ranjithame.mp3",
-          "albumId": "41106332",
-          "album": "Varisu"
-        },
-        {
-          "id": "PRVqLP3U",
-          "name": "Thee Thalapathy",
-          "audioPath": "/Volumes/samsung/Music/Thaman S/Varisu 2022/02. Thee Thalapathy.mp3",
-          "albumId": "41106332",
-          "album": "Varisu"
-        },
-        {
-          "id": "gB3Ddodb",
-          "name": "Soul Of Varisu",
-          "audioPath": "/Volumes/samsung/Music/Thaman S/Varisu 2022/03. Soul Of Varisu.mp3",
-          "albumId": "41106332",
-          "album": "Varisu"
-        },
-        {
-          "id": "S7tLvvrU",
-          "name": "Jimikki Ponnu",
-          "audioPath": "/Volumes/samsung/Music/Thaman S/Varisu 2022/04. Jimikki Ponnu.mp3",
-          "albumId": "41106332",
-          "album": "Varisu"
-        },
-        {
-          "id": "V0YAB4sP",
-          "name": "Vaa Thalaivaa",
-          "audioPath": "/Volumes/samsung/Music/Thaman S/Varisu 2022/05. Vaa Thalaivaa.mp3",
-          "albumId": "41106332",
-          "album": "Varisu"
-        }
-      ],
-      "totalTracks": 5
-    },
-    {
-      "id": "32176594",
-      "name": "Kizhakku Vaasal",
-      "localPath": "/Volumes/samsung/Music/Ilaiyaraaja/Kizhakku Vaasal 1990",
-      "songs": [
-        {
-          "id": "CTiHDz33",
-          "name": "Ada Veetukku",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Kizhakku Vaasal 1990/01. Ada Veetukku.mp3",
-          "albumId": "32176594",
-          "album": "Kizhakku Vaasal"
-        },
-        {
-          "id": "3LbrtIWH",
-          "name": "Pachamala Poovu",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Kizhakku Vaasal 1990/02. Pachamala Poovu.mp3",
-          "albumId": "32176594",
-          "album": "Kizhakku Vaasal"
-        },
-        {
-          "id": "_UDDnmLT",
-          "name": "Thalukki Thalukki",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Kizhakku Vaasal 1990/03. Thalukki Thalukki.mp3",
-          "albumId": "32176594",
-          "album": "Kizhakku Vaasal"
-        },
-        {
-          "id": "lAY1VhMg",
-          "name": "Paadi Parandha",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Kizhakku Vaasal 1990/04. Paadi Parandha.mp3",
-          "albumId": "32176594",
-          "album": "Kizhakku Vaasal"
-        },
-        {
-          "id": "S_DJSrih",
-          "name": "Vandhadhe Oh",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Kizhakku Vaasal 1990/05. Vandhadhe Oh.mp3",
-          "albumId": "32176594",
-          "album": "Kizhakku Vaasal"
-        }
-      ],
-      "totalTracks": 5
-    },
-    {
-      "id": "12012362",
-      "name": "Unna Nenachen Pattu Padichen",
-      "localPath": "/Volumes/samsung/Music/Ilaiyaraaja/Unna Nenachen Pattu Padichen 1992",
-      "songs": [
-        {
-          "id": "QfCdj7zC",
-          "name": "Ennai Thottu",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Unna Nenachen Pattu Padichen 1992/03. Ennai Thottu.mp3",
-          "albumId": "12012362",
-          "album": "Unna Nenachen Pattu Padichen"
-        }
-      ],
-      "totalTracks": 5
-    },
-    {
-      "id": "32394713",
-      "name": "Chatriyan",
-      "localPath": "/Volumes/samsung/Music/Ilaiyaraaja/Chatriyan 1990",
-      "songs": [
-        {
-          "id": "eYfYxURy",
-          "name": "Maalayil Yaaro",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Chatriyan 1990/02. Maalayil Yaaro.mp3",
-          "albumId": "32394713",
-          "album": "Chatriyan"
-        }
-      ],
-      "totalTracks": 3
-    },
-    {
-      "id": "32181541",
-      "name": "Aboorva Sagodharargal",
-      "localPath": "/Volumes/samsung/Music/Ilaiyaraaja/Aboorva Sagodharargal 1989",
-      "songs": [
-        {
-          "id": "E5uN1Mwm",
-          "name": "Puthu Maappillaikku",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Aboorva Sagodharargal 1989/01. Puthu Maappillaikku.mp3",
-          "albumId": "32181541",
-          "album": "Aboorva Sagodharargal"
-        },
-        {
-          "id": "o7k-hAjv",
-          "name": "Annaaththe Aaduraar",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Aboorva Sagodharargal 1989/02. Annaaththe Aaduraar.mp3",
-          "albumId": "32181541",
-          "album": "Aboorva Sagodharargal"
-        },
-        {
-          "id": "Dnvi9hht",
-          "name": "Unna Nenachen",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Aboorva Sagodharargal 1989/03. Unna Nenachen.mp3",
-          "albumId": "32181541",
-          "album": "Aboorva Sagodharargal"
-        },
-        {
-          "id": "So1q0sUf",
-          "name": "Raja Kaiya Vachchaa",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Aboorva Sagodharargal 1989/04. Raja Kaiya Vachchaa.mp3",
-          "albumId": "32181541",
-          "album": "Aboorva Sagodharargal"
-        },
-        {
-          "id": "082KdFKF",
-          "name": "Vaazhavaikum Kaathalukku",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Aboorva Sagodharargal 1989/05. Vaazhavaikum Kaathalukku.mp3",
-          "albumId": "32181541",
-          "album": "Aboorva Sagodharargal"
-        }
-      ],
-      "totalTracks": 5
-    },
-    {
       "id": "17401790",
       "name": "Pattiyal",
       "localPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Pattiyal 2019",
@@ -770,71 +611,6 @@
       "totalTracks": 6
     },
     {
-      "id": "12012333",
-      "name": "Rajakumaran",
-      "localPath": "/Volumes/samsung/Music/Ilaiyaraaja/Rajakumaran 1994",
-      "songs": [
-        {
-          "id": "_gWTDee4",
-          "name": "Ennavendru Solvathamma",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Rajakumaran 1994/04. Ennavendru Solvathamma.mp3",
-          "albumId": "12012333",
-          "album": "Rajakumaran"
-        }
-      ],
-      "totalTracks": 7
-    },
-    {
-      "id": "11497689",
-      "name": "Mannan",
-      "localPath": "/Volumes/samsung/Music/Ilaiyaraaja/Mannan 1992",
-      "songs": [
-        {
-          "id": "EYDiNeBZ",
-          "name": "Rajadhi Rajan",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Mannan 1992/01. Rajadhi Rajan.mp3",
-          "albumId": "11497689",
-          "album": "Mannan"
-        },
-        {
-          "id": "otghwaMd",
-          "name": "Mannar Mannane",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Mannan 1992/02. Mannar Mannane.mp3",
-          "albumId": "11497689",
-          "album": "Mannan"
-        },
-        {
-          "id": "-P24Sh-v",
-          "name": "Gumthalakkadi",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Mannan 1992/03. Gumthalakkadi.mp3",
-          "albumId": "11497689",
-          "album": "Mannan"
-        },
-        {
-          "id": "MkcUyCA3",
-          "name": "Sandiraniyae(Bit)",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Mannan 1992/04. Sandiraniyae(Bit).mp3",
-          "albumId": "11497689",
-          "album": "Mannan"
-        },
-        {
-          "id": "zuDzCbBJ",
-          "name": "Adikkudhu Kuliru",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Mannan 1992/05. Adikkudhu Kuliru.mp3",
-          "albumId": "11497689",
-          "album": "Mannan"
-        },
-        {
-          "id": "ov4oJQAK",
-          "name": "Amma Endrazhaikadha",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Mannan 1992/06. Amma Endrazhaikadha.mp3",
-          "albumId": "11497689",
-          "album": "Mannan"
-        }
-      ],
-      "totalTracks": 6
-    },
-    {
       "id": "1229333",
       "name": "Tamil M.A.",
       "localPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Tamil M.A. 2009",
@@ -881,21 +657,6 @@
         }
       ],
       "totalTracks": 5
-    },
-    {
-      "id": "41640144",
-      "name": "Celebration Of Varisu (From \"Varisu\")",
-      "localPath": "/Volumes/samsung/Music/Thaman S/Celebration Of Varisu (From -Varisu-) 2023",
-      "songs": [
-        {
-          "id": "5e_4a_Qc",
-          "name": "Celebration Of Varisu (From \"Varisu\")",
-          "audioPath": "/Volumes/samsung/Music/Thaman S/Celebration Of Varisu (From -Varisu-) 2023/01. Celebration Of Varisu (From \"Varisu\").mp3",
-          "albumId": "41640144",
-          "album": "Celebration Of Varisu (From \"Varisu\")"
-        }
-      ],
-      "totalTracks": 1
     },
     {
       "id": "1133748",
@@ -1253,141 +1014,6 @@
       "totalTracks": 9
     },
     {
-      "id": "1095924",
-      "name": "Podaa Podi",
-      "localPath": "/Volumes/samsung/Music/Dharan Kumar/Podaa Podi 2012",
-      "songs": [
-        {
-          "id": "3rc4dsS9",
-          "name": "Love Panalaama",
-          "audioPath": "/Volumes/samsung/Music/Dharan Kumar/Podaa Podi 2012/01. Love Panalaama.mp3",
-          "albumId": "1095924",
-          "album": "Podaa Podi"
-        },
-        {
-          "id": "Gt7kEyMf",
-          "name": "Podaa Podi",
-          "audioPath": "/Volumes/samsung/Music/Dharan Kumar/Podaa Podi 2012/02. Podaa Podi.mp3",
-          "albumId": "1095924",
-          "album": "Podaa Podi"
-        },
-        {
-          "id": "YgR3JfB0",
-          "name": "Hare Rama Hare Krishna",
-          "audioPath": "/Volumes/samsung/Music/Dharan Kumar/Podaa Podi 2012/03. Hare Rama Hare Krishna.mp3",
-          "albumId": "1095924",
-          "album": "Podaa Podi"
-        },
-        {
-          "id": "mVPzrIn8",
-          "name": "Maattikittenae",
-          "audioPath": "/Volumes/samsung/Music/Dharan Kumar/Podaa Podi 2012/04. Maattikittenae.mp3",
-          "albumId": "1095924",
-          "album": "Podaa Podi"
-        },
-        {
-          "id": "fnRNMFaQ",
-          "name": "Un Paarvaiyilae",
-          "audioPath": "/Volumes/samsung/Music/Dharan Kumar/Podaa Podi 2012/05. Un Paarvaiyilae.mp3",
-          "albumId": "1095924",
-          "album": "Podaa Podi"
-        },
-        {
-          "id": "HwOOVwKm",
-          "name": "Appan Mavanae Vaada",
-          "audioPath": "/Volumes/samsung/Music/Dharan Kumar/Podaa Podi 2012/06. Appan Mavanae Vaada.mp3",
-          "albumId": "1095924",
-          "album": "Podaa Podi"
-        },
-        {
-          "id": "Z2Pfb5Qm",
-          "name": "Theme of Podaa Podi",
-          "audioPath": "/Volumes/samsung/Music/Dharan Kumar/Podaa Podi 2012/07. Theme of Podaa Podi.mp3",
-          "albumId": "1095924",
-          "album": "Podaa Podi"
-        },
-        {
-          "id": "I0O3caIK",
-          "name": "I Am a Kuthu Dancer",
-          "audioPath": "/Volumes/samsung/Music/Dharan Kumar/Podaa Podi 2012/08. I Am a Kuthu Dancer.mp3",
-          "albumId": "1095924",
-          "album": "Podaa Podi"
-        }
-      ],
-      "totalTracks": 8
-    },
-    {
-      "id": "76070868",
-      "name": "Karuppu (Original Motion Picture Soundtrack)",
-      "localPath": "/Volumes/samsung/Music/Sai Abhyankkar/Karuppu (Original Motion Picture Soundtrack) 2026",
-      "songs": [
-        {
-          "id": "doLSyMPY",
-          "name": "God Mode",
-          "audioPath": "/Volumes/samsung/Music/Sai Abhyankkar/Karuppu (Original Motion Picture Soundtrack) 2026/01. God Mode.mp3",
-          "albumId": "76070868",
-          "album": "Karuppu (Original Motion Picture Soundtrack)"
-        },
-        {
-          "id": "JEb42pqO",
-          "name": "Verappa - Extended",
-          "audioPath": "/Volumes/samsung/Music/Sai Abhyankkar/Karuppu (Original Motion Picture Soundtrack) 2026/02. Verappa - Extended.mp3",
-          "albumId": "76070868",
-          "album": "Karuppu (Original Motion Picture Soundtrack)"
-        },
-        {
-          "id": "_giyfEgV",
-          "name": "Naanga Naalu Peru",
-          "audioPath": "/Volumes/samsung/Music/Sai Abhyankkar/Karuppu (Original Motion Picture Soundtrack) 2026/03. Naanga Naalu Peru.mp3",
-          "albumId": "76070868",
-          "album": "Karuppu (Original Motion Picture Soundtrack)"
-        },
-        {
-          "id": "2msjgi5z",
-          "name": "Raathu Raasan",
-          "audioPath": "/Volumes/samsung/Music/Sai Abhyankkar/Karuppu (Original Motion Picture Soundtrack) 2026/04. Raathu Raasan.mp3",
-          "albumId": "76070868",
-          "album": "Karuppu (Original Motion Picture Soundtrack)"
-        },
-        {
-          "id": "PFvCPepS",
-          "name": "Karuppa Kooda Va",
-          "audioPath": "/Volumes/samsung/Music/Sai Abhyankkar/Karuppu (Original Motion Picture Soundtrack) 2026/05. Karuppa Kooda Va.mp3",
-          "albumId": "76070868",
-          "album": "Karuppu (Original Motion Picture Soundtrack)"
-        },
-        {
-          "id": "ybnagN8r",
-          "name": "Athu Thalore",
-          "audioPath": "/Volumes/samsung/Music/Sai Abhyankkar/Karuppu (Original Motion Picture Soundtrack) 2026/06. Athu Thalore.mp3",
-          "albumId": "76070868",
-          "album": "Karuppu (Original Motion Picture Soundtrack)"
-        },
-        {
-          "id": "inp1wS-p",
-          "name": "Aathi Raasathi",
-          "audioPath": "/Volumes/samsung/Music/Sai Abhyankkar/Karuppu (Original Motion Picture Soundtrack) 2026/07. Aathi Raasathi.mp3",
-          "albumId": "76070868",
-          "album": "Karuppu (Original Motion Picture Soundtrack)"
-        },
-        {
-          "id": "d6_r1LCo",
-          "name": "God Mode Begins",
-          "audioPath": "/Volumes/samsung/Music/Sai Abhyankkar/Karuppu (Original Motion Picture Soundtrack) 2026/08. God Mode Begins.mp3",
-          "albumId": "76070868",
-          "album": "Karuppu (Original Motion Picture Soundtrack)"
-        },
-        {
-          "id": "46PzhRnF",
-          "name": "Verappa",
-          "audioPath": "/Volumes/samsung/Music/Sai Abhyankkar/Karuppu (Original Motion Picture Soundtrack) 2026/09. Verappa.mp3",
-          "albumId": "76070868",
-          "album": "Karuppu (Original Motion Picture Soundtrack)"
-        }
-      ],
-      "totalTracks": 9
-    },
-    {
       "id": "47094777",
       "name": "Jailer",
       "localPath": "/Volumes/samsung/Music/Anirudh Ravichander/Jailer 2022",
@@ -1586,241 +1212,6 @@
         }
       ],
       "totalTracks": 9
-    },
-    {
-      "id": "12012356",
-      "name": "Thirumathi Palanisamy",
-      "localPath": "/Volumes/samsung/Music/Ilaiyaraaja/Thirumathi Palanisamy 1992",
-      "songs": [
-        {
-          "id": "TYFCt1Md",
-          "name": "Paadha Kolusu",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Thirumathi Palanisamy 1992/01. Paadha Kolusu.mp3",
-          "albumId": "12012356",
-          "album": "Thirumathi Palanisamy"
-        },
-        {
-          "id": "j4-Ct2Ow",
-          "name": "Amman Koil",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Thirumathi Palanisamy 1992/02. Amman Koil.mp3",
-          "albumId": "12012356",
-          "album": "Thirumathi Palanisamy"
-        },
-        {
-          "id": "p3mqR-wU",
-          "name": "Kuthaala Kuyilea",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Thirumathi Palanisamy 1992/03. Kuthaala Kuyilea.mp3",
-          "albumId": "12012356",
-          "album": "Thirumathi Palanisamy"
-        },
-        {
-          "id": "6HgVDNn2",
-          "name": "Naadu Saamathilea",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Thirumathi Palanisamy 1992/04. Naadu Saamathilea.mp3",
-          "albumId": "12012356",
-          "album": "Thirumathi Palanisamy"
-        },
-        {
-          "id": "kbfcxpCd",
-          "name": "Irendulea Onna Thodu",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Thirumathi Palanisamy 1992/05. Irendulea Onna Thodu.mp3",
-          "albumId": "12012356",
-          "album": "Thirumathi Palanisamy"
-        },
-        {
-          "id": "jF9ME9n1",
-          "name": "Odhamaal",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Thirumathi Palanisamy 1992/06. Odhamaal.mp3",
-          "albumId": "12012356",
-          "album": "Thirumathi Palanisamy"
-        }
-      ],
-      "totalTracks": 6
-    },
-    {
-      "id": "50791267",
-      "name": "Veera",
-      "localPath": "/Volumes/samsung/Music/Ilaiyaraaja/Veera 1994",
-      "songs": [
-        {
-          "id": "6o854FXf",
-          "name": "Aathile Annakili",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Veera 1994/01. Aathile Annakili.mp3",
-          "albumId": "50791267",
-          "album": "Veera"
-        },
-        {
-          "id": "mykh69Tp",
-          "name": "Adi Pandalile",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Veera 1994/02. Adi Pandalile.mp3",
-          "albumId": "50791267",
-          "album": "Veera"
-        },
-        {
-          "id": "T3RjRnZH",
-          "name": "Konji Konji Female",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Veera 1994/03. Konji Konji Female.mp3",
-          "albumId": "50791267",
-          "album": "Veera"
-        },
-        {
-          "id": "Nx6N361y",
-          "name": "Konji Konji Male",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Veera 1994/04. Konji Konji Male.mp3",
-          "albumId": "50791267",
-          "album": "Veera"
-        },
-        {
-          "id": "bO05kEVM",
-          "name": "Maadethile Kanni",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Veera 1994/05. Maadethile Kanni.mp3",
-          "albumId": "50791267",
-          "album": "Veera"
-        },
-        {
-          "id": "b-VL88RP",
-          "name": "Malai Kovil Vaasalil",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Veera 1994/06. Malai Kovil Vaasalil.mp3",
-          "albumId": "50791267",
-          "album": "Veera"
-        },
-        {
-          "id": "Sj4urV74",
-          "name": "Pattu Poo Poo",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Veera 1994/07. Pattu Poo Poo.mp3",
-          "albumId": "50791267",
-          "album": "Veera"
-        },
-        {
-          "id": "sGRXtyJb",
-          "name": "Vaadi Vethalai",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Veera 1994/08. Vaadi Vethalai.mp3",
-          "albumId": "50791267",
-          "album": "Veera"
-        },
-        {
-          "id": "1HJpEaAv",
-          "name": "Thirumagal",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Veera 1994/09. Thirumagal.mp3",
-          "albumId": "50791267",
-          "album": "Veera"
-        }
-      ],
-      "totalTracks": 9
-    },
-    {
-      "id": "52585737",
-      "name": "Baasha",
-      "localPath": "/Volumes/samsung/Music/Deva/Baasha 1995",
-      "songs": [
-        {
-          "id": "8lMqGRLy",
-          "name": "Naa Autokaran Autokaran",
-          "audioPath": "/Volumes/samsung/Music/Deva/Baasha 1995/01. Naa Autokaran Autokaran.mp3",
-          "albumId": "52585737",
-          "album": "Baasha"
-        },
-        {
-          "id": "P7AmtY1d",
-          "name": "Style-U Style-U Dhaan Idhu Super",
-          "audioPath": "/Volumes/samsung/Music/Deva/Baasha 1995/02. Style-U Style-U Dhaan Idhu Super.mp3",
-          "albumId": "52585737",
-          "album": "Baasha"
-        },
-        {
-          "id": "AXOzDM0V",
-          "name": "Ra Ra Raara Ramayya",
-          "audioPath": "/Volumes/samsung/Music/Deva/Baasha 1995/03. Ra Ra Raara Ramayya.mp3",
-          "albumId": "52585737",
-          "album": "Baasha"
-        },
-        {
-          "id": "LzcnKP5U",
-          "name": "Thanga Magan Indru Singanadai",
-          "audioPath": "/Volumes/samsung/Music/Deva/Baasha 1995/04. Thanga Magan Indru Singanadai.mp3",
-          "albumId": "52585737",
-          "album": "Baasha"
-        },
-        {
-          "id": "LEUp8dvi",
-          "name": "Azhagu Azhagu Nee Nadanthal",
-          "audioPath": "/Volumes/samsung/Music/Deva/Baasha 1995/05. Azhagu Azhagu Nee Nadanthal.mp3",
-          "albumId": "52585737",
-          "album": "Baasha"
-        },
-        {
-          "id": "Fkqh-puL",
-          "name": "Baasha Paru (Sad Version)",
-          "audioPath": "/Volumes/samsung/Music/Deva/Baasha 1995/06. Baasha Paru (Sad Version).mp3",
-          "albumId": "52585737",
-          "album": "Baasha"
-        },
-        {
-          "id": "yJYNzRCF",
-          "name": "Baasha Paru",
-          "audioPath": "/Volumes/samsung/Music/Deva/Baasha 1995/07. Baasha Paru.mp3",
-          "albumId": "52585737",
-          "album": "Baasha"
-        }
-      ],
-      "totalTracks": 7
-    },
-    {
-      "id": "1017526",
-      "name": "Aadukalam",
-      "localPath": "/Volumes/samsung/Music/G.V. Prakash Kumar/Aadukalam 2010",
-      "songs": [
-        {
-          "id": "m_0s-xky",
-          "name": "Yathe Yathe",
-          "audioPath": "/Volumes/samsung/Music/G.V. Prakash Kumar/Aadukalam 2010/01. Yathe Yathe.mp3",
-          "albumId": "1017526",
-          "album": "Aadukalam"
-        },
-        {
-          "id": "Z8y-IJmS",
-          "name": "Otha Sollaala",
-          "audioPath": "/Volumes/samsung/Music/G.V. Prakash Kumar/Aadukalam 2010/02. Otha Sollaala.mp3",
-          "albumId": "1017526",
-          "album": "Aadukalam"
-        },
-        {
-          "id": "n7RJZYC1",
-          "name": "Porkkalam (Tamil Rap)",
-          "audioPath": "/Volumes/samsung/Music/G.V. Prakash Kumar/Aadukalam 2010/03. Porkkalam (Tamil Rap).mp3",
-          "albumId": "1017526",
-          "album": "Aadukalam"
-        },
-        {
-          "id": "0YyxWbsm",
-          "name": "En Vennilave",
-          "audioPath": "/Volumes/samsung/Music/G.V. Prakash Kumar/Aadukalam 2010/04. En Vennilave.mp3",
-          "albumId": "1017526",
-          "album": "Aadukalam"
-        },
-        {
-          "id": "Gj_f4CCH",
-          "name": "Ayyayo",
-          "audioPath": "/Volumes/samsung/Music/G.V. Prakash Kumar/Aadukalam 2010/05. Ayyayo.mp3",
-          "albumId": "1017526",
-          "album": "Aadukalam"
-        },
-        {
-          "id": "63A_2xzD",
-          "name": "Warriors (English Rap)",
-          "audioPath": "/Volumes/samsung/Music/G.V. Prakash Kumar/Aadukalam 2010/06. Warriors (English Rap).mp3",
-          "albumId": "1017526",
-          "album": "Aadukalam"
-        },
-        {
-          "id": "8ckiiu7H",
-          "name": "A Love Blossoms",
-          "audioPath": "/Volumes/samsung/Music/G.V. Prakash Kumar/Aadukalam 2010/07. A Love Blossoms.mp3",
-          "albumId": "1017526",
-          "album": "Aadukalam"
-        }
-      ],
-      "totalTracks": 7
     },
     {
       "id": "72302147",
@@ -2305,70 +1696,6 @@
       "totalTracks": 6
     },
     {
-      "id": "3286985",
-      "name": "Yejaman",
-      "localPath": "/Volumes/samsung/Music/Ilaiyaraaja/Yejaman 1993",
-      "songs": [
-        {
-          "id": "acGBi5Fn",
-          "name": "Aalappol Velappol",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Yejaman 1993/01. Aalappol Velappol.mp3",
-          "albumId": "3286985",
-          "album": "Yejaman"
-        },
-        {
-          "id": "HxxLNlex",
-          "name": "Adi Raakumuthu",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Yejaman 1993/02. Adi Raakumuthu.mp3",
-          "albumId": "3286985",
-          "album": "Yejaman"
-        },
-        {
-          "id": "5MWMlykh",
-          "name": "Ejamaan Kaladi",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Yejaman 1993/03. Ejamaan Kaladi.mp3",
-          "albumId": "3286985",
-          "album": "Yejaman"
-        },
-        {
-          "id": "YNiWR_km",
-          "name": "Idiye Aanaalum",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Yejaman 1993/04. Idiye Aanaalum.mp3",
-          "albumId": "3286985",
-          "album": "Yejaman"
-        },
-        {
-          "id": "3vBjnutq",
-          "name": "Nilave Mugam",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Yejaman 1993/05. Nilave Mugam.mp3",
-          "albumId": "3286985",
-          "album": "Yejaman"
-        },
-        {
-          "id": "4xx8atVA",
-          "name": "Oru Naalum",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Yejaman 1993/06. Oru Naalum.mp3",
-          "albumId": "3286985",
-          "album": "Yejaman"
-        },
-        {
-          "id": "ErWBcLaD",
-          "name": "Thookkuchattiye",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Yejaman 1993/07. Thookkuchattiye.mp3",
-          "albumId": "3286985",
-          "album": "Yejaman"
-        },
-        {
-          "id": "nicevDx5",
-          "name": "Urakka Kathuthu Kozhi",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Yejaman 1993/08. Urakka Kathuthu Kozhi.mp3",
-          "albumId": "3286985",
-          "album": "Yejaman"
-        }
-      ],
-      "totalTracks": 8
-    },
-    {
       "id": "1133744",
       "name": "Jeans",
       "localPath": "/Volumes/samsung/Music/A.R. Rahman/Jeans 1998",
@@ -2648,105 +1975,6 @@
       "totalTracks": 5
     },
     {
-      "id": "1019531",
-      "name": "Anbe Vaa",
-      "localPath": "/Volumes/samsung/Music/M.S. Viswanathan/Anbe Vaa 1966",
-      "songs": [
-        {
-          "id": "C-2Txpy7",
-          "name": "Nadodi Nadodi",
-          "audioPath": "/Volumes/samsung/Music/M.S. Viswanathan/Anbe Vaa 1966/01. Nadodi Nadodi.mp3",
-          "albumId": "1019531",
-          "album": "Anbe Vaa"
-        },
-        {
-          "id": "hSMjDQr0",
-          "name": "Naan Paartthathille",
-          "audioPath": "/Volumes/samsung/Music/M.S. Viswanathan/Anbe Vaa 1966/02. Naan Paartthathille.mp3",
-          "albumId": "1019531",
-          "album": "Anbe Vaa"
-        },
-        {
-          "id": "SJWwmXB7",
-          "name": "Rajaavin Paarvai",
-          "audioPath": "/Volumes/samsung/Music/M.S. Viswanathan/Anbe Vaa 1966/03. Rajaavin Paarvai.mp3",
-          "albumId": "1019531",
-          "album": "Anbe Vaa"
-        },
-        {
-          "id": "g1tySJFo",
-          "name": "Puthiya Vaanam",
-          "audioPath": "/Volumes/samsung/Music/M.S. Viswanathan/Anbe Vaa 1966/04. Puthiya Vaanam.mp3",
-          "albumId": "1019531",
-          "album": "Anbe Vaa"
-        },
-        {
-          "id": "QcmTzE3m",
-          "name": "Love Birds",
-          "audioPath": "/Volumes/samsung/Music/M.S. Viswanathan/Anbe Vaa 1966/05. Love Birds.mp3",
-          "albumId": "1019531",
-          "album": "Anbe Vaa"
-        },
-        {
-          "id": "Np4VBRZl",
-          "name": "Once Apappa",
-          "audioPath": "/Volumes/samsung/Music/M.S. Viswanathan/Anbe Vaa 1966/06. Once Apappa.mp3",
-          "albumId": "1019531",
-          "album": "Anbe Vaa"
-        },
-        {
-          "id": "OwXIWTEU",
-          "name": "Vetkamillai",
-          "audioPath": "/Volumes/samsung/Music/M.S. Viswanathan/Anbe Vaa 1966/07. Vetkamillai.mp3",
-          "albumId": "1019531",
-          "album": "Anbe Vaa"
-        },
-        {
-          "id": "Rm3T63HW",
-          "name": "Adios Good Bye",
-          "audioPath": "/Volumes/samsung/Music/M.S. Viswanathan/Anbe Vaa 1966/08. Adios Good Bye.mp3",
-          "albumId": "1019531",
-          "album": "Anbe Vaa"
-        },
-        {
-          "id": "m7wUBPtH",
-          "name": "Anbe Vaa",
-          "audioPath": "/Volumes/samsung/Music/M.S. Viswanathan/Anbe Vaa 1966/09. Anbe Vaa.mp3",
-          "albumId": "1019531",
-          "album": "Anbe Vaa"
-        },
-        {
-          "id": "cd3MjcZb",
-          "name": "Naan Paarthathile",
-          "audioPath": "/Volumes/samsung/Music/M.S. Viswanathan/Anbe Vaa 1966/10. Naan Paarthathile.mp3",
-          "albumId": "1019531",
-          "album": "Anbe Vaa"
-        },
-        {
-          "id": "IVVm4uGB",
-          "name": "Comedy Sequence From Anbe Vaa",
-          "audioPath": "/Volumes/samsung/Music/M.S. Viswanathan/Anbe Vaa 1966/11. Comedy Sequence From Anbe Vaa.mp3",
-          "albumId": "1019531",
-          "album": "Anbe Vaa"
-        },
-        {
-          "id": "kMWs49Is",
-          "name": "Raajavin Paarvai (Instrumental)",
-          "audioPath": "/Volumes/samsung/Music/M.S. Viswanathan/Anbe Vaa 1966/12. Raajavin Paarvai (Instrumental).mp3",
-          "albumId": "1019531",
-          "album": "Anbe Vaa"
-        },
-        {
-          "id": "sAEPR5S5",
-          "name": "Porattam",
-          "audioPath": "/Volumes/samsung/Music/M.S. Viswanathan/Anbe Vaa 1966/13. Porattam.mp3",
-          "albumId": "1019531",
-          "album": "Anbe Vaa"
-        }
-      ],
-      "totalTracks": 13
-    },
-    {
       "id": "1133571",
       "name": "Azagiya Tamil Magan",
       "localPath": "/Volumes/samsung/Music/A.R. Rahman/Azagiya Tamil Magan 2007",
@@ -2795,65 +2023,6 @@
         }
       ],
       "totalTracks": 6
-    },
-    {
-      "id": "2166555",
-      "name": "Suryakanthi",
-      "localPath": "/Volumes/samsung/Music/M.S. Viswanathan/Suryakanthi 1973",
-      "songs": [
-        {
-          "id": "gDpQmKo-",
-          "name": "Paramasivan Kazhutthil",
-          "audioPath": "/Volumes/samsung/Music/M.S. Viswanathan/Suryakanthi 1973/03. Paramasivan Kazhutthil.mp3",
-          "albumId": "2166555",
-          "album": "Suryakanthi"
-        }
-      ],
-      "totalTracks": 4
-    },
-    {
-      "id": "32153988",
-      "name": "Rettai Vaal Kuruvi",
-      "localPath": "/Volumes/samsung/Music/Ilaiyaraaja/Rettai Vaal Kuruvi 1987",
-      "songs": [
-        {
-          "id": "it1Lam2B",
-          "name": "Raja Raja Chozhan",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Rettai Vaal Kuruvi 1987/02. Raja Raja Chozhan.mp3",
-          "albumId": "32153988",
-          "album": "Rettai Vaal Kuruvi"
-        },
-        {
-          "id": "sQumYUtg",
-          "name": "Kannan Vanthu",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Rettai Vaal Kuruvi 1987/03. Kannan Vanthu.mp3",
-          "albumId": "32153988",
-          "album": "Rettai Vaal Kuruvi"
-        }
-      ],
-      "totalTracks": 4
-    },
-    {
-      "id": "17304236",
-      "name": "Mr. Bharath",
-      "localPath": "/Volumes/samsung/Music/Ilaiyaraaja/Mr. Bharath 1986",
-      "songs": [
-        {
-          "id": "dgecLpvT",
-          "name": "Yennama Kannu Sowkiyama",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Mr. Bharath 1986/03. Yennama Kannu Sowkiyama.mp3",
-          "albumId": "17304236",
-          "album": "Mr. Bharath"
-        },
-        {
-          "id": "HEzmlqa_",
-          "name": "Kathiruken Kadhavathiranthu",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Mr. Bharath 1986/02. Kathiruken Kadhavathiranthu.mp3",
-          "albumId": "17304236",
-          "album": "Mr. Bharath"
-        }
-      ],
-      "totalTracks": 5
     },
     {
       "id": "1065840",
@@ -2975,821 +2144,6 @@
         }
       ],
       "totalTracks": 13
-    },
-    {
-      "id": "32176596",
-      "name": "Ooru Vittu Ooru Vandhu",
-      "localPath": "/Volumes/samsung/Music/Ilaiyaraaja/Ooru Vittu Ooru Vandhu 1990",
-      "songs": [
-        {
-          "id": "eeSgUVPZ",
-          "name": "Sorgame Endralum",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Ooru Vittu Ooru Vandhu 1990/06. Sorgame Endralum.mp3",
-          "albumId": "32176596",
-          "album": "Ooru Vittu Ooru Vandhu"
-        }
-      ],
-      "totalTracks": 6
-    },
-    {
-      "id": "2406705",
-      "name": "Sikappu Rojakkal",
-      "localPath": "/Volumes/samsung/Music/Ilaiyaraaja/Sikappu Rojakkal 1978",
-      "songs": [
-        {
-          "id": "k1unigzg",
-          "name": "Ninaivo Oru",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Sikappu Rojakkal 1978/01. Ninaivo Oru.mp3",
-          "albumId": "2406705",
-          "album": "Sikappu Rojakkal"
-        },
-        {
-          "id": "vl1Dr-9L",
-          "name": "Indha Minminikku",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Sikappu Rojakkal 1978/02. Indha Minminikku.mp3",
-          "albumId": "2406705",
-          "album": "Sikappu Rojakkal"
-        }
-      ],
-      "totalTracks": 2
-    },
-    {
-      "id": "32177334",
-      "name": "Mudhal Mariyathai",
-      "localPath": "/Volumes/samsung/Music/Ilaiyaraaja/Mudhal Mariyathai 1985",
-      "songs": [
-        {
-          "id": "yOTJeQqh",
-          "name": "Antha Nilava Thaan",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Mudhal Mariyathai 1985/01. Antha Nilava Thaan.mp3",
-          "albumId": "32177334",
-          "album": "Mudhal Mariyathai"
-        },
-        {
-          "id": "uVUMsQk1",
-          "name": "Vetti Veru Vasam",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Mudhal Mariyathai 1985/02. Vetti Veru Vasam.mp3",
-          "albumId": "32177334",
-          "album": "Mudhal Mariyathai"
-        },
-        {
-          "id": "4ZCwsRFC",
-          "name": "Raasave Unna Nambi",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Mudhal Mariyathai 1985/03. Raasave Unna Nambi.mp3",
-          "albumId": "32177334",
-          "album": "Mudhal Mariyathai"
-        },
-        {
-          "id": "SGQiJg7-",
-          "name": "Hey Kiliyirukku",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Mudhal Mariyathai 1985/04. Hey Kiliyirukku.mp3",
-          "albumId": "32177334",
-          "album": "Mudhal Mariyathai"
-        },
-        {
-          "id": "zZeru5uY",
-          "name": "Eratha Malai Mele",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Mudhal Mariyathai 1985/05. Eratha Malai Mele.mp3",
-          "albumId": "32177334",
-          "album": "Mudhal Mariyathai"
-        },
-        {
-          "id": "B5Un-oVO",
-          "name": "Poongaatru Thirumbuma",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Mudhal Mariyathai 1985/06. Poongaatru Thirumbuma.mp3",
-          "albumId": "32177334",
-          "album": "Mudhal Mariyathai"
-        },
-        {
-          "id": "DDOvIBxz",
-          "name": "Yeh Kuruvi",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Mudhal Mariyathai 1985/07. Yeh Kuruvi.mp3",
-          "albumId": "32177334",
-          "album": "Mudhal Mariyathai"
-        }
-      ],
-      "totalTracks": 7
-    },
-    {
-      "id": "32154041",
-      "name": "Dharmathin Thalaivan",
-      "localPath": "/Volumes/samsung/Music/Ilaiyaraaja/Dharmathin Thalaivan 1988",
-      "songs": [
-        {
-          "id": "w-yzdIiJ",
-          "name": "Thenmadurai Vaigai Nadhi",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Dharmathin Thalaivan 1988/01. Thenmadurai Vaigai Nadhi.mp3",
-          "albumId": "32154041",
-          "album": "Dharmathin Thalaivan"
-        },
-        {
-          "id": "WmY6nsqn",
-          "name": "Muthamizh Kaviyae",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Dharmathin Thalaivan 1988/02. Muthamizh Kaviyae.mp3",
-          "albumId": "32154041",
-          "album": "Dharmathin Thalaivan"
-        },
-        {
-          "id": "UNGDOrr3",
-          "name": "Othadi Othadi",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Dharmathin Thalaivan 1988/04. Othadi Othadi.mp3",
-          "albumId": "32154041",
-          "album": "Dharmathin Thalaivan"
-        },
-        {
-          "id": "P6NdYSQG",
-          "name": "Thenmadurai Vaigai Nadhi (Sad)",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Dharmathin Thalaivan 1988/06. Thenmadurai Vaigai Nadhi (Sad).mp3",
-          "albumId": "32154041",
-          "album": "Dharmathin Thalaivan"
-        }
-      ],
-      "totalTracks": 6
-    },
-    {
-      "id": "32176606",
-      "name": "Paasa Paravaigal",
-      "localPath": "/Volumes/samsung/Music/Ilaiyaraaja/Paasa Paravaigal 1988",
-      "songs": [
-        {
-          "id": "WYocxJqb",
-          "name": "Thenpaandi Thamizhe (Duet)",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Paasa Paravaigal 1988/02. Thenpaandi Thamizhe (Duet).mp3",
-          "albumId": "32176606",
-          "album": "Paasa Paravaigal"
-        },
-        {
-          "id": "O0H0YnUX",
-          "name": "Thenpaandi Thamizhe (Male)",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Paasa Paravaigal 1988/03. Thenpaandi Thamizhe (Male).mp3",
-          "albumId": "32176606",
-          "album": "Paasa Paravaigal"
-        }
-      ],
-      "totalTracks": 3
-    },
-    {
-      "id": "32153980",
-      "name": "Padikkadhavan",
-      "localPath": "/Volumes/samsung/Music/Ilaiyaraaja/Padikkadhavan 1985",
-      "songs": [
-        {
-          "id": "Zv4l6i7P",
-          "name": "Oorai Therinjukitten",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Padikkadhavan 1985/01. Oorai Therinjukitten.mp3",
-          "albumId": "32153980",
-          "album": "Padikkadhavan"
-        },
-        {
-          "id": "_5hgTsOj",
-          "name": "Jodi Kili",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Padikkadhavan 1985/02. Jodi Kili.mp3",
-          "albumId": "32153980",
-          "album": "Padikkadhavan"
-        },
-        {
-          "id": "HRFKS8qL",
-          "name": "Solli Adipenadi",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Padikkadhavan 1985/03. Solli Adipenadi.mp3",
-          "albumId": "32153980",
-          "album": "Padikkadhavan"
-        },
-        {
-          "id": "vwgKzfJ7",
-          "name": "Rajavukku Raja",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Padikkadhavan 1985/04. Rajavukku Raja.mp3",
-          "albumId": "32153980",
-          "album": "Padikkadhavan"
-        },
-        {
-          "id": "NoLKVR1B",
-          "name": "Oru Koottu",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Padikkadhavan 1985/05. Oru Koottu.mp3",
-          "albumId": "32153980",
-          "album": "Padikkadhavan"
-        }
-      ],
-      "totalTracks": 5
-    },
-    {
-      "id": "52556701",
-      "name": "Karakattakkaran",
-      "localPath": "/Volumes/samsung/Music/Ilaiyaraaja/Karakattakkaran 1989",
-      "songs": [
-        {
-          "id": "VsQoaBpU",
-          "name": "Indha Maan",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Karakattakkaran 1989/01. Indha Maan.mp3",
-          "albumId": "52556701",
-          "album": "Karakattakkaran"
-        },
-        {
-          "id": "XVoJO4rT",
-          "name": "Kudagu Malai",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Karakattakkaran 1989/02. Kudagu Malai.mp3",
-          "albumId": "52556701",
-          "album": "Karakattakkaran"
-        },
-        {
-          "id": "Hc_rAFCm",
-          "name": "Maanguyile Poonguyile (Solo)",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Karakattakkaran 1989/03. Maanguyile Poonguyile (Solo).mp3",
-          "albumId": "52556701",
-          "album": "Karakattakkaran"
-        },
-        {
-          "id": "Rv83Vjj8",
-          "name": "Maanguyile Poonguyile (Duet)",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Karakattakkaran 1989/04. Maanguyile Poonguyile (Duet).mp3",
-          "albumId": "52556701",
-          "album": "Karakattakkaran"
-        },
-        {
-          "id": "AvyJoTqE",
-          "name": "Mariyamma Mariyamma",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Karakattakkaran 1989/05. Mariyamma Mariyamma.mp3",
-          "albumId": "52556701",
-          "album": "Karakattakkaran"
-        },
-        {
-          "id": "WOSrW0yb",
-          "name": "Mundhi Mundhi",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Karakattakkaran 1989/06. Mundhi Mundhi.mp3",
-          "albumId": "52556701",
-          "album": "Karakattakkaran"
-        },
-        {
-          "id": "x94wlJtd",
-          "name": "Nandhavanathil",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Karakattakkaran 1989/07. Nandhavanathil.mp3",
-          "albumId": "52556701",
-          "album": "Karakattakkaran"
-        },
-        {
-          "id": "WzYCo7w6",
-          "name": "Ooruvittu Ooruvandhu",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Karakattakkaran 1989/08. Ooruvittu Ooruvandhu.mp3",
-          "albumId": "52556701",
-          "album": "Karakattakkaran"
-        },
-        {
-          "id": "FXp4bf0S",
-          "name": "Paattaale Buddhi",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Karakattakkaran 1989/09. Paattaale Buddhi.mp3",
-          "albumId": "52556701",
-          "album": "Karakattakkaran"
-        }
-      ],
-      "totalTracks": 9
-    },
-    {
-      "id": "32153999",
-      "name": "Pudhu Kavithai",
-      "localPath": "/Volumes/samsung/Music/Ilaiyaraaja/Pudhu Kavithai 1982",
-      "songs": [
-        {
-          "id": "FNMd8nbH",
-          "name": "Vellai Pura Ondru (Duet)",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Pudhu Kavithai 1982/01. Vellai Pura Ondru (Duet).mp3",
-          "albumId": "32153999",
-          "album": "Pudhu Kavithai"
-        },
-        {
-          "id": "Koz4c01e",
-          "name": "Vaa Vaa Vasanthamey",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Pudhu Kavithai 1982/02. Vaa Vaa Vasanthamey.mp3",
-          "albumId": "32153999",
-          "album": "Pudhu Kavithai"
-        },
-        {
-          "id": "NzeMcy4L",
-          "name": "Vellai Pura Ondru (Solo)",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Pudhu Kavithai 1982/04. Vellai Pura Ondru (Solo).mp3",
-          "albumId": "32153999",
-          "album": "Pudhu Kavithai"
-        }
-      ],
-      "totalTracks": 4
-    },
-    {
-      "id": "32154028",
-      "name": "Gopura Vaasalile",
-      "localPath": "/Volumes/samsung/Music/Ilaiyaraaja/Gopura Vaasalile 1991",
-      "songs": [
-        {
-          "id": "qdJEhETW",
-          "name": "Kadhal Kavithaigal",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Gopura Vaasalile 1991/01. Kadhal Kavithaigal.mp3",
-          "albumId": "32154028",
-          "album": "Gopura Vaasalile"
-        },
-        {
-          "id": "_A6A5IVz",
-          "name": "Dhevadhai Pol Oru",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Gopura Vaasalile 1991/04. Dhevadhai Pol Oru.mp3",
-          "albumId": "32154028",
-          "album": "Gopura Vaasalile"
-        },
-        {
-          "id": "jo8F6Ngv",
-          "name": "Thaalattum Poongaatru",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Gopura Vaasalile 1991/06. Thaalattum Poongaatru.mp3",
-          "albumId": "32154028",
-          "album": "Gopura Vaasalile"
-        }
-      ],
-      "totalTracks": 6
-    },
-    {
-      "id": "52556536",
-      "name": "Paandi Nattu Thangam",
-      "localPath": "/Volumes/samsung/Music/Ilaiyaraaja/Paandi Nattu Thangam 1989",
-      "songs": [
-        {
-          "id": "frfZXjTr",
-          "name": "Un Manasula Paattuthaan (Happy)",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Paandi Nattu Thangam 1989/06. Un Manasula Paattuthaan (Happy).mp3",
-          "albumId": "52556536",
-          "album": "Paandi Nattu Thangam"
-        },
-        {
-          "id": "-uVw5Ibz",
-          "name": "Siru Koottula",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Paandi Nattu Thangam 1989/05. Siru Koottula.mp3",
-          "albumId": "52556536",
-          "album": "Paandi Nattu Thangam"
-        },
-        {
-          "id": "TbL4xqna",
-          "name": "Un Manasula Paattuthaan (Sad)",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Paandi Nattu Thangam 1989/07. Un Manasula Paattuthaan (Sad).mp3",
-          "albumId": "52556536",
-          "album": "Paandi Nattu Thangam"
-        }
-      ],
-      "totalTracks": 7
-    },
-    {
-      "id": "17304238",
-      "name": "Nallavanukku Nallavan",
-      "localPath": "/Volumes/samsung/Music/Ilaiyaraaja/Nallavanukku Nallavan 1984",
-      "songs": [
-        {
-          "id": "gama4KG5",
-          "name": "Vechikkava Unna Mattum",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Nallavanukku Nallavan 1984/01. Vechikkava Unna Mattum.mp3",
-          "albumId": "17304238",
-          "album": "Nallavanukku Nallavan"
-        },
-        {
-          "id": "7oYcb-Y7",
-          "name": "Unnai Thaney Thanjam",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Nallavanukku Nallavan 1984/02. Unnai Thaney Thanjam.mp3",
-          "albumId": "17304238",
-          "album": "Nallavanukku Nallavan"
-        },
-        {
-          "id": "xM9_tdDl",
-          "name": "Chittukku Chella Chittuku",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Nallavanukku Nallavan 1984/06. Chittukku Chella Chittuku.mp3",
-          "albumId": "17304238",
-          "album": "Nallavanukku Nallavan"
-        }
-      ],
-      "totalTracks": 6
-    },
-    {
-      "id": "44295408",
-      "name": "Mappillai (Original Motion Picture Soundtrack)",
-      "localPath": "/Volumes/samsung/Music/Ilaiyaraaja/Mappillai (Original Motion Picture Soundtrack) 1989",
-      "songs": [
-        {
-          "id": "rouVxpEv",
-          "name": "Ennoda Raasi",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Mappillai (Original Motion Picture Soundtrack) 1989/02. Ennoda Raasi.mp3",
-          "albumId": "44295408",
-          "album": "Mappillai (Original Motion Picture Soundtrack)"
-        },
-        {
-          "id": "0hakmWf1",
-          "name": "Maanin Iru Kangal",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Mappillai (Original Motion Picture Soundtrack) 1989/03. Maanin Iru Kangal.mp3",
-          "albumId": "44295408",
-          "album": "Mappillai (Original Motion Picture Soundtrack)"
-        }
-      ],
-      "totalTracks": 5
-    },
-    {
-      "id": "1052706",
-      "name": "Ullasapparavaigal",
-      "localPath": "/Volumes/samsung/Music/Ilaiyaraaja/Ullasapparavaigal 1979",
-      "songs": [
-        {
-          "id": "ZpV5vmVE",
-          "name": "Germanien Senthan",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Ullasapparavaigal 1979/04. Germanien Senthan.mp3",
-          "albumId": "1052706",
-          "album": "Ullasapparavaigal"
-        }
-      ],
-      "totalTracks": 6
-    },
-    {
-      "id": "16040285",
-      "name": "Dharma Yuddham",
-      "localPath": "/Volumes/samsung/Music/Ilaiyaraaja/Dharma Yuddham 2019",
-      "songs": [
-        {
-          "id": "wvWAMEtc",
-          "name": "Oru Thanga Radhathil",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Dharma Yuddham 2019/01. Oru Thanga Radhathil.mp3",
-          "albumId": "16040285",
-          "album": "Dharma Yuddham"
-        },
-        {
-          "id": "U_4Z3mm-",
-          "name": "Aagaya Gangai - Duet",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Dharma Yuddham 2019/02. Aagaya Gangai - Duet.mp3",
-          "albumId": "16040285",
-          "album": "Dharma Yuddham"
-        },
-        {
-          "id": "uuWx8kqy",
-          "name": "Aagaya Gangai",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Dharma Yuddham 2019/05. Aagaya Gangai.mp3",
-          "albumId": "16040285",
-          "album": "Dharma Yuddham"
-        }
-      ],
-      "totalTracks": 5
-    },
-    {
-      "id": "32173833",
-      "name": "Ponmana Selvan",
-      "localPath": "/Volumes/samsung/Music/Ilaiyaraaja/Ponmana Selvan 1989",
-      "songs": [
-        {
-          "id": "HAuGX_rp",
-          "name": "Nee Pottu Vechcha",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Ponmana Selvan 1989/06. Nee Pottu Vechcha.mp3",
-          "albumId": "32173833",
-          "album": "Ponmana Selvan"
-        }
-      ],
-      "totalTracks": 6
-    },
-    {
-      "id": "10785947",
-      "name": "Arunachalam",
-      "localPath": "/Volumes/samsung/Music/Deva/Arunachalam 1997",
-      "songs": [
-        {
-          "id": "oGiXTabr",
-          "name": "Athanda Ithanda",
-          "audioPath": "/Volumes/samsung/Music/Deva/Arunachalam 1997/01. Athanda Ithanda.mp3",
-          "albumId": "10785947",
-          "album": "Arunachalam"
-        },
-        {
-          "id": "wRXsextA",
-          "name": "Nagumo",
-          "audioPath": "/Volumes/samsung/Music/Deva/Arunachalam 1997/02. Nagumo.mp3",
-          "albumId": "10785947",
-          "album": "Arunachalam"
-        },
-        {
-          "id": "DmPPGqqX",
-          "name": "Thalai Magane",
-          "audioPath": "/Volumes/samsung/Music/Deva/Arunachalam 1997/03. Thalai Magane.mp3",
-          "albumId": "10785947",
-          "album": "Arunachalam"
-        },
-        {
-          "id": "FC86Jblq",
-          "name": "Mathadu Mathadu",
-          "audioPath": "/Volumes/samsung/Music/Deva/Arunachalam 1997/04. Mathadu Mathadu.mp3",
-          "albumId": "10785947",
-          "album": "Arunachalam"
-        },
-        {
-          "id": "uNlDq_3G",
-          "name": "Singam Ondru",
-          "audioPath": "/Volumes/samsung/Music/Deva/Arunachalam 1997/05. Singam Ondru.mp3",
-          "albumId": "10785947",
-          "album": "Arunachalam"
-        },
-        {
-          "id": "J59FtMCS",
-          "name": "Thalai Magane (Sad)",
-          "audioPath": "/Volumes/samsung/Music/Deva/Arunachalam 1997/06. Thalai Magane (Sad).mp3",
-          "albumId": "10785947",
-          "album": "Arunachalam"
-        },
-        {
-          "id": "a77b3IyG",
-          "name": "Arunachalam Theme Music",
-          "audioPath": "/Volumes/samsung/Music/Deva/Arunachalam 1997/07. Arunachalam Theme Music.mp3",
-          "albumId": "10785947",
-          "album": "Arunachalam"
-        },
-        {
-          "id": "CP4v0I9R",
-          "name": "Alli Alli",
-          "audioPath": "/Volumes/samsung/Music/Deva/Arunachalam 1997/08. Alli Alli.mp3",
-          "albumId": "10785947",
-          "album": "Arunachalam"
-        }
-      ],
-      "totalTracks": 8
-    },
-    {
-      "id": "2166274",
-      "name": "Murattukkaalai",
-      "localPath": "/Volumes/samsung/Music/Ilaiyaraaja/Murattukkaalai 1980",
-      "songs": [
-        {
-          "id": "Se5S2UVS",
-          "name": "Entha Poovilum",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Murattukkaalai 1980/01. Entha Poovilum.mp3",
-          "albumId": "2166274",
-          "album": "Murattukkaalai"
-        },
-        {
-          "id": "gshqvEg_",
-          "name": "Podhuvaga En Manasu",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Murattukkaalai 1980/03. Podhuvaga En Manasu.mp3",
-          "albumId": "2166274",
-          "album": "Murattukkaalai"
-        }
-      ],
-      "totalTracks": 4
-    },
-    {
-      "id": "51942152",
-      "name": "Velaikkaran",
-      "localPath": "/Volumes/samsung/Music/Ilaiyaraaja/Velaikkaran 1987",
-      "songs": [
-        {
-          "id": "i9ygKYDA",
-          "name": "Thottathile Paathi Katti",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Velaikkaran 1987/06. Thottathile Paathi Katti.mp3",
-          "albumId": "51942152",
-          "album": "Velaikkaran"
-        },
-        {
-          "id": "9x8FKgHw",
-          "name": "Va Va Va Kanna",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Velaikkaran 1987/04. Va Va Va Kanna.mp3",
-          "albumId": "51942152",
-          "album": "Velaikkaran"
-        }
-      ],
-      "totalTracks": 6
-    },
-    {
-      "id": "3231116",
-      "name": "Chinna Gounder",
-      "localPath": "/Volumes/samsung/Music/Ilaiyaraaja/Chinna Gounder 1992",
-      "songs": [
-        {
-          "id": "ro9l7371",
-          "name": "Antha Vanatha (Female Version)",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Chinna Gounder 1992/01. Antha Vanatha (Female Version).mp3",
-          "albumId": "3231116",
-          "album": "Chinna Gounder"
-        },
-        {
-          "id": "TG6tZauW",
-          "name": "Antha Vanatha",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Chinna Gounder 1992/02. Antha Vanatha.mp3",
-          "albumId": "3231116",
-          "album": "Chinna Gounder"
-        },
-        {
-          "id": "b331yidy",
-          "name": "Chinna Kili Vanna",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Chinna Gounder 1992/03. Chinna Kili Vanna.mp3",
-          "albumId": "3231116",
-          "album": "Chinna Gounder"
-        },
-        {
-          "id": "In010r4A",
-          "name": "Chutti Chutti",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Chinna Gounder 1992/04. Chutti Chutti.mp3",
-          "albumId": "3231116",
-          "album": "Chinna Gounder"
-        },
-        {
-          "id": "FZZ7Qmup",
-          "name": "Kannu Pada",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Chinna Gounder 1992/05. Kannu Pada.mp3",
-          "albumId": "3231116",
-          "album": "Chinna Gounder"
-        },
-        {
-          "id": "xWgRj5hP",
-          "name": "Koondu Kulla",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Chinna Gounder 1992/06. Koondu Kulla.mp3",
-          "albumId": "3231116",
-          "album": "Chinna Gounder"
-        },
-        {
-          "id": "F_yq85IL",
-          "name": "Muthumani Malai",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Chinna Gounder 1992/07. Muthumani Malai.mp3",
-          "albumId": "3231116",
-          "album": "Chinna Gounder"
-        },
-        {
-          "id": "C8D46i8k",
-          "name": "Sollaal Adicha",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Chinna Gounder 1992/08. Sollaal Adicha.mp3",
-          "albumId": "3231116",
-          "album": "Chinna Gounder"
-        }
-      ],
-      "totalTracks": 8
-    },
-    {
-      "id": "51941850",
-      "name": "Vettri Vizhaa",
-      "localPath": "/Volumes/samsung/Music/Ilaiyaraaja/Vettri Vizhaa 1989",
-      "songs": [
-        {
-          "id": "7m01_r6g",
-          "name": "Thathom Thalangu",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Vettri Vizhaa 1989/03. Thathom Thalangu.mp3",
-          "albumId": "51941850",
-          "album": "Vettri Vizhaa"
-        },
-        {
-          "id": "MuvTTGVv",
-          "name": "Poongatru Un Per Solla",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Vettri Vizhaa 1989/04. Poongatru Un Per Solla.mp3",
-          "albumId": "51941850",
-          "album": "Vettri Vizhaa"
-        },
-        {
-          "id": "3V1OZn_z",
-          "name": "Vaanam Enna",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Vettri Vizhaa 1989/05. Vaanam Enna.mp3",
-          "albumId": "51941850",
-          "album": "Vettri Vizhaa"
-        },
-        {
-          "id": "MlLvic5b",
-          "name": "Marugo Marugo",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Vettri Vizhaa 1989/01. Marugo Marugo.mp3",
-          "albumId": "51941850",
-          "album": "Vettri Vizhaa"
-        }
-      ],
-      "totalTracks": 5
-    },
-    {
-      "id": "51738833",
-      "name": "Punnagai Mannan",
-      "localPath": "/Volumes/samsung/Music/Ilaiyaraaja/Punnagai Mannan 1986",
-      "songs": [
-        {
-          "id": "Ot18aNnh",
-          "name": "Yedhedho Ennam Valarthen",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Punnagai Mannan 1986/01. Yedhedho Ennam Valarthen.mp3",
-          "albumId": "51738833",
-          "album": "Punnagai Mannan"
-        },
-        {
-          "id": "nHs-vqNk",
-          "name": "Enna Saththam Indha Neram",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Punnagai Mannan 1986/02. Enna Saththam Indha Neram.mp3",
-          "albumId": "51738833",
-          "album": "Punnagai Mannan"
-        },
-        {
-          "id": "llXhh6eS",
-          "name": "Vaan Megam Poo Poovaai",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Punnagai Mannan 1986/03. Vaan Megam Poo Poovaai.mp3",
-          "albumId": "51738833",
-          "album": "Punnagai Mannan"
-        },
-        {
-          "id": "CAEQNvKG",
-          "name": "Kavithai Kelungal Karuvil",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Punnagai Mannan 1986/04. Kavithai Kelungal Karuvil.mp3",
-          "albumId": "51738833",
-          "album": "Punnagai Mannan"
-        },
-        {
-          "id": "pDle6V-b",
-          "name": "Kaala Kaalamaaga Vaazhum",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Punnagai Mannan 1986/05. Kaala Kaalamaaga Vaazhum.mp3",
-          "albumId": "51738833",
-          "album": "Punnagai Mannan"
-        },
-        {
-          "id": "wI5exCQR",
-          "name": "Singalathu Chinnakuyile",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Punnagai Mannan 1986/06. Singalathu Chinnakuyile.mp3",
-          "albumId": "51738833",
-          "album": "Punnagai Mannan"
-        },
-        {
-          "id": "vdsRV3CO",
-          "name": "Maamaavukku Kudumaa Kudumaa",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Punnagai Mannan 1986/07. Maamaavukku Kudumaa Kudumaa.mp3",
-          "albumId": "51738833",
-          "album": "Punnagai Mannan"
-        },
-        {
-          "id": "MlvbCU9R",
-          "name": "Punnagai Mannan Theme Music",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Punnagai Mannan 1986/08. Punnagai Mannan Theme Music.mp3",
-          "albumId": "51738833",
-          "album": "Punnagai Mannan"
-        },
-        {
-          "id": "1hqTydKd",
-          "name": "One Two Three",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Punnagai Mannan 1986/09. One Two Three.mp3",
-          "albumId": "51738833",
-          "album": "Punnagai Mannan"
-        }
-      ],
-      "totalTracks": 9
-    },
-    {
-      "id": "1701296",
-      "name": "Thillu Mullu",
-      "localPath": "/Volumes/samsung/Music/M.S. Viswanathan/Thillu Mullu 1981",
-      "songs": [
-        {
-          "id": "QVheaNo5",
-          "name": "Thillumullu Thillumullu",
-          "audioPath": "/Volumes/samsung/Music/M.S. Viswanathan/Thillu Mullu 1981/03. Thillumullu Thillumullu.mp3",
-          "albumId": "1701296",
-          "album": "Thillu Mullu"
-        }
-      ],
-      "totalTracks": 3
-    },
-    {
-      "id": "1039562",
-      "name": "Mullum Malarum",
-      "localPath": "/Volumes/samsung/Music/Ilaiyaraaja/Mullum Malarum 2019",
-      "songs": [
-        {
-          "id": "X4t96Hxv",
-          "name": "Raman Aandaalum",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Mullum Malarum 2019/04. Raman Aandaalum.mp3",
-          "albumId": "1039562",
-          "album": "Mullum Malarum"
-        },
-        {
-          "id": "C5k0YdFi",
-          "name": "Nitham Nitham",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Mullum Malarum 2019/03. Nitham Nitham.mp3",
-          "albumId": "1039562",
-          "album": "Mullum Malarum"
-        }
-      ],
-      "totalTracks": 4
-    },
-    {
-      "id": "1298441",
-      "name": "Subramaniapuram",
-      "localPath": "/Volumes/samsung/Music/James Vasanthan/Subramaniapuram 2008",
-      "songs": [
-        {
-          "id": "UObIIP63",
-          "name": "Kangal Irandal",
-          "audioPath": "/Volumes/samsung/Music/James Vasanthan/Subramaniapuram 2008/01. Kangal Irandal.mp3",
-          "albumId": "1298441",
-          "album": "Subramaniapuram"
-        },
-        {
-          "id": "p7GpAZLI",
-          "name": "Subramaniapuram (Theme Music)",
-          "audioPath": "/Volumes/samsung/Music/James Vasanthan/Subramaniapuram 2008/04. Subramaniapuram (Theme Music).mp3",
-          "albumId": "1298441",
-          "album": "Subramaniapuram"
-        },
-        {
-          "id": "-H0D7H0e",
-          "name": "Theneeril Snehitham",
-          "audioPath": "/Volumes/samsung/Music/James Vasanthan/Subramaniapuram 2008/05. Theneeril Snehitham.mp3",
-          "albumId": "1298441",
-          "album": "Subramaniapuram"
-        },
-        {
-          "id": "3yAQ6A45",
-          "name": "Madera Kulunga",
-          "audioPath": "/Volumes/samsung/Music/James Vasanthan/Subramaniapuram 2008/02. Madera Kulunga.mp3",
-          "albumId": "1298441",
-          "album": "Subramaniapuram"
-        }
-      ],
-      "totalTracks": 6
     },
     {
       "id": "1217601",
@@ -3928,42 +2282,6 @@
       "totalTracks": 5
     },
     {
-      "id": "1298439",
-      "name": "Padikkathavan",
-      "localPath": "/Volumes/samsung/Music/Mani Sharma/Padikkathavan 2009",
-      "songs": [
-        {
-          "id": "NUySo2lA",
-          "name": "Hey Vetri Velaa",
-          "audioPath": "/Volumes/samsung/Music/Mani Sharma/Padikkathavan 2009/01. Hey Vetri Velaa.mp3",
-          "albumId": "1298439",
-          "album": "Padikkathavan"
-        },
-        {
-          "id": "RufOl4Pf",
-          "name": "Hey Rosu Rosu",
-          "audioPath": "/Volumes/samsung/Music/Mani Sharma/Padikkathavan 2009/04. Hey Rosu Rosu.mp3",
-          "albumId": "1298439",
-          "album": "Padikkathavan"
-        },
-        {
-          "id": "_yNv1nI8",
-          "name": "Raangi Rangamma",
-          "audioPath": "/Volumes/samsung/Music/Mani Sharma/Padikkathavan 2009/03. Raangi Rangamma.mp3",
-          "albumId": "1298439",
-          "album": "Padikkathavan"
-        },
-        {
-          "id": "f9bHn9xf",
-          "name": "Appa Amma Vilayatta",
-          "audioPath": "/Volumes/samsung/Music/Mani Sharma/Padikkathavan 2009/05. Appa Amma Vilayatta.mp3",
-          "albumId": "1298439",
-          "album": "Padikkathavan"
-        }
-      ],
-      "totalTracks": 5
-    },
-    {
       "id": "1133625",
       "name": "Padayappa",
       "localPath": "/Volumes/samsung/Music/A.R. Rahman/Padayappa 1999",
@@ -4079,158 +2397,6 @@
       "totalTracks": 6
     },
     {
-      "id": "1133609",
-      "name": "Love Today",
-      "localPath": "/Volumes/samsung/Music/Siva C./Love Today 1997",
-      "songs": [
-        {
-          "id": "yI1WeSwE",
-          "name": "Yean Penendru Mohd Aslam",
-          "audioPath": "/Volumes/samsung/Music/Siva C./Love Today 1997/06. Yean Penendru Mohd Aslam.mp3",
-          "albumId": "1133609",
-          "album": "Love Today"
-        },
-        {
-          "id": "kjloyEJX",
-          "name": "Yenna Azhago",
-          "audioPath": "/Volumes/samsung/Music/Siva C./Love Today 1997/07. Yenna Azhago.mp3",
-          "albumId": "1133609",
-          "album": "Love Today"
-        }
-      ],
-      "totalTracks": 7
-    },
-    {
-      "id": "2161976",
-      "name": "Anbukku Naan Adimai",
-      "localPath": "/Volumes/samsung/Music/Ilaiyaraaja/Anbukku Naan Adimai 1980",
-      "songs": [
-        {
-          "id": "kZWRNuCE",
-          "name": "Kaathodu Poovurasa",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Anbukku Naan Adimai 1980/06. Kaathodu Poovurasa.mp3",
-          "albumId": "2161976",
-          "album": "Anbukku Naan Adimai"
-        },
-        {
-          "id": "upoDX9d0",
-          "name": "Endha Poovilum",
-          "audioPath": "/Volumes/samsung/Music/Ilaiyaraaja/Anbukku Naan Adimai 1980/05. Endha Poovilum.mp3",
-          "albumId": "2161976",
-          "album": "Anbukku Naan Adimai"
-        }
-      ],
-      "totalTracks": 6
-    },
-    {
-      "id": "22276136",
-      "name": "Ninaitthathai Mudippavan",
-      "localPath": "/Volumes/samsung/Music/M. S. Viswanathan/Ninaitthathai Mudippavan 1975",
-      "songs": [
-        {
-          "id": "ZvkkezAa",
-          "name": "Poo Mazhai Thoovi",
-          "audioPath": "/Volumes/samsung/Music/M. S. Viswanathan/Ninaitthathai Mudippavan 1975/01. Poo Mazhai Thoovi.mp3",
-          "albumId": "22276136",
-          "album": "Ninaitthathai Mudippavan"
-        },
-        {
-          "id": "iHvYhoZw",
-          "name": "Kannai Namadhey",
-          "audioPath": "/Volumes/samsung/Music/M. S. Viswanathan/Ninaitthathai Mudippavan 1975/02. Kannai Namadhey.mp3",
-          "albumId": "22276136",
-          "album": "Ninaitthathai Mudippavan"
-        },
-        {
-          "id": "9yfq8uHy",
-          "name": "Oruvar Meedhu Oruvar",
-          "audioPath": "/Volumes/samsung/Music/M. S. Viswanathan/Ninaitthathai Mudippavan 1975/03. Oruvar Meedhu Oruvar.mp3",
-          "albumId": "22276136",
-          "album": "Ninaitthathai Mudippavan"
-        },
-        {
-          "id": "xwMz_ZIr",
-          "name": "Nee Thottu Pesinal",
-          "audioPath": "/Volumes/samsung/Music/M. S. Viswanathan/Ninaitthathai Mudippavan 1975/04. Nee Thottu Pesinal.mp3",
-          "albumId": "22276136",
-          "album": "Ninaitthathai Mudippavan"
-        },
-        {
-          "id": "fjbQB-AB",
-          "name": "Thaane Thaane Thanthanathana",
-          "audioPath": "/Volumes/samsung/Music/M. S. Viswanathan/Ninaitthathai Mudippavan 1975/05. Thaane Thaane Thanthanathana.mp3",
-          "albumId": "22276136",
-          "album": "Ninaitthathai Mudippavan"
-        },
-        {
-          "id": "nlIeaBgi",
-          "name": "Poo Mazhai Thoovi",
-          "audioPath": "/Volumes/samsung/Music/M. S. Viswanathan/Ninaitthathai Mudippavan 1975/06. Poo Mazhai Thoovi.mp3",
-          "albumId": "22276136",
-          "album": "Ninaitthathai Mudippavan"
-        }
-      ],
-      "totalTracks": 6
-    },
-    {
-      "id": "2762803",
-      "name": "Adimai Penn",
-      "localPath": "/Volumes/samsung/Music/K. V. Mahadevan/Adimai Penn 1969",
-      "songs": [
-        {
-          "id": "L-v3qvCM",
-          "name": "Yemaattraathey",
-          "audioPath": "/Volumes/samsung/Music/K. V. Mahadevan/Adimai Penn 1969/01. Yemaattraathey.mp3",
-          "albumId": "2762803",
-          "album": "Adimai Penn"
-        },
-        {
-          "id": "30UUIRys",
-          "name": "Aayiram Nilave Vaa",
-          "audioPath": "/Volumes/samsung/Music/K. V. Mahadevan/Adimai Penn 1969/02. Aayiram Nilave Vaa.mp3",
-          "albumId": "2762803",
-          "album": "Adimai Penn"
-        },
-        {
-          "id": "ZuRUK0Np",
-          "name": "Thayillamal Nanillai",
-          "audioPath": "/Volumes/samsung/Music/K. V. Mahadevan/Adimai Penn 1969/03. Thayillamal Nanillai.mp3",
-          "albumId": "2762803",
-          "album": "Adimai Penn"
-        }
-      ],
-      "totalTracks": 6
-    },
-    {
-      "id": "1026903",
-      "name": "Enga Veettu Pillai",
-      "localPath": "/Volumes/samsung/Music/Viswanathan-Ramamoorthy/Enga Veettu Pillai 1965",
-      "songs": [
-        {
-          "id": "HfGLIbCo",
-          "name": "Naan Manthoppil",
-          "audioPath": "/Volumes/samsung/Music/Viswanathan-Ramamoorthy/Enga Veettu Pillai 1965/01. Naan Manthoppil.mp3",
-          "albumId": "1026903",
-          "album": "Enga Veettu Pillai"
-        },
-        {
-          "id": "pvMqo3ZH",
-          "name": "Naan Anaiyittaal",
-          "audioPath": "/Volumes/samsung/Music/Viswanathan-Ramamoorthy/Enga Veettu Pillai 1965/04. Naan Anaiyittaal.mp3",
-          "albumId": "1026903",
-          "album": "Enga Veettu Pillai"
-        },
-        {
-          "id": "b2tWrmmy",
-          "name": "Kumari Pennin Ullatthile",
-          "audioPath": "/Volumes/samsung/Music/Viswanathan-Ramamoorthy/Enga Veettu Pillai 1965/06. Kumari Pennin Ullatthile.mp3",
-          "albumId": "1026903",
-          "album": "Enga Veettu Pillai"
-        }
-      ],
-      "totalTracks": 6
-    },
-    {
       "id": "77613884",
       "name": "One Name (From \"Jailer 2\")",
       "localPath": "/Volumes/samsung/Music/Anirudh Ravichander/One Name (From -Jailer 2-) 2026",
@@ -4323,42 +2489,6 @@
           "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Kadhalar Dhinam 1999/06. Roja Roja.mp3",
           "albumId": "1132801",
           "album": "Kadhalar Dhinam"
-        }
-      ],
-      "totalTracks": 6
-    },
-    {
-      "id": "1133656",
-      "name": "Thullatha Manamum Thullum",
-      "localPath": "/Volumes/samsung/Music/S. A. Rajkumar/Thullatha Manamum Thullum 1999",
-      "songs": [
-        {
-          "id": "Kbt1gSWO",
-          "name": "Irupathu Kodi",
-          "audioPath": "/Volumes/samsung/Music/S. A. Rajkumar/Thullatha Manamum Thullum 1999/03. Irupathu Kodi.mp3",
-          "albumId": "1133656",
-          "album": "Thullatha Manamum Thullum"
-        },
-        {
-          "id": "G8XyM4BY",
-          "name": "Meghamai Vanthu Pogiren",
-          "audioPath": "/Volumes/samsung/Music/S. A. Rajkumar/Thullatha Manamum Thullum 1999/04. Meghamai Vanthu Pogiren.mp3",
-          "albumId": "1133656",
-          "album": "Thullatha Manamum Thullum"
-        },
-        {
-          "id": "y1hoPaje",
-          "name": "Thodu Thoduveneve",
-          "audioPath": "/Volumes/samsung/Music/S. A. Rajkumar/Thullatha Manamum Thullum 1999/06. Thodu Thoduveneve.mp3",
-          "albumId": "1133656",
-          "album": "Thullatha Manamum Thullum"
-        },
-        {
-          "id": "p9Jbg9iy",
-          "name": "Innisai Paadivarum",
-          "audioPath": "/Volumes/samsung/Music/S. A. Rajkumar/Thullatha Manamum Thullum 1999/02. Innisai Paadivarum.mp3",
-          "albumId": "1133656",
-          "album": "Thullatha Manamum Thullum"
         }
       ],
       "totalTracks": 6
@@ -7025,46 +5155,6 @@
       "totalTracks": 10
     },
     {
-      "id": "1133626",
-      "name": "Paruthiveeran",
-      "localPath": "/Volumes/samsung/Music/Santhosh Narayanan/Paruthiveeran 2006",
-      "songs": [
-        {
-          "id": "80jF7ypn",
-          "name": "Vuroram Puliamaram",
-          "audioPath": "/Volumes/samsung/Music/Santhosh Narayanan/Paruthiveeran 2006/06. Vuroram Puliamaram.mp3",
-          "albumId": "1133626",
-          "imageUrl": "https://c.saavncdn.com/137/Paruthiveeran-2006-150x150.jpg",
-          "album": "Paruthiveeran"
-        },
-        {
-          "id": "e7Zq8O_r",
-          "name": "Ariyadha Vayasu",
-          "audioPath": "/Volumes/samsung/Music/Santhosh Narayanan/Paruthiveeran 2006/01. Ariyadha Vayasu.mp3",
-          "albumId": "1133626",
-          "imageUrl": "https://c.saavncdn.com/137/Paruthiveeran-2006-150x150.jpg",
-          "album": "Paruthiveeran"
-        },
-        {
-          "id": "r-Yhp8Tu",
-          "name": "Iayyayo",
-          "audioPath": "/Volumes/samsung/Music/Santhosh Narayanan/Paruthiveeran 2006/02. Iayyayo.mp3",
-          "albumId": "1133626",
-          "imageUrl": "https://c.saavncdn.com/137/Paruthiveeran-2006-150x150.jpg",
-          "album": "Paruthiveeran"
-        },
-        {
-          "id": "qJc6uYq8",
-          "name": "Sari Gama Pathani",
-          "audioPath": "/Volumes/samsung/Music/Santhosh Narayanan/Paruthiveeran 2006/04. Sari Gama Pathani.mp3",
-          "albumId": "1133626",
-          "imageUrl": "https://c.saavncdn.com/137/Paruthiveeran-2006-150x150.jpg",
-          "album": "Paruthiveeran"
-        }
-      ],
-      "totalTracks": 6
-    },
-    {
       "id": "1052039",
       "name": "Thottal Poo Malarum",
       "localPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Thottal Poo Malarum 2007",
@@ -8015,22 +6105,6 @@
         }
       ],
       "totalTracks": 8
-    },
-    {
-      "id": "1154415",
-      "name": "Vadacurry",
-      "localPath": "/Volumes/samsung/Music/Vivek-Mervin/Vadacurry 2014",
-      "songs": [
-        {
-          "id": "aRGh8FYq",
-          "name": "Nenjukulla Nee",
-          "audioPath": "/Volumes/samsung/Music/Vivek-Mervin/Vadacurry 2014/01. Nenjukulla Nee.mp3",
-          "albumId": "1154415",
-          "imageUrl": "https://c.saavncdn.com/042/Vadacurry-2014-150x150.jpg",
-          "album": "Vadacurry"
-        }
-      ],
-      "totalTracks": 5
     },
     {
       "id": "1188200",
@@ -9281,49 +7355,6 @@
       "totalTracks": 6
     },
     {
-      "id": "1133588",
-      "name": "Godfather",
-      "localPath": "/Volumes/samsung/Music/Su Cong/Godfather 2006",
-      "songs": [
-        {
-          "id": "d7lM59jv",
-          "name": "Innisai",
-          "audioPath": "/Volumes/samsung/Music/Su Cong/Godfather 2006/03. Innisai.mp3"
-        },
-        {
-          "id": "LAuHn05h",
-          "name": "Innisai ( Remix )",
-          "audioPath": "/Volumes/samsung/Music/Su Cong/Godfather 2006/04. Innisai ( Remix ).mp3"
-        },
-        {
-          "id": "Uklz2rw-",
-          "name": "Ilamai",
-          "audioPath": "/Volumes/samsung/Music/Su Cong/Godfather 2006/01. Ilamai.mp3"
-        },
-        {
-          "id": "vjn83Cpe",
-          "name": "Kaama Kairai",
-          "audioPath": "/Volumes/samsung/Music/Su Cong/Godfather 2006/05. Kaama Kairai.mp3"
-        },
-        {
-          "id": "aOAi1p8H",
-          "name": "Thotha Puram",
-          "audioPath": "/Volumes/samsung/Music/Su Cong/Godfather 2006/08. Thotha Puram.mp3"
-        },
-        {
-          "id": "-wW2Kj84",
-          "name": "Kaatril",
-          "audioPath": "/Volumes/samsung/Music/Su Cong/Godfather 2006/06. Kaatril.mp3"
-        },
-        {
-          "id": "CLkgoQVc",
-          "name": "Theeyil Vizhuntha",
-          "audioPath": "/Volumes/samsung/Music/Su Cong/Godfather 2006/07. Theeyil Vizhuntha.mp3"
-        }
-      ],
-      "totalTracks": 8
-    },
-    {
       "id": "24195856",
       "name": "Jodhaa Akbar (Tamil)",
       "localPath": "/Volumes/samsung/Music/A.R. Rahman/Jodhaa Akbar (Tamil) 2007",
@@ -9767,24 +7798,6 @@
       "totalTracks": 5
     },
     {
-      "id": "28320036",
-      "name": "Navarasa",
-      "localPath": "/Volumes/samsung/Music/Karthik/Navarasa 2021",
-      "songs": [
-        {
-          "id": "QkFUdVod",
-          "name": "Thooriga",
-          "audioPath": "/Volumes/samsung/Music/Karthik/Navarasa 2021/02. Thooriga.mp3"
-        },
-        {
-          "id": "sHfKPgJH",
-          "name": "Naanum",
-          "audioPath": "/Volumes/samsung/Music/Karthik/Navarasa 2021/08. Naanum.mp3"
-        }
-      ],
-      "totalTracks": 12
-    },
-    {
       "id": "36403892",
       "name": "Cobra",
       "localPath": "/Volumes/samsung/Music/A.R. Rahman/Cobra 2020",
@@ -9928,39 +7941,6 @@
         }
       ],
       "totalTracks": 4
-    },
-    {
-      "id": "1106499",
-      "name": "David",
-      "localPath": "/Volumes/samsung/Music/Prashant Pillai/David 2012",
-      "songs": [
-        {
-          "id": "itXw9yrX",
-          "name": "Kanave Kanave",
-          "audioPath": "/Volumes/samsung/Music/Prashant Pillai/David 2012/03. Kanave Kanave.mp3"
-        },
-        {
-          "id": "Prz2v9d7",
-          "name": "Vaazhkaiye (The Theme Of David)",
-          "audioPath": "/Volumes/samsung/Music/Prashant Pillai/David 2012/01. Vaazhkaiye (The Theme Of David).mp3"
-        },
-        {
-          "id": "rPubO0SH",
-          "name": "Maria Pitache",
-          "audioPath": "/Volumes/samsung/Music/Prashant Pillai/David 2012/02. Maria Pitache.mp3"
-        },
-        {
-          "id": "jfW-6A4f",
-          "name": "Manamay",
-          "audioPath": "/Volumes/samsung/Music/Prashant Pillai/David 2012/04. Manamay.mp3"
-        },
-        {
-          "id": "g7Ue8IVA",
-          "name": "Manamay - Dub Step Version (Remixed By Dub Sharma)",
-          "audioPath": "/Volumes/samsung/Music/Prashant Pillai/David 2012/09. Manamay - Dub Step Version (Remixed By Dub Sharma).mp3"
-        }
-      ],
-      "totalTracks": 9
     },
     {
       "id": "1142687",
@@ -10429,19 +8409,6 @@
       "totalTracks": 7
     },
     {
-      "id": "19429149",
-      "name": "Dharala Prabhu",
-      "localPath": "/Volumes/samsung/Music/Kaber Vasuki/Dharala Prabhu 2020",
-      "songs": [
-        {
-          "id": "RJF62p9E",
-          "name": "Dharala Prabhu Title Track",
-          "audioPath": "/Volumes/samsung/Music/Kaber Vasuki/Dharala Prabhu 2020/08. Dharala Prabhu Title Track.mp3"
-        }
-      ],
-      "totalTracks": 8
-    },
-    {
       "id": "19479273",
       "name": "Master",
       "localPath": "/Volumes/samsung/Music/Anirudh Ravichander/Master 2020",
@@ -10817,14 +8784,1826 @@
       "totalTracks": 1
     },
     {
-      "id": "1225049",
-      "name": "Easan (Original Motion Picture Soundtrack)",
-      "localPath": "/Volumes/samsung/Music/James Vasanthan/Easan (Original Motion Picture Soundtrack) 2010",
+      "id": "19429149",
+      "name": "Dharala Prabhu",
+      "localPath": "/Volumes/samsung/Music/Anirudh Ravichander/Dharala Prabhu 2020",
       "songs": [
         {
-          "id": "HJwYVu2s",
-          "name": "Jilla Vittu",
-          "audioPath": "/Volumes/samsung/Music/James Vasanthan/Easan (Original Motion Picture Soundtrack) 2010/04. Jilla Vittu.mp3"
+          "id": "RJF62p9E",
+          "name": "Dharala Prabhu Title Track",
+          "audioPath": "/Volumes/samsung/Music/Anirudh Ravichander/Dharala Prabhu 2020/08. Dharala Prabhu Title Track.mp3"
+        }
+      ],
+      "totalTracks": 8
+    },
+    {
+      "id": "16041105",
+      "name": "Maayavi",
+      "localPath": "/Volumes/samsung/Music/Devi Sri Prasad/Maayavi 2019",
+      "songs": [
+        {
+          "id": "s5X3bU9W",
+          "name": "Tamilnattil",
+          "audioPath": "/Volumes/samsung/Music/Devi Sri Prasad/Maayavi 2019/01. Tamilnattil.mp3"
+        },
+        {
+          "id": "8odbuHcr",
+          "name": "Kathadi Pole",
+          "audioPath": "/Volumes/samsung/Music/Devi Sri Prasad/Maayavi 2019/03. Kathadi Pole.mp3"
+        },
+        {
+          "id": "jc88HS9T",
+          "name": "Mayavi Mayavi Dsp",
+          "audioPath": "/Volumes/samsung/Music/Devi Sri Prasad/Maayavi 2019/05. Mayavi Mayavi Dsp.mp3"
+        }
+      ],
+      "totalTracks": 6
+    },
+    {
+      "id": "16041116",
+      "name": "Sachien",
+      "localPath": "/Volumes/samsung/Music/Devi Sri Prasad/Sachien 2019",
+      "songs": [
+        {
+          "id": "3NLNIiTo",
+          "name": "Kanmudi",
+          "audioPath": "/Volumes/samsung/Music/Devi Sri Prasad/Sachien 2019/01. Kanmudi.mp3"
+        },
+        {
+          "id": "wYEfZS6x",
+          "name": "Gundu Manga",
+          "audioPath": "/Volumes/samsung/Music/Devi Sri Prasad/Sachien 2019/04. Gundu Manga.mp3"
+        },
+        {
+          "id": "EH7iU-TK",
+          "name": "Vaadi Vaadi",
+          "audioPath": "/Volumes/samsung/Music/Devi Sri Prasad/Sachien 2019/06. Vaadi Vaadi.mp3"
+        },
+        {
+          "id": "WIrLPvJQ",
+          "name": "Va Va En Thalaiva",
+          "audioPath": "/Volumes/samsung/Music/Devi Sri Prasad/Sachien 2019/05. Va Va En Thalaiva.mp3"
+        },
+        {
+          "id": "-tgzkaRI",
+          "name": "Dai Dai Kattikoda",
+          "audioPath": "/Volumes/samsung/Music/Devi Sri Prasad/Sachien 2019/03. Dai Dai Kattikoda.mp3"
+        },
+        {
+          "id": "uZcRtkpo",
+          "name": "Beat Of Sachien",
+          "audioPath": "/Volumes/samsung/Music/Devi Sri Prasad/Sachien 2019/02. Beat Of Sachien.mp3"
+        }
+      ],
+      "totalTracks": 6
+    },
+    {
+      "id": "10785966",
+      "name": "Mazhai",
+      "localPath": "/Volumes/samsung/Music/Devi Sri Prasad/Mazhai 2005",
+      "songs": [
+        {
+          "id": "KbM2AYud",
+          "name": "Nee Varumbodhu",
+          "audioPath": "/Volumes/samsung/Music/Devi Sri Prasad/Mazhai 2005/01. Nee Varumbodhu.mp3"
+        }
+      ],
+      "totalTracks": 6
+    },
+    {
+      "id": "1133561",
+      "name": "Aaru",
+      "localPath": "/Volumes/samsung/Music/Devi Sri Prasad/Aaru 2019",
+      "songs": [
+        {
+          "id": "zLvGBUlT",
+          "name": "Dhurogam",
+          "audioPath": "/Volumes/samsung/Music/Devi Sri Prasad/Aaru 2019/01. Dhurogam.mp3"
+        },
+        {
+          "id": "rTvw8fer",
+          "name": "Freeya Vudu",
+          "audioPath": "/Volumes/samsung/Music/Devi Sri Prasad/Aaru 2019/02. Freeya Vudu.mp3"
+        },
+        {
+          "id": "bINbBh9I",
+          "name": "Paakaatha",
+          "audioPath": "/Volumes/samsung/Music/Devi Sri Prasad/Aaru 2019/05. Paakaatha.mp3"
+        },
+        {
+          "id": "XuLUkjPb",
+          "name": "Soda Bottle",
+          "audioPath": "/Volumes/samsung/Music/Devi Sri Prasad/Aaru 2019/06. Soda Bottle.mp3"
+        },
+        {
+          "id": "BBDL_2ul",
+          "name": "Thottutae",
+          "audioPath": "/Volumes/samsung/Music/Devi Sri Prasad/Aaru 2019/07. Thottutae.mp3"
+        },
+        {
+          "id": "3gBXJoHE",
+          "name": "Nenjam Ennum",
+          "audioPath": "/Volumes/samsung/Music/Devi Sri Prasad/Aaru 2019/03. Nenjam Ennum.mp3"
+        }
+      ],
+      "totalTracks": 7
+    },
+    {
+      "id": "2762856",
+      "name": "Something Something Unakkum Enakkum",
+      "localPath": "/Volumes/samsung/Music/Devi Sri Prasad/Something Something Unakkum Enakkum 2006",
+      "songs": [
+        {
+          "id": "7ZWCzo_J",
+          "name": "Pooparikka Neeyum",
+          "audioPath": "/Volumes/samsung/Music/Devi Sri Prasad/Something Something Unakkum Enakkum 2006/01. Pooparikka Neeyum.mp3"
+        },
+        {
+          "id": "Ln8XrWIk",
+          "name": "Kiliye Kiliye",
+          "audioPath": "/Volumes/samsung/Music/Devi Sri Prasad/Something Something Unakkum Enakkum 2006/02. Kiliye Kiliye.mp3"
+        },
+        {
+          "id": "_6op--So",
+          "name": "Un Paarvaiyil",
+          "audioPath": "/Volumes/samsung/Music/Devi Sri Prasad/Something Something Unakkum Enakkum 2006/03. Un Paarvaiyil.mp3"
+        },
+        {
+          "id": "Y1iOg2Vy",
+          "name": "Kozhi Veda",
+          "audioPath": "/Volumes/samsung/Music/Devi Sri Prasad/Something Something Unakkum Enakkum 2006/06. Kozhi Veda.mp3"
+        },
+        {
+          "id": "5qJitJiz",
+          "name": "Something Something",
+          "audioPath": "/Volumes/samsung/Music/Devi Sri Prasad/Something Something Unakkum Enakkum 2006/07. Something Something.mp3"
+        }
+      ],
+      "totalTracks": 11
+    },
+    {
+      "id": "1982497",
+      "name": "Santhosh Subramaniyam",
+      "localPath": "/Volumes/samsung/Music/Devi Sri Prasad/Santhosh Subramaniyam 2008",
+      "songs": [
+        {
+          "id": "7E6aPEPk",
+          "name": "Adada Adada",
+          "audioPath": "/Volumes/samsung/Music/Devi Sri Prasad/Santhosh Subramaniyam 2008/01. Adada Adada.mp3"
+        },
+        {
+          "id": "DYg9eTm3",
+          "name": "America Yendralum",
+          "audioPath": "/Volumes/samsung/Music/Devi Sri Prasad/Santhosh Subramaniyam 2008/02. America Yendralum.mp3"
+        },
+        {
+          "id": "O_LIRFwN",
+          "name": "Kadhalukku Kankal Illai",
+          "audioPath": "/Volumes/samsung/Music/Devi Sri Prasad/Santhosh Subramaniyam 2008/03. Kadhalukku Kankal Illai.mp3"
+        },
+        {
+          "id": "HlM0YVQq",
+          "name": "Senthamil Pesum Azhgu",
+          "audioPath": "/Volumes/samsung/Music/Devi Sri Prasad/Santhosh Subramaniyam 2008/05. Senthamil Pesum Azhgu.mp3"
+        },
+        {
+          "id": "4teKhy_M",
+          "name": "Yeppadi Irruntha",
+          "audioPath": "/Volumes/samsung/Music/Devi Sri Prasad/Santhosh Subramaniyam 2008/07. Yeppadi Irruntha.mp3"
+        }
+      ],
+      "totalTracks": 7
+    },
+    {
+      "id": "12449218",
+      "name": "Kanthaswamy",
+      "localPath": "/Volumes/samsung/Music/Devi Sri Prasad/Kanthaswamy 2009",
+      "songs": [
+        {
+          "id": "M2Q7Ioxj",
+          "name": "Excuse Me",
+          "audioPath": "/Volumes/samsung/Music/Devi Sri Prasad/Kanthaswamy 2009/01. Excuse Me.mp3"
+        },
+        {
+          "id": "i_i96kd6",
+          "name": "Meow Meow",
+          "audioPath": "/Volumes/samsung/Music/Devi Sri Prasad/Kanthaswamy 2009/06. Meow Meow.mp3"
+        },
+        {
+          "id": "OXlElBO1",
+          "name": "Idhellan Dupe",
+          "audioPath": "/Volumes/samsung/Music/Devi Sri Prasad/Kanthaswamy 2009/03. Idhellan Dupe.mp3"
+        },
+        {
+          "id": "TXDJ4n-o",
+          "name": "Kanthaswamy Theme",
+          "audioPath": "/Volumes/samsung/Music/Devi Sri Prasad/Kanthaswamy 2009/04. Kanthaswamy Theme.mp3"
+        },
+        {
+          "id": "moYBixKV",
+          "name": "Mambo Maamiya",
+          "audioPath": "/Volumes/samsung/Music/Devi Sri Prasad/Kanthaswamy 2009/02. Mambo Maamiya.mp3"
+        },
+        {
+          "id": "-U6kSrig",
+          "name": "En Peru Meenakumari",
+          "audioPath": "/Volumes/samsung/Music/Devi Sri Prasad/Kanthaswamy 2009/08. En Peru Meenakumari.mp3"
+        },
+        {
+          "id": "uLrhDSUQ",
+          "name": "Allegro",
+          "audioPath": "/Volumes/samsung/Music/Devi Sri Prasad/Kanthaswamy 2009/05. Allegro.mp3"
+        }
+      ],
+      "totalTracks": 8
+    },
+    {
+      "id": "1037824",
+      "name": "Manmadan Ambu",
+      "localPath": "/Volumes/samsung/Music/Devi Sri Prasad/Manmadan Ambu 2010",
+      "songs": [
+        {
+          "id": "Y-22RNOm",
+          "name": "Dhaguda Dhattham",
+          "audioPath": "/Volumes/samsung/Music/Devi Sri Prasad/Manmadan Ambu 2010/01. Dhaguda Dhattham.mp3"
+        },
+        {
+          "id": "b6mzVcUX",
+          "name": "Who’s The Hero",
+          "audioPath": "/Volumes/samsung/Music/Devi Sri Prasad/Manmadan Ambu 2010/02. Who’s The Hero.mp3"
+        },
+        {
+          "id": "kfYlL4a0",
+          "name": "Neela Vaanam",
+          "audioPath": "/Volumes/samsung/Music/Devi Sri Prasad/Manmadan Ambu 2010/03. Neela Vaanam.mp3"
+        },
+        {
+          "id": "kV89lzKf",
+          "name": "Manmadan Ambu",
+          "audioPath": "/Volumes/samsung/Music/Devi Sri Prasad/Manmadan Ambu 2010/08. Manmadan Ambu.mp3"
+        },
+        {
+          "id": "BN06P8sN",
+          "name": "Oyyale",
+          "audioPath": "/Volumes/samsung/Music/Devi Sri Prasad/Manmadan Ambu 2010/05. Oyyale.mp3"
+        }
+      ],
+      "totalTracks": 8
+    },
+    {
+      "id": "2666963",
+      "name": "Singam",
+      "localPath": "/Volumes/samsung/Music/Devi Sri Prasad/Singam 2010",
+      "songs": [
+        {
+          "id": "lthnO6SH",
+          "name": "En Idhayam",
+          "audioPath": "/Volumes/samsung/Music/Devi Sri Prasad/Singam 2010/02. En Idhayam.mp3"
+        },
+        {
+          "id": "y1Tb96mD",
+          "name": "Naane Indhiran",
+          "audioPath": "/Volumes/samsung/Music/Devi Sri Prasad/Singam 2010/01. Naane Indhiran.mp3"
+        },
+        {
+          "id": "ukkjAbR3",
+          "name": "Stole My Heart",
+          "audioPath": "/Volumes/samsung/Music/Devi Sri Prasad/Singam 2010/03. Stole My Heart.mp3"
+        },
+        {
+          "id": "lKzHPyfD",
+          "name": "Stole My Heart (Unplugged)",
+          "audioPath": "/Volumes/samsung/Music/Devi Sri Prasad/Singam 2010/06. Stole My Heart (Unplugged).mp3"
+        },
+        {
+          "id": "M7PMEWQl",
+          "name": "Kadhal Vandhale",
+          "audioPath": "/Volumes/samsung/Music/Devi Sri Prasad/Singam 2010/04. Kadhal Vandhale.mp3"
+        },
+        {
+          "id": "-5gAB84w",
+          "name": "Singam Singam",
+          "audioPath": "/Volumes/samsung/Music/Devi Sri Prasad/Singam 2010/05. Singam Singam.mp3"
+        }
+      ],
+      "totalTracks": 6
+    },
+    {
+      "id": "2666587",
+      "name": "Kutty",
+      "localPath": "/Volumes/samsung/Music/Devi Sri Prasad/Kutty 2010",
+      "songs": [
+        {
+          "id": "XvhKEQwG",
+          "name": "Yaaro En Nenjai",
+          "audioPath": "/Volumes/samsung/Music/Devi Sri Prasad/Kutty 2010/04. Yaaro En Nenjai.mp3"
+        }
+      ],
+      "totalTracks": 6
+    },
+    {
+      "id": "25247353",
+      "name": "Alex Pandiyan",
+      "localPath": "/Volumes/samsung/Music/Devi Sri Prasad/Alex Pandiyan 2013",
+      "songs": [
+        {
+          "id": "AZJ7kh1f",
+          "name": "Bad Boy",
+          "audioPath": "/Volumes/samsung/Music/Devi Sri Prasad/Alex Pandiyan 2013/05. Bad Boy.mp3"
+        }
+      ],
+      "totalTracks": 5
+    },
+    {
+      "id": "1298035",
+      "name": "Puli",
+      "localPath": "/Volumes/samsung/Music/Devi Sri Prasad/Puli 2015",
+      "songs": [
+        {
+          "id": "e3ytO4_B",
+          "name": "Jingiliya",
+          "audioPath": "/Volumes/samsung/Music/Devi Sri Prasad/Puli 2015/02. Jingiliya.mp3"
+        },
+        {
+          "id": "ptn1P9sr",
+          "name": "Puli",
+          "audioPath": "/Volumes/samsung/Music/Devi Sri Prasad/Puli 2015/05. Puli.mp3"
+        },
+        {
+          "id": "FvyR6COI",
+          "name": "Yaendi Yaendi",
+          "audioPath": "/Volumes/samsung/Music/Devi Sri Prasad/Puli 2015/01. Yaendi Yaendi.mp3"
+        }
+      ],
+      "totalTracks": 7
+    },
+    {
+      "id": "60414152",
+      "name": "Kanguva (Tamil)",
+      "localPath": "/Volumes/samsung/Music/Devi Sri Prasad/Kanguva (Tamil) 2024",
+      "songs": [
+        {
+          "id": "ng4SpGI9",
+          "name": "Fire Song",
+          "audioPath": "/Volumes/samsung/Music/Devi Sri Prasad/Kanguva (Tamil) 2024/01. Fire Song.mp3"
+        }
+      ],
+      "totalTracks": 5
+    },
+    {
+      "id": "1018044",
+      "name": "Aarya",
+      "localPath": "/Volumes/samsung/Music/Devi Sri Prasad/Aarya 2004",
+      "songs": [
+        {
+          "id": "3yX1lcLJ",
+          "name": "Nuvvunte",
+          "audioPath": "/Volumes/samsung/Music/Devi Sri Prasad/Aarya 2004/02. Nuvvunte.mp3"
+        },
+        {
+          "id": "hcAu136d",
+          "name": "Feel My Love",
+          "audioPath": "/Volumes/samsung/Music/Devi Sri Prasad/Aarya 2004/05. Feel My Love.mp3"
+        }
+      ],
+      "totalTracks": 6
+    },
+    {
+      "id": "10317412",
+      "name": "Aarya - 2",
+      "localPath": "/Volumes/samsung/Music/Devi Sri Prasad/Aarya - 2 2009",
+      "songs": [
+        {
+          "id": "26ZdsX1e",
+          "name": "Mr. Perfect",
+          "audioPath": "/Volumes/samsung/Music/Devi Sri Prasad/Aarya - 2 2009/01. Mr. Perfect.mp3"
+        },
+        {
+          "id": "0eqUIkMp",
+          "name": "Uppenantha",
+          "audioPath": "/Volumes/samsung/Music/Devi Sri Prasad/Aarya - 2 2009/02. Uppenantha.mp3"
+        },
+        {
+          "id": "tJXBtSM4",
+          "name": "Baby He Loves You",
+          "audioPath": "/Volumes/samsung/Music/Devi Sri Prasad/Aarya - 2 2009/03. Baby He Loves You.mp3"
+        },
+        {
+          "id": "mXhwLwHw",
+          "name": "Ringa Ringa",
+          "audioPath": "/Volumes/samsung/Music/Devi Sri Prasad/Aarya - 2 2009/04. Ringa Ringa.mp3"
+        }
+      ],
+      "totalTracks": 8
+    },
+    {
+      "id": "29010060",
+      "name": "Pushpa - The Rise",
+      "localPath": "/Volumes/samsung/Music/Devi Sri Prasad/Pushpa - The Rise 2021",
+      "songs": [
+        {
+          "id": "bgOSk7Ag",
+          "name": "Srivalli",
+          "audioPath": "/Volumes/samsung/Music/Devi Sri Prasad/Pushpa - The Rise 2021/02. Srivalli.mp3"
+        },
+        {
+          "id": "NmkwfzYX",
+          "name": "Oo Solriya Oo Oo Solriya",
+          "audioPath": "/Volumes/samsung/Music/Devi Sri Prasad/Pushpa - The Rise 2021/05. Oo Solriya Oo Oo Solriya.mp3"
+        }
+      ],
+      "totalTracks": 5
+    },
+    {
+      "id": "60254271",
+      "name": "Pushpa 2 The Rule - (Tamil)",
+      "localPath": "/Volumes/samsung/Music/Devi Sri Prasad/Pushpa 2 The Rule - (Tamil) 2024",
+      "songs": [
+        {
+          "id": "YM4OYyi5",
+          "name": "Pushpa Pushpa (Tamil)",
+          "audioPath": "/Volumes/samsung/Music/Devi Sri Prasad/Pushpa 2 The Rule - (Tamil) 2024/01. Pushpa Pushpa (Tamil).mp3"
+        },
+        {
+          "id": "zPkT9WXV",
+          "name": "Soodaana",
+          "audioPath": "/Volumes/samsung/Music/Devi Sri Prasad/Pushpa 2 The Rule - (Tamil) 2024/02. Soodaana.mp3"
+        },
+        {
+          "id": "Y4873DWQ",
+          "name": "Peelings (Tamil)",
+          "audioPath": "/Volumes/samsung/Music/Devi Sri Prasad/Pushpa 2 The Rule - (Tamil) 2024/04. Peelings (Tamil).mp3"
+        },
+        {
+          "id": "VRLaLyTK",
+          "name": "Ganga Gangamma Thaaye",
+          "audioPath": "/Volumes/samsung/Music/Devi Sri Prasad/Pushpa 2 The Rule - (Tamil) 2024/05. Ganga Gangamma Thaaye.mp3"
+        }
+      ],
+      "totalTracks": 5
+    },
+    {
+      "id": "15409899",
+      "name": "Kgf Chapter 1 (Tamil)",
+      "localPath": "/Volumes/samsung/Music/Ravi Basrur/Kgf Chapter 1 (Tamil) 2018",
+      "songs": [
+        {
+          "id": "BW5fwsWx",
+          "name": "Salaam Rocky Bhai",
+          "audioPath": "/Volumes/samsung/Music/Ravi Basrur/Kgf Chapter 1 (Tamil) 2018/01. Salaam Rocky Bhai.mp3"
+        },
+        {
+          "id": "5flNFb-V",
+          "name": "Karuvinil Enai",
+          "audioPath": "/Volumes/samsung/Music/Ravi Basrur/Kgf Chapter 1 (Tamil) 2018/03. Karuvinil Enai.mp3"
+        },
+        {
+          "id": "LgZ9Id1k",
+          "name": "Veesum Soorai Katre",
+          "audioPath": "/Volumes/samsung/Music/Ravi Basrur/Kgf Chapter 1 (Tamil) 2018/05. Veesum Soorai Katre.mp3"
+        },
+        {
+          "id": "OIA8Kk5A",
+          "name": "Dheera Dheera",
+          "audioPath": "/Volumes/samsung/Music/Ravi Basrur/Kgf Chapter 1 (Tamil) 2018/08. Dheera Dheera.mp3"
+        },
+        {
+          "id": "iO_himZd",
+          "name": "Koodi Kanavil",
+          "audioPath": "/Volumes/samsung/Music/Ravi Basrur/Kgf Chapter 1 (Tamil) 2018/09. Koodi Kanavil.mp3"
+        }
+      ],
+      "totalTracks": 10
+    },
+    {
+      "id": "67441202",
+      "name": "KGF Chapter 2 - Tamil",
+      "localPath": "/Volumes/samsung/Music/Ravi Basrur/KGF Chapter 2 - Tamil 2022",
+      "songs": [
+        {
+          "id": "Vlxlt2FX",
+          "name": "Toofan",
+          "audioPath": "/Volumes/samsung/Music/Ravi Basrur/KGF Chapter 2 - Tamil 2022/01. Toofan.mp3"
+        },
+        {
+          "id": "z0nNHnfc",
+          "name": "Agilam Nee",
+          "audioPath": "/Volumes/samsung/Music/Ravi Basrur/KGF Chapter 2 - Tamil 2022/02. Agilam Nee.mp3"
+        },
+        {
+          "id": "0RXiIriH",
+          "name": "Sulthana",
+          "audioPath": "/Volumes/samsung/Music/Ravi Basrur/KGF Chapter 2 - Tamil 2022/03. Sulthana.mp3"
+        },
+        {
+          "id": "AeZ5U10S",
+          "name": "Mehabooba",
+          "audioPath": "/Volumes/samsung/Music/Ravi Basrur/KGF Chapter 2 - Tamil 2022/04. Mehabooba.mp3"
+        }
+      ],
+      "totalTracks": 4
+    },
+    {
+      "id": "1133588",
+      "name": "Godfather",
+      "localPath": "/Volumes/samsung/Music/A.R. Rahman/Godfather 2006",
+      "songs": [
+        {
+          "id": "Uklz2rw-",
+          "name": "Ilamai",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Godfather 2006/01. Ilamai.mp3"
+        },
+        {
+          "id": "m5n1vUZa",
+          "name": "Ilamai (Remix )",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Godfather 2006/02. Ilamai (Remix ).mp3"
+        },
+        {
+          "id": "d7lM59jv",
+          "name": "Innisai",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Godfather 2006/03. Innisai.mp3"
+        },
+        {
+          "id": "LAuHn05h",
+          "name": "Innisai ( Remix )",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Godfather 2006/04. Innisai ( Remix ).mp3"
+        },
+        {
+          "id": "vjn83Cpe",
+          "name": "Kaama Kairai",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Godfather 2006/05. Kaama Kairai.mp3"
+        },
+        {
+          "id": "-wW2Kj84",
+          "name": "Kaatril",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Godfather 2006/06. Kaatril.mp3"
+        },
+        {
+          "id": "CLkgoQVc",
+          "name": "Theeyil Vizhuntha",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Godfather 2006/07. Theeyil Vizhuntha.mp3"
+        },
+        {
+          "id": "aOAi1p8H",
+          "name": "Thotha Puram",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Godfather 2006/08. Thotha Puram.mp3"
+        }
+      ],
+      "totalTracks": 8
+    },
+    {
+      "id": "2666636",
+      "name": "Laadam",
+      "localPath": "/Volumes/samsung/Music/Dharan Kumar/Laadam 2008",
+      "songs": [
+        {
+          "id": "aF05Rkti",
+          "name": "Gangster",
+          "audioPath": "/Volumes/samsung/Music/Dharan Kumar/Laadam 2008/01. Gangster.mp3"
+        },
+        {
+          "id": "QgSZF13v",
+          "name": "Siru Thoduthalilae",
+          "audioPath": "/Volumes/samsung/Music/Dharan Kumar/Laadam 2008/02. Siru Thoduthalilae.mp3"
+        },
+        {
+          "id": "3V5-NS5x",
+          "name": "Makkah",
+          "audioPath": "/Volumes/samsung/Music/Dharan Kumar/Laadam 2008/04. Makkah.mp3"
+        }
+      ],
+      "totalTracks": 5
+    },
+    {
+      "id": "2666975",
+      "name": "Siddu + 2 First Attempt",
+      "localPath": "/Volumes/samsung/Music/Dharan Kumar/Siddu + 2 First Attempt 2010",
+      "songs": [
+        {
+          "id": "53FtV_nA",
+          "name": "Poove Poove",
+          "audioPath": "/Volumes/samsung/Music/Dharan Kumar/Siddu + 2 First Attempt 2010/01. Poove Poove.mp3"
+        }
+      ],
+      "totalTracks": 6
+    },
+    {
+      "id": "1095924",
+      "name": "Podaa Podi",
+      "localPath": "/Volumes/samsung/Music/Dharan Kumar/Podaa Podi 2012",
+      "songs": [
+        {
+          "id": "3rc4dsS9",
+          "name": "Love Panalaama",
+          "audioPath": "/Volumes/samsung/Music/Dharan Kumar/Podaa Podi 2012/01. Love Panalaama.mp3"
+        },
+        {
+          "id": "Gt7kEyMf",
+          "name": "Podaa Podi",
+          "audioPath": "/Volumes/samsung/Music/Dharan Kumar/Podaa Podi 2012/02. Podaa Podi.mp3"
+        },
+        {
+          "id": "YgR3JfB0",
+          "name": "Hare Rama Hare Krishna",
+          "audioPath": "/Volumes/samsung/Music/Dharan Kumar/Podaa Podi 2012/03. Hare Rama Hare Krishna.mp3"
+        },
+        {
+          "id": "mVPzrIn8",
+          "name": "Maattikittenae",
+          "audioPath": "/Volumes/samsung/Music/Dharan Kumar/Podaa Podi 2012/04. Maattikittenae.mp3"
+        },
+        {
+          "id": "fnRNMFaQ",
+          "name": "Un Paarvaiyilae",
+          "audioPath": "/Volumes/samsung/Music/Dharan Kumar/Podaa Podi 2012/05. Un Paarvaiyilae.mp3"
+        },
+        {
+          "id": "HwOOVwKm",
+          "name": "Appan Mavanae Vaada",
+          "audioPath": "/Volumes/samsung/Music/Dharan Kumar/Podaa Podi 2012/06. Appan Mavanae Vaada.mp3"
+        },
+        {
+          "id": "Z2Pfb5Qm",
+          "name": "Theme of Podaa Podi",
+          "audioPath": "/Volumes/samsung/Music/Dharan Kumar/Podaa Podi 2012/07. Theme of Podaa Podi.mp3"
+        },
+        {
+          "id": "I0O3caIK",
+          "name": "I Am a Kuthu Dancer",
+          "audioPath": "/Volumes/samsung/Music/Dharan Kumar/Podaa Podi 2012/08. I Am a Kuthu Dancer.mp3"
+        }
+      ],
+      "totalTracks": 8
+    },
+    {
+      "id": "69205817",
+      "name": "Dude (Original Motion Picture Soundtrack)",
+      "localPath": "/Volumes/samsung/Music/Sai Abhyankkar/Dude (Original Motion Picture Soundtrack) 2025",
+      "songs": [
+        {
+          "id": "bCFj0zxr",
+          "name": "Singari",
+          "audioPath": "/Volumes/samsung/Music/Sai Abhyankkar/Dude (Original Motion Picture Soundtrack) 2025/02. Singari.mp3"
+        },
+        {
+          "id": "HlS3jzEt",
+          "name": "Oorum Blood",
+          "audioPath": "/Volumes/samsung/Music/Sai Abhyankkar/Dude (Original Motion Picture Soundtrack) 2025/01. Oorum Blood.mp3"
+        },
+        {
+          "id": "lvI40nqZ",
+          "name": "Kannukulla",
+          "audioPath": "/Volumes/samsung/Music/Sai Abhyankkar/Dude (Original Motion Picture Soundtrack) 2025/04. Kannukulla.mp3"
+        },
+        {
+          "id": "ZJ0-Pdxs",
+          "name": "Yumabaibesa",
+          "audioPath": "/Volumes/samsung/Music/Sai Abhyankkar/Dude (Original Motion Picture Soundtrack) 2025/05. Yumabaibesa.mp3"
+        },
+        {
+          "id": "21mhLx-O",
+          "name": "Dude Trailer Blast (Theme)",
+          "audioPath": "/Volumes/samsung/Music/Sai Abhyankkar/Dude (Original Motion Picture Soundtrack) 2025/07. Dude Trailer Blast (Theme).mp3"
+        }
+      ],
+      "totalTracks": 9
+    },
+    {
+      "id": "76070868",
+      "name": "Karuppu (Original Motion Picture Soundtrack)",
+      "localPath": "/Volumes/samsung/Music/Sai Abhyankkar/Karuppu (Original Motion Picture Soundtrack) 2026",
+      "songs": [
+        {
+          "id": "doLSyMPY",
+          "name": "God Mode",
+          "audioPath": "/Volumes/samsung/Music/Sai Abhyankkar/Karuppu (Original Motion Picture Soundtrack) 2026/01. God Mode.mp3"
+        },
+        {
+          "id": "JEb42pqO",
+          "name": "Verappa - Extended",
+          "audioPath": "/Volumes/samsung/Music/Sai Abhyankkar/Karuppu (Original Motion Picture Soundtrack) 2026/02. Verappa - Extended.mp3"
+        }
+      ],
+      "totalTracks": 9
+    },
+    {
+      "id": "72970173",
+      "name": "Pavazha Malli (From \"Think Indie\")",
+      "localPath": "/Volumes/samsung/Music/Sai Abhyankkar/Pavazha Malli (From -Think Indie-) 2026",
+      "songs": [
+        {
+          "id": "hv1H8MG_",
+          "name": "Pavazha Malli (From \"Think Indie\")",
+          "audioPath": "/Volumes/samsung/Music/Sai Abhyankkar/Pavazha Malli (From -Think Indie-) 2026/01. Pavazha Malli (From -Think Indie-).mp3"
+        }
+      ],
+      "totalTracks": 1
+    },
+    {
+      "id": "55191928",
+      "name": "Aasa Kooda (From \"Think Indie\")",
+      "localPath": "/Volumes/samsung/Music/Sai Abhyankkar/Aasa Kooda (From -Think Indie-) 2024",
+      "songs": [
+        {
+          "id": "GUURlhr1",
+          "name": "Aasa Kooda (From \"Think Indie\")",
+          "audioPath": "/Volumes/samsung/Music/Sai Abhyankkar/Aasa Kooda (From -Think Indie-) 2024/01. Aasa Kooda (From -Think Indie-).mp3"
+        }
+      ],
+      "totalTracks": 1
+    },
+    {
+      "id": "51297594",
+      "name": "Katchi Sera (From \"Think Indie\")",
+      "localPath": "/Volumes/samsung/Music/Sai Abhyankkar/Katchi Sera (From -Think Indie-) 2024",
+      "songs": [
+        {
+          "id": "F_fgk0mb",
+          "name": "Katchi Sera (From \"Think Indie\")",
+          "audioPath": "/Volumes/samsung/Music/Sai Abhyankkar/Katchi Sera (From -Think Indie-) 2024/01. Katchi Sera (From -Think Indie-).mp3"
+        }
+      ],
+      "totalTracks": 1
+    },
+    {
+      "id": "61647396",
+      "name": "Sithira Puthiri (From \"Think Indie\")",
+      "localPath": "/Volumes/samsung/Music/Sai Abhyankkar/Sithira Puthiri (From -Think Indie-) 2025",
+      "songs": [
+        {
+          "id": "NAYvkjYE",
+          "name": "Sithira Puthiri (From \"Think Indie\")",
+          "audioPath": "/Volumes/samsung/Music/Sai Abhyankkar/Sithira Puthiri (From -Think Indie-) 2025/01. Sithira Puthiri (From -Think Indie-).mp3"
+        }
+      ],
+      "totalTracks": 1
+    },
+    {
+      "id": "66097941",
+      "name": "Vizhi Veekura (From \"Think Indie\")",
+      "localPath": "/Volumes/samsung/Music/Sai Abhyankkar/Vizhi Veekura (From -Think Indie-) 2025",
+      "songs": [
+        {
+          "id": "0psTw79q",
+          "name": "Vizhi Veekura (From \"Think Indie\")",
+          "audioPath": "/Volumes/samsung/Music/Sai Abhyankkar/Vizhi Veekura (From -Think Indie-) 2025/01. Vizhi Veekura (From -Think Indie-).mp3"
+        }
+      ],
+      "totalTracks": 1
+    },
+    {
+      "id": "44595766",
+      "name": "Polladhavan (Orginal Motion Picture Soundtrack)",
+      "localPath": "/Volumes/samsung/Music/G.V. Prakash Kumar/Polladhavan (Orginal Motion Picture Soundtrack) 2007",
+      "songs": [
+        {
+          "id": "uSFZN0ly",
+          "name": "Padichi Parthen",
+          "audioPath": "/Volumes/samsung/Music/G.V. Prakash Kumar/Polladhavan (Orginal Motion Picture Soundtrack) 2007/02. Padichi Parthen.mp3"
+        },
+        {
+          "id": "rrvKjfpz",
+          "name": "Engeyum Eppothum",
+          "audioPath": "/Volumes/samsung/Music/G.V. Prakash Kumar/Polladhavan (Orginal Motion Picture Soundtrack) 2007/01. Engeyum Eppothum.mp3"
+        }
+      ],
+      "totalTracks": 5
+    },
+    {
+      "id": "1658347",
+      "name": "Kaalai",
+      "localPath": "/Volumes/samsung/Music/G.V. Prakash Kumar/Kaalai 2008",
+      "songs": [
+        {
+          "id": "IpHRoL3p",
+          "name": "Gutkha Lakkadi",
+          "audioPath": "/Volumes/samsung/Music/G.V. Prakash Kumar/Kaalai 2008/04. Gutkha Lakkadi.mp3"
+        },
+        {
+          "id": "hdrL1IjN",
+          "name": "Kutti Pisase",
+          "audioPath": "/Volumes/samsung/Music/G.V. Prakash Kumar/Kaalai 2008/06. Kutti Pisase.mp3"
+        },
+        {
+          "id": "5GK87ZJz",
+          "name": "Vandhuttaanda Kaalai",
+          "audioPath": "/Volumes/samsung/Music/G.V. Prakash Kumar/Kaalai 2008/01. Vandhuttaanda Kaalai.mp3"
+        },
+        {
+          "id": "jCuFqbiJ",
+          "name": "Kaala Kaala",
+          "audioPath": "/Volumes/samsung/Music/G.V. Prakash Kumar/Kaalai 2008/02. Kaala Kaala.mp3"
+        }
+      ],
+      "totalTracks": 6
+    },
+    {
+      "id": "1018258",
+      "name": "Aayirathil Oruvan",
+      "localPath": "/Volumes/samsung/Music/G.V. Prakash Kumar/Aayirathil Oruvan 2009",
+      "songs": [
+        {
+          "id": "lu2Hwp-5",
+          "name": "Un Mela Aasadhaan",
+          "audioPath": "/Volumes/samsung/Music/G.V. Prakash Kumar/Aayirathil Oruvan 2009/03. Un Mela Aasadhaan.mp3"
+        },
+        {
+          "id": "HZjkFAhn",
+          "name": "The King Arrives",
+          "audioPath": "/Volumes/samsung/Music/G.V. Prakash Kumar/Aayirathil Oruvan 2009/04. The King Arrives.mp3"
+        },
+        {
+          "id": "po-oSmrB",
+          "name": "Celebration of Life",
+          "audioPath": "/Volumes/samsung/Music/G.V. Prakash Kumar/Aayirathil Oruvan 2009/07. Celebration of Life.mp3"
+        },
+        {
+          "id": "KupASvvG",
+          "name": "Maalai Neram",
+          "audioPath": "/Volumes/samsung/Music/G.V. Prakash Kumar/Aayirathil Oruvan 2009/02. Maalai Neram.mp3"
+        },
+        {
+          "id": "vP5v6qrt",
+          "name": "Oh Eesa (Composer's Mix)",
+          "audioPath": "/Volumes/samsung/Music/G.V. Prakash Kumar/Aayirathil Oruvan 2009/01. Oh Eesa (Composer's Mix).mp3"
+        }
+      ],
+      "totalTracks": 10
+    },
+    {
+      "id": "1141864",
+      "name": "Thalaivaa",
+      "localPath": "/Volumes/samsung/Music/G.V. Prakash Kumar/Thalaivaa 2013",
+      "songs": [
+        {
+          "id": "-RBUlCdW",
+          "name": "Yaar Indha Saalai Oram",
+          "audioPath": "/Volumes/samsung/Music/G.V. Prakash Kumar/Thalaivaa 2013/02. Yaar Indha Saalai Oram.mp3"
+        },
+        {
+          "id": "ro15tjyw",
+          "name": "Vaanganna Vanakkanganna",
+          "audioPath": "/Volumes/samsung/Music/G.V. Prakash Kumar/Thalaivaa 2013/03. Vaanganna Vanakkanganna.mp3"
+        }
+      ],
+      "totalTracks": 6
+    },
+    {
+      "id": "1017526",
+      "name": "Aadukalam",
+      "localPath": "/Volumes/samsung/Music/G.V. Prakash Kumar/Aadukalam 2010",
+      "songs": [
+        {
+          "id": "Z8y-IJmS",
+          "name": "Otha Sollaala",
+          "audioPath": "/Volumes/samsung/Music/G.V. Prakash Kumar/Aadukalam 2010/02. Otha Sollaala.mp3"
+        },
+        {
+          "id": "8ckiiu7H",
+          "name": "A Love Blossoms",
+          "audioPath": "/Volumes/samsung/Music/G.V. Prakash Kumar/Aadukalam 2010/07. A Love Blossoms.mp3"
+        },
+        {
+          "id": "n7RJZYC1",
+          "name": "Porkkalam (Tamil Rap)",
+          "audioPath": "/Volumes/samsung/Music/G.V. Prakash Kumar/Aadukalam 2010/03. Porkkalam (Tamil Rap).mp3"
+        },
+        {
+          "id": "m_0s-xky",
+          "name": "Yathe Yathe",
+          "audioPath": "/Volumes/samsung/Music/G.V. Prakash Kumar/Aadukalam 2010/01. Yathe Yathe.mp3"
+        },
+        {
+          "id": "63A_2xzD",
+          "name": "Warriors (English Rap)",
+          "audioPath": "/Volumes/samsung/Music/G.V. Prakash Kumar/Aadukalam 2010/06. Warriors (English Rap).mp3"
+        },
+        {
+          "id": "Gj_f4CCH",
+          "name": "Ayyayo",
+          "audioPath": "/Volumes/samsung/Music/G.V. Prakash Kumar/Aadukalam 2010/05. Ayyayo.mp3"
+        }
+      ],
+      "totalTracks": 7
+    },
+    {
+      "id": "2704068",
+      "name": "Mayakkam Enna",
+      "localPath": "/Volumes/samsung/Music/G.V. Prakash Kumar/Mayakkam Enna 2011",
+      "songs": [
+        {
+          "id": "zXyaGgtd",
+          "name": "Voda Voda Voda",
+          "audioPath": "/Volumes/samsung/Music/G.V. Prakash Kumar/Mayakkam Enna 2011/06. Voda Voda Voda.mp3"
+        },
+        {
+          "id": "pLI5Xdtc",
+          "name": "Pirai Thedum",
+          "audioPath": "/Volumes/samsung/Music/G.V. Prakash Kumar/Mayakkam Enna 2011/05. Pirai Thedum.mp3"
+        },
+        {
+          "id": "DHyTaz2X",
+          "name": "Naan Sonnadhum Mazhai",
+          "audioPath": "/Volumes/samsung/Music/G.V. Prakash Kumar/Mayakkam Enna 2011/04. Naan Sonnadhum Mazhai.mp3"
+        },
+        {
+          "id": "aa3IlyA5",
+          "name": "Kadhal Yen Kadhal",
+          "audioPath": "/Volumes/samsung/Music/G.V. Prakash Kumar/Mayakkam Enna 2011/02. Kadhal Yen Kadhal.mp3"
+        }
+      ],
+      "totalTracks": 6
+    },
+    {
+      "id": "1076674",
+      "name": "Anandha Thaandavam",
+      "localPath": "/Volumes/samsung/Music/G.V. Prakash Kumar/Anandha Thaandavam 2008",
+      "songs": [
+        {
+          "id": "fdxMJHmL",
+          "name": "Poovinai",
+          "audioPath": "/Volumes/samsung/Music/G.V. Prakash Kumar/Anandha Thaandavam 2008/03. Poovinai.mp3"
+        },
+        {
+          "id": "xhW25UGd",
+          "name": "Kanaa Kaangiren",
+          "audioPath": "/Volumes/samsung/Music/G.V. Prakash Kumar/Anandha Thaandavam 2008/05. Kanaa Kaangiren.mp3"
+        }
+      ],
+      "totalTracks": 6
+    },
+    {
+      "id": "1229500",
+      "name": "Saguni",
+      "localPath": "/Volumes/samsung/Music/G.V. Prakash Kumar/Saguni 2012",
+      "songs": [
+        {
+          "id": "zz6Izykw",
+          "name": "Manasellam Mazhaiye",
+          "audioPath": "/Volumes/samsung/Music/G.V. Prakash Kumar/Saguni 2012/02. Manasellam Mazhaiye.mp3"
+        },
+        {
+          "id": "HgcIYeRH",
+          "name": "Pottadhu Pathala",
+          "audioPath": "/Volumes/samsung/Music/G.V. Prakash Kumar/Saguni 2012/04. Pottadhu Pathala.mp3"
+        },
+        {
+          "id": "cRCzPiMG",
+          "name": "Vella Bambaram",
+          "audioPath": "/Volumes/samsung/Music/G.V. Prakash Kumar/Saguni 2012/03. Vella Bambaram.mp3"
+        },
+        {
+          "id": "l2JzEaYU",
+          "name": "Kandha Kara Vada",
+          "audioPath": "/Volumes/samsung/Music/G.V. Prakash Kumar/Saguni 2012/01. Kandha Kara Vada.mp3"
+        }
+      ],
+      "totalTracks": 5
+    },
+    {
+      "id": "1164213",
+      "name": "Raja Rani (Original Motion Picture Soundtrack)",
+      "localPath": "/Volumes/samsung/Music/G.V. Prakash Kumar/Raja Rani (Original Motion Picture Soundtrack) 2013",
+      "songs": [
+        {
+          "id": "IW2-jO0R",
+          "name": "Hey Baby",
+          "audioPath": "/Volumes/samsung/Music/G.V. Prakash Kumar/Raja Rani (Original Motion Picture Soundtrack) 2013/01. Hey Baby.mp3"
+        }
+      ],
+      "totalTracks": 7
+    },
+    {
+      "id": "2069062",
+      "name": "Theri",
+      "localPath": "/Volumes/samsung/Music/G.V. Prakash Kumar/Theri 2016",
+      "songs": [
+        {
+          "id": "AZQQtoT4",
+          "name": "Jithu Jilladi",
+          "audioPath": "/Volumes/samsung/Music/G.V. Prakash Kumar/Theri 2016/01. Jithu Jilladi.mp3"
+        },
+        {
+          "id": "O1CgmTIK",
+          "name": "Eena Meena Teeka",
+          "audioPath": "/Volumes/samsung/Music/G.V. Prakash Kumar/Theri 2016/03. Eena Meena Teeka.mp3"
+        },
+        {
+          "id": "DXxuG6R3",
+          "name": "Raangu",
+          "audioPath": "/Volumes/samsung/Music/G.V. Prakash Kumar/Theri 2016/06. Raangu.mp3"
+        },
+        {
+          "id": "8IdG0WZG",
+          "name": "Chella Kutti",
+          "audioPath": "/Volumes/samsung/Music/G.V. Prakash Kumar/Theri 2016/04. Chella Kutti.mp3"
+        }
+      ],
+      "totalTracks": 8
+    },
+    {
+      "id": "1251385",
+      "name": "Trisha Illana Nayanthara",
+      "localPath": "/Volumes/samsung/Music/G.V. Prakash Kumar/Trisha Illana Nayanthara 2015",
+      "songs": [
+        {
+          "id": "YG973RfY",
+          "name": "Bittu Padam Di",
+          "audioPath": "/Volumes/samsung/Music/G.V. Prakash Kumar/Trisha Illana Nayanthara 2015/01. Bittu Padam Di.mp3"
+        },
+        {
+          "id": "LZcXgR9M",
+          "name": "Mutham Kodutha Maayakari",
+          "audioPath": "/Volumes/samsung/Music/G.V. Prakash Kumar/Trisha Illana Nayanthara 2015/02. Mutham Kodutha Maayakari.mp3"
+        }
+      ],
+      "totalTracks": 6
+    },
+    {
+      "id": "48720836",
+      "name": "Asuran",
+      "localPath": "/Volumes/samsung/Music/G.V. Prakash Kumar/Asuran 2019",
+      "songs": [
+        {
+          "id": "wsKlL4Lr",
+          "name": "The Blood Bath",
+          "audioPath": "/Volumes/samsung/Music/G.V. Prakash Kumar/Asuran 2019/04. The Blood Bath.mp3"
+        }
+      ],
+      "totalTracks": 7
+    },
+    {
+      "id": "23443920",
+      "name": "Soorarai Pottru",
+      "localPath": "/Volumes/samsung/Music/G.V. Prakash Kumar/Soorarai Pottru 2020",
+      "songs": [
+        {
+          "id": "UouQFxlK",
+          "name": "Veyyon Silli",
+          "audioPath": "/Volumes/samsung/Music/G.V. Prakash Kumar/Soorarai Pottru 2020/02. Veyyon Silli.mp3"
+        },
+        {
+          "id": "vD3NuMPu",
+          "name": "Kaattu Payale",
+          "audioPath": "/Volumes/samsung/Music/G.V. Prakash Kumar/Soorarai Pottru 2020/03. Kaattu Payale.mp3"
+        },
+        {
+          "id": "in3IKh1U",
+          "name": "Aagasam",
+          "audioPath": "/Volumes/samsung/Music/G.V. Prakash Kumar/Soorarai Pottru 2020/06. Aagasam.mp3"
+        },
+        {
+          "id": "cchszyvQ",
+          "name": "Maara Theme (Tamil)",
+          "audioPath": "/Volumes/samsung/Music/G.V. Prakash Kumar/Soorarai Pottru 2020/07. Maara Theme (Tamil).mp3"
+        }
+      ],
+      "totalTracks": 8
+    },
+    {
+      "id": "57134736",
+      "name": "Thangalaan (Original Motion Picture Soundtrack) (Tamil)",
+      "localPath": "/Volumes/samsung/Music/G.V. Prakash Kumar/Thangalaan (Original Motion Picture Soundtrack) (Tamil) 2024",
+      "songs": [
+        {
+          "id": "bldS5-36",
+          "name": "Minikki Minikki",
+          "audioPath": "/Volumes/samsung/Music/G.V. Prakash Kumar/Thangalaan (Original Motion Picture Soundtrack) (Tamil) 2024/01. Minikki Minikki.mp3"
+        }
+      ],
+      "totalTracks": 5
+    },
+    {
+      "id": "38975231",
+      "name": "Naane Varuvean",
+      "localPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Naane Varuvean 2022",
+      "songs": [
+        {
+          "id": "XD7vLh0p",
+          "name": "Rendu Raaja",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Naane Varuvean 2022/02. Rendu Raaja.mp3"
+        },
+        {
+          "id": "zuJlkPus",
+          "name": "Veera Soora",
+          "audioPath": "/Volumes/samsung/Music/Yuvan Shankar Raja/Naane Varuvean 2022/01. Veera Soora.mp3"
+        }
+      ],
+      "totalTracks": 4
+    },
+    {
+      "id": "1154415",
+      "name": "Vadacurry",
+      "localPath": "/Volumes/samsung/Music/Vivek-Mervin/Vadacurry 2014",
+      "songs": [
+        {
+          "id": "aRGh8FYq",
+          "name": "Nenjukulla Nee",
+          "audioPath": "/Volumes/samsung/Music/Vivek-Mervin/Vadacurry 2014/01. Nenjukulla Nee.mp3"
+        }
+      ],
+      "totalTracks": 5
+    },
+    {
+      "id": "1035655",
+      "name": "Lagaan",
+      "localPath": "/Volumes/samsung/Music/A.R. Rahman/Lagaan 2001",
+      "songs": [
+        {
+          "id": "g62EiRej",
+          "name": "Mitwa",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Lagaan 2001/02. Mitwa.mp3"
+        },
+        {
+          "id": "fGb1G7EX",
+          "name": "Radha Kaise Na Jale",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Lagaan 2001/03. Radha Kaise Na Jale.mp3"
+        }
+      ],
+      "totalTracks": 8
+    },
+    {
+      "id": "10614687",
+      "name": "Desam",
+      "localPath": "/Volumes/samsung/Music/A.R. Rahman/Desam 2012",
+      "songs": [
+        {
+          "id": "srhkGyux",
+          "name": "Unnai Kelai Nee Yaaru",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Desam 2012/07. Unnai Kelai Nee Yaaru.mp3"
+        },
+        {
+          "id": "Yh0T7mUN",
+          "name": "Kettenaa",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Desam 2012/04. Kettenaa.mp3"
+        }
+      ],
+      "totalTracks": 9
+    },
+    {
+      "id": "1027872",
+      "name": "Ghajini",
+      "localPath": "/Volumes/samsung/Music/A.R. Rahman/Ghajini 2008",
+      "songs": [
+        {
+          "id": "qNJjVi9V",
+          "name": "Behka",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Ghajini 2008/04. Behka.mp3"
+        }
+      ],
+      "totalTracks": 6
+    },
+    {
+      "id": "1024931",
+      "name": "Delhi 6",
+      "localPath": "/Volumes/samsung/Music/A.R. Rahman/Delhi 6 2009",
+      "songs": [
+        {
+          "id": "t7_tAmJv",
+          "name": "Masakali",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Delhi 6 2009/01. Masakali.mp3"
+        }
+      ],
+      "totalTracks": 9
+    },
+    {
+      "id": "2433332",
+      "name": "Mohenjo Daro",
+      "localPath": "/Volumes/samsung/Music/A.R. Rahman/Mohenjo Daro 2016",
+      "songs": [
+        {
+          "id": "OqSzFR-s",
+          "name": "Tu Hai",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Mohenjo Daro 2016/04. Tu Hai.mp3"
+        }
+      ],
+      "totalTracks": 8
+    },
+    {
+      "id": "28439137",
+      "name": "Mimi",
+      "localPath": "/Volumes/samsung/Music/A.R. Rahman/Mimi 2021",
+      "songs": [
+        {
+          "id": "ZOKX21tr",
+          "name": "Param Sundari",
+          "audioPath": "/Volumes/samsung/Music/A.R. Rahman/Mimi 2021/01. Param Sundari.mp3"
+        }
+      ],
+      "totalTracks": 7
+    },
+    {
+      "id": "3254473",
+      "name": "Raees",
+      "localPath": "/Volumes/samsung/Music/Ram Sampath/Raees 2016",
+      "songs": [
+        {
+          "id": "4lcSFERr",
+          "name": "Laila Main Laila",
+          "audioPath": "/Volumes/samsung/Music/Ram Sampath/Raees 2016/01. Laila Main Laila.mp3"
+        },
+        {
+          "id": "b_R8ZXEQ",
+          "name": "Dhingana",
+          "audioPath": "/Volumes/samsung/Music/Ram Sampath/Raees 2016/04. Dhingana.mp3"
+        },
+        {
+          "id": "Ra9F5rTD",
+          "name": "Zaalima",
+          "audioPath": "/Volumes/samsung/Music/Ram Sampath/Raees 2016/02. Zaalima.mp3"
+        },
+        {
+          "id": "5cUQPzuq",
+          "name": "Enu Naam Che Raees",
+          "audioPath": "/Volumes/samsung/Music/Ram Sampath/Raees 2016/05. Enu Naam Che Raees.mp3"
+        },
+        {
+          "id": "kwDTH4hY",
+          "name": "Udi Udi Jaye",
+          "audioPath": "/Volumes/samsung/Music/Ram Sampath/Raees 2016/03. Udi Udi Jaye.mp3"
+        },
+        {
+          "id": "t7Mgwx6F",
+          "name": "Ghammar Ghammar",
+          "audioPath": "/Volumes/samsung/Music/Ram Sampath/Raees 2016/07. Ghammar Ghammar.mp3"
+        }
+      ],
+      "totalTracks": 9
+    },
+    {
+      "id": "1139559",
+      "name": "Yeh Jawaani Hai Deewani",
+      "localPath": "/Volumes/samsung/Music/Pritam/Yeh Jawaani Hai Deewani 2010",
+      "songs": [
+        {
+          "id": "NLVt_02H",
+          "name": "Badtameez Dil",
+          "audioPath": "/Volumes/samsung/Music/Pritam/Yeh Jawaani Hai Deewani 2010/01. Badtameez Dil.mp3"
+        },
+        {
+          "id": "rh1gIwY_",
+          "name": "Balam Pichkari",
+          "audioPath": "/Volumes/samsung/Music/Pritam/Yeh Jawaani Hai Deewani 2010/02. Balam Pichkari.mp3"
+        }
+      ],
+      "totalTracks": 9
+    },
+    {
+      "id": "11287835",
+      "name": "Jab Harry Met Sejal",
+      "localPath": "/Volumes/samsung/Music/Pritam/Jab Harry Met Sejal 2017",
+      "songs": [
+        {
+          "id": "4NRpZd1v",
+          "name": "Hawayein",
+          "audioPath": "/Volumes/samsung/Music/Pritam/Jab Harry Met Sejal 2017/05. Hawayein.mp3"
+        }
+      ],
+      "totalTracks": 13
+    },
+    {
+      "id": "10940378",
+      "name": "Jagga Jasoos",
+      "localPath": "/Volumes/samsung/Music/Pritam/Jagga Jasoos 2017",
+      "songs": [
+        {
+          "id": "PtccHl4F",
+          "name": "Galti Se Mistake",
+          "audioPath": "/Volumes/samsung/Music/Pritam/Jagga Jasoos 2017/02. Galti Se Mistake.mp3"
+        }
+      ],
+      "totalTracks": 6
+    },
+    {
+      "id": "2597301",
+      "name": "Ae Dil Hai Mushkil",
+      "localPath": "/Volumes/samsung/Music/Pritam/Ae Dil Hai Mushkil 2016",
+      "songs": [
+        {
+          "id": "zekEI3N6",
+          "name": "Ae Dil Hai Mushkil Title Track",
+          "audioPath": "/Volumes/samsung/Music/Pritam/Ae Dil Hai Mushkil 2016/01. Ae Dil Hai Mushkil Title Track.mp3"
+        },
+        {
+          "id": "OdhZxea-",
+          "name": "Bulleya",
+          "audioPath": "/Volumes/samsung/Music/Pritam/Ae Dil Hai Mushkil 2016/02. Bulleya.mp3"
+        },
+        {
+          "id": "uiEWT3kP",
+          "name": "Channa Mereya",
+          "audioPath": "/Volumes/samsung/Music/Pritam/Ae Dil Hai Mushkil 2016/03. Channa Mereya.mp3"
+        },
+        {
+          "id": "7sVNcY5k",
+          "name": "The Breakup Song",
+          "audioPath": "/Volumes/samsung/Music/Pritam/Ae Dil Hai Mushkil 2016/04. The Breakup Song.mp3"
+        },
+        {
+          "id": "Lt1Ishdb",
+          "name": "Alizeh",
+          "audioPath": "/Volumes/samsung/Music/Pritam/Ae Dil Hai Mushkil 2016/06. Alizeh.mp3"
+        }
+      ],
+      "totalTracks": 6
+    },
+    {
+      "id": "3005136",
+      "name": "Dangal",
+      "localPath": "/Volumes/samsung/Music/Pritam/Dangal 2016",
+      "songs": [
+        {
+          "id": "AJdvATqD",
+          "name": "Haanikaarak Bapu",
+          "audioPath": "/Volumes/samsung/Music/Pritam/Dangal 2016/01. Haanikaarak Bapu.mp3"
+        },
+        {
+          "id": "H5Go7nJp",
+          "name": "Dangal",
+          "audioPath": "/Volumes/samsung/Music/Pritam/Dangal 2016/04. Dangal.mp3"
+        }
+      ],
+      "totalTracks": 8
+    },
+    {
+      "id": "1629673",
+      "name": "Dilwale",
+      "localPath": "/Volumes/samsung/Music/Pritam/Dilwale 2015",
+      "songs": [
+        {
+          "id": "st2Dycrf",
+          "name": "Gerua",
+          "audioPath": "/Volumes/samsung/Music/Pritam/Dilwale 2015/01. Gerua.mp3"
+        },
+        {
+          "id": "XXXmHxUu",
+          "name": "Tukur Tukur",
+          "audioPath": "/Volumes/samsung/Music/Pritam/Dilwale 2015/04. Tukur Tukur.mp3"
+        },
+        {
+          "id": "L0iv8k25",
+          "name": "Janam Janam",
+          "audioPath": "/Volumes/samsung/Music/Pritam/Dilwale 2015/03. Janam Janam.mp3"
+        }
+      ],
+      "totalTracks": 7
+    },
+    {
+      "id": "1048963",
+      "name": "Singh Is Kinng",
+      "localPath": "/Volumes/samsung/Music/Pritam/Singh Is Kinng 2005",
+      "songs": [
+        {
+          "id": "rexCDDSP",
+          "name": "Bas Ek Kinng",
+          "audioPath": "/Volumes/samsung/Music/Pritam/Singh Is Kinng 2005/02. Bas Ek Kinng.mp3"
+        }
+      ],
+      "totalTracks": 9
+    },
+    {
+      "id": "67206484",
+      "name": "Teri Ore (Trending Version)",
+      "localPath": "/Volumes/samsung/Music/Shreya Ghoshal/Teri Ore (Trending Version) 2025",
+      "songs": [
+        {
+          "id": "kXvA3QYv",
+          "name": "Teri Ore (Trending Version)",
+          "audioPath": "/Volumes/samsung/Music/Shreya Ghoshal/Teri Ore (Trending Version) 2025/01. Teri Ore (Trending Version).mp3"
+        }
+      ],
+      "totalTracks": 1
+    },
+    {
+      "id": "1025465",
+      "name": "Dhoom:2",
+      "localPath": "/Volumes/samsung/Music/Pritam/Dhoom-2 2006",
+      "songs": [
+        {
+          "id": "pR6NnVwo",
+          "name": "Crazy Kiya Re",
+          "audioPath": "/Volumes/samsung/Music/Pritam/Dhoom-2 2006/01. Crazy Kiya Re.mp3"
+        },
+        {
+          "id": "MuufgkNo",
+          "name": "Dhoom Again",
+          "audioPath": "/Volumes/samsung/Music/Pritam/Dhoom-2 2006/05. Dhoom Again.mp3"
+        }
+      ],
+      "totalTracks": 6
+    },
+    {
+      "id": "1024979",
+      "name": "Desi Boyz",
+      "localPath": "/Volumes/samsung/Music/Pritam/Desi Boyz 2011",
+      "songs": [
+        {
+          "id": "JHMmQ1Pp",
+          "name": "Subha Hone Na De",
+          "audioPath": "/Volumes/samsung/Music/Pritam/Desi Boyz 2011/02. Subha Hone Na De.mp3"
+        },
+        {
+          "id": "24nCWVjY",
+          "name": "Jhak Maar Ke",
+          "audioPath": "/Volumes/samsung/Music/Pritam/Desi Boyz 2011/03. Jhak Maar Ke.mp3"
+        }
+      ],
+      "totalTracks": 10
+    },
+    {
+      "id": "1026197",
+      "name": "Dostana",
+      "localPath": "/Volumes/samsung/Music/Vishal Dadlani/Dostana 2008",
+      "songs": [
+        {
+          "id": "gWV5HniX",
+          "name": "Desi Girl",
+          "audioPath": "/Volumes/samsung/Music/Vishal Dadlani/Dostana 2008/02. Desi Girl.mp3"
+        }
+      ],
+      "totalTracks": 6
+    },
+    {
+      "id": "1041549",
+      "name": "Om Shanti Om",
+      "localPath": "/Volumes/samsung/Music/Vishal &amp; Shekhar/Om Shanti Om 2007",
+      "songs": [
+        {
+          "id": "s91BiYcO",
+          "name": "Ajab Si",
+          "audioPath": "/Volumes/samsung/Music/Vishal &amp; Shekhar/Om Shanti Om 2007/01. Ajab Si.mp3"
+        },
+        {
+          "id": "nQYSc7aJ",
+          "name": "Dard - E - Disco",
+          "audioPath": "/Volumes/samsung/Music/Vishal &amp; Shekhar/Om Shanti Om 2007/02. Dard - E - Disco.mp3"
+        },
+        {
+          "id": "Y0pV-uWD",
+          "name": "Deewangi Deewangi",
+          "audioPath": "/Volumes/samsung/Music/Vishal &amp; Shekhar/Om Shanti Om 2007/03. Deewangi Deewangi.mp3"
+        },
+        {
+          "id": "keGNxOoV",
+          "name": "Main Agar Kahoon",
+          "audioPath": "/Volumes/samsung/Music/Vishal &amp; Shekhar/Om Shanti Om 2007/04. Main Agar Kahoon.mp3"
+        },
+        {
+          "id": "EuhUqsIP",
+          "name": "Dhoom Taana",
+          "audioPath": "/Volumes/samsung/Music/Vishal &amp; Shekhar/Om Shanti Om 2007/05. Dhoom Taana.mp3"
+        },
+        {
+          "id": "hHjTrmpl",
+          "name": "Dastaan - E - Om Shanti Om",
+          "audioPath": "/Volumes/samsung/Music/Vishal &amp; Shekhar/Om Shanti Om 2007/06. Dastaan - E - Om Shanti Om.mp3"
+        }
+      ],
+      "totalTracks": 11
+    },
+    {
+      "id": "1051007",
+      "name": "Tees Maar Khan",
+      "localPath": "/Volumes/samsung/Music/Vishal &amp; Shekhar/Tees Maar Khan 2010",
+      "songs": [
+        {
+          "id": "zqVBbE4E",
+          "name": "Sheila Ki Jawani",
+          "audioPath": "/Volumes/samsung/Music/Vishal &amp; Shekhar/Tees Maar Khan 2010/02. Sheila Ki Jawani.mp3"
+        }
+      ],
+      "totalTracks": 10
+    },
+    {
+      "id": "1044026",
+      "name": "Ra-One",
+      "localPath": "/Volumes/samsung/Music/Vishal &amp; Shekhar/Ra-One 2011",
+      "songs": [
+        {
+          "id": "W9RMHbZg",
+          "name": "Criminal",
+          "audioPath": "/Volumes/samsung/Music/Vishal &amp; Shekhar/Ra-One 2011/03. Criminal.mp3"
+        },
+        {
+          "id": "Fy1Afntv",
+          "name": "Chammak Challo",
+          "audioPath": "/Volumes/samsung/Music/Vishal &amp; Shekhar/Ra-One 2011/09. Chammak Challo.mp3"
+        },
+        {
+          "id": "2XAUa4WY",
+          "name": "Bhare Naina",
+          "audioPath": "/Volumes/samsung/Music/Vishal &amp; Shekhar/Ra-One 2011/01. Bhare Naina.mp3"
+        },
+        {
+          "id": "KWVop5c5",
+          "name": "Right By Your Side",
+          "audioPath": "/Volumes/samsung/Music/Vishal &amp; Shekhar/Ra-One 2011/06. Right By Your Side.mp3"
+        }
+      ],
+      "totalTracks": 13
+    },
+    {
+      "id": "1141876",
+      "name": "Chennai Express",
+      "localPath": "/Volumes/samsung/Music/Vishal &amp; Shekhar/Chennai Express 2013",
+      "songs": [
+        {
+          "id": "TOp6yb_h",
+          "name": "One Two Three Four (Get On The Dance Floor)",
+          "audioPath": "/Volumes/samsung/Music/Vishal &amp; Shekhar/Chennai Express 2013/01. One Two Three Four (Get On The Dance Floor).mp3"
+        },
+        {
+          "id": "c6aiyeF8",
+          "name": "Titli",
+          "audioPath": "/Volumes/samsung/Music/Vishal &amp; Shekhar/Chennai Express 2013/02. Titli.mp3"
+        },
+        {
+          "id": "Bo1YGm3_",
+          "name": "Kashmir Main, Tu Kanyakumari",
+          "audioPath": "/Volumes/samsung/Music/Vishal &amp; Shekhar/Chennai Express 2013/04. Kashmir Main, Tu Kanyakumari.mp3"
+        },
+        {
+          "id": "E3K8KWYi",
+          "name": "Tera Rastaa Chhodoon Na",
+          "audioPath": "/Volumes/samsung/Music/Vishal &amp; Shekhar/Chennai Express 2013/03. Tera Rastaa Chhodoon Na.mp3"
+        }
+      ],
+      "totalTracks": 8
+    },
+    {
+      "id": "1196048",
+      "name": "Happy New Year",
+      "localPath": "/Volumes/samsung/Music/Vishal &amp; Shekhar/Happy New Year 2014",
+      "songs": [
+        {
+          "id": "567AXzTE",
+          "name": "India Waale",
+          "audioPath": "/Volumes/samsung/Music/Vishal &amp; Shekhar/Happy New Year 2014/01. India Waale.mp3"
+        },
+        {
+          "id": "3vbteb-P",
+          "name": "Manwa Laage",
+          "audioPath": "/Volumes/samsung/Music/Vishal &amp; Shekhar/Happy New Year 2014/02. Manwa Laage.mp3"
+        },
+        {
+          "id": "9bd9izgX",
+          "name": "Lovely",
+          "audioPath": "/Volumes/samsung/Music/Vishal &amp; Shekhar/Happy New Year 2014/04. Lovely.mp3"
+        }
+      ],
+      "totalTracks": 13
+    },
+    {
+      "id": "1875267",
+      "name": "Fan",
+      "localPath": "/Volumes/samsung/Music/Vishal &amp; Shekhar/Fan 2016",
+      "songs": [
+        {
+          "id": "z2LZAQI6",
+          "name": "Jabra Fan - Hindi Version",
+          "audioPath": "/Volumes/samsung/Music/Vishal &amp; Shekhar/Fan 2016/01. Jabra Fan - Hindi Version.mp3"
+        }
+      ],
+      "totalTracks": 12
+    },
+    {
+      "id": "1044120",
+      "name": "Rab Ne Bana Di Jodi",
+      "localPath": "/Volumes/samsung/Music/Salim-Sulaiman/Rab Ne Bana Di Jodi 2008",
+      "songs": [
+        {
+          "id": "8fPg_mQR",
+          "name": "Tujh Mein Rab Dikhta Hai",
+          "audioPath": "/Volumes/samsung/Music/Salim-Sulaiman/Rab Ne Bana Di Jodi 2008/01. Tujh Mein Rab Dikhta Hai.mp3"
+        },
+        {
+          "id": "T1_ZbnIF",
+          "name": "Haule Haule",
+          "audioPath": "/Volumes/samsung/Music/Salim-Sulaiman/Rab Ne Bana Di Jodi 2008/02. Haule Haule.mp3"
+        },
+        {
+          "id": "qOsPYZbc",
+          "name": "Dance Pe Chance",
+          "audioPath": "/Volumes/samsung/Music/Salim-Sulaiman/Rab Ne Bana Di Jodi 2008/03. Dance Pe Chance.mp3"
+        },
+        {
+          "id": "rhAWxVaG",
+          "name": "Dancing Jodi",
+          "audioPath": "/Volumes/samsung/Music/Salim-Sulaiman/Rab Ne Bana Di Jodi 2008/06. Dancing Jodi.mp3"
+        },
+        {
+          "id": "sKaLXx-d",
+          "name": "Phir Milenge Chalte Chalte",
+          "audioPath": "/Volumes/samsung/Music/Salim-Sulaiman/Rab Ne Bana Di Jodi 2008/04. Phir Milenge Chalte Chalte.mp3"
+        }
+      ],
+      "totalTracks": 7
+    },
+    {
+      "id": "12130007",
+      "name": "Padmaavat",
+      "localPath": "/Volumes/samsung/Music/Sanjay Leela Bhansali/Padmaavat 2018",
+      "songs": [
+        {
+          "id": "W1gUGf0W",
+          "name": "Goomar",
+          "audioPath": "/Volumes/samsung/Music/Sanjay Leela Bhansali/Padmaavat 2018/02. Goomar.mp3"
+        },
+        {
+          "id": "lg4uh8pv",
+          "name": "Misiriyaa",
+          "audioPath": "/Volumes/samsung/Music/Sanjay Leela Bhansali/Padmaavat 2018/03. Misiriyaa.mp3"
+        },
+        {
+          "id": "tb8cSaXJ",
+          "name": "Karaipurandoadudhey Kanaa",
+          "audioPath": "/Volumes/samsung/Music/Sanjay Leela Bhansali/Padmaavat 2018/04. Karaipurandoadudhey Kanaa.mp3"
+        }
+      ],
+      "totalTracks": 5
+    },
+    {
+      "id": "11685938",
+      "name": "Padmaavat",
+      "localPath": "/Volumes/samsung/Music/Sanjay Leela Bhansali/Padmaavat 2018",
+      "songs": [
+        {
+          "id": "Q5dE-6Cm",
+          "name": "Ghoomar",
+          "audioPath": "/Volumes/samsung/Music/Sanjay Leela Bhansali/Padmaavat 2018/01. Ghoomar.mp3"
+        },
+        {
+          "id": "4IAdp5kV",
+          "name": "Khalibali",
+          "audioPath": "/Volumes/samsung/Music/Sanjay Leela Bhansali/Padmaavat 2018/03. Khalibali.mp3"
+        },
+        {
+          "id": "WYV0Ww3b",
+          "name": "Nainowale Ne",
+          "audioPath": "/Volumes/samsung/Music/Sanjay Leela Bhansali/Padmaavat 2018/04. Nainowale Ne.mp3"
+        },
+        {
+          "id": "XhagbYQd",
+          "name": "Binte Dil",
+          "audioPath": "/Volumes/samsung/Music/Sanjay Leela Bhansali/Padmaavat 2018/06. Binte Dil.mp3"
+        }
+      ],
+      "totalTracks": 6
+    },
+    {
+      "id": "33009174",
+      "name": "Goliyon Ki Raasleela Ram-Leela",
+      "localPath": "/Volumes/samsung/Music/Sanjay Leela Bhansali/Goliyon Ki Raasleela Ram-Leela 2013",
+      "songs": [
+        {
+          "id": "qJF0prIH",
+          "name": "Nagada Sang Dhol",
+          "audioPath": "/Volumes/samsung/Music/Sanjay Leela Bhansali/Goliyon Ki Raasleela Ram-Leela 2013/05. Nagada Sang Dhol.mp3"
+        }
+      ],
+      "totalTracks": 10
+    },
+    {
+      "id": "56339375",
+      "name": "Kalki 2898 Ad (Tamil)",
+      "localPath": "/Volumes/samsung/Music/Santhosh Narayanan/Kalki 2898 Ad (Tamil) 2024",
+      "songs": [
+        {
+          "id": "UOgolNA6",
+          "name": "Theme Of Kalki",
+          "audioPath": "/Volumes/samsung/Music/Santhosh Narayanan/Kalki 2898 Ad (Tamil) 2024/02. Theme Of Kalki.mp3"
+        },
+        {
+          "id": "KuFjKgyD",
+          "name": "Bujji Theme",
+          "audioPath": "/Volumes/samsung/Music/Santhosh Narayanan/Kalki 2898 Ad (Tamil) 2024/26. Bujji Theme.mp3"
+        }
+      ],
+      "totalTracks": 34
+    },
+    {
+      "id": "1035265",
+      "name": "Kuch Kuch Hota Hai",
+      "localPath": "/Volumes/samsung/Music/Jatin Pandit/Kuch Kuch Hota Hai 1998",
+      "songs": [
+        {
+          "id": "rtdvmBBB",
+          "name": "Kuch Kuch Hota Hai",
+          "audioPath": "/Volumes/samsung/Music/Jatin Pandit/Kuch Kuch Hota Hai 1998/01. Kuch Kuch Hota Hai.mp3"
+        },
+        {
+          "id": "jFerJMnc",
+          "name": "Koi Mil Gaya",
+          "audioPath": "/Volumes/samsung/Music/Jatin Pandit/Kuch Kuch Hota Hai 1998/02. Koi Mil Gaya.mp3"
+        }
+      ],
+      "totalTracks": 8
+    },
+    {
+      "id": "1027146",
+      "name": "Fanaa",
+      "localPath": "/Volumes/samsung/Music/Jatin-Lalit/Fanaa 2006",
+      "songs": [
+        {
+          "id": "WdqMxZ6u",
+          "name": "Chand Sifarish",
+          "audioPath": "/Volumes/samsung/Music/Jatin-Lalit/Fanaa 2006/01. Chand Sifarish.mp3"
+        }
+      ],
+      "totalTracks": 7
+    },
+    {
+      "id": "12606087",
+      "name": "Kal Ho Naa Ho",
+      "localPath": "/Volumes/samsung/Music/Shankar Mahadevan/Kal Ho Naa Ho 2003",
+      "songs": [
+        {
+          "id": "TfJX33Qk",
+          "name": "Kal Ho Naa Ho",
+          "audioPath": "/Volumes/samsung/Music/Shankar Mahadevan/Kal Ho Naa Ho 2003/01. Kal Ho Naa Ho.mp3"
+        }
+      ],
+      "totalTracks": 7
+    },
+    {
+      "id": "1033155",
+      "name": "Kabhi Alvida Naa Kehna",
+      "localPath": "/Volumes/samsung/Music/Shankar Mahadevan/Kabhi Alvida Naa Kehna 2006",
+      "songs": [
+        {
+          "id": "NY7BPhSZ",
+          "name": "Rock N Roll Soniye",
+          "audioPath": "/Volumes/samsung/Music/Shankar Mahadevan/Kabhi Alvida Naa Kehna 2006/04. Rock N Roll Soniye.mp3"
+        }
+      ],
+      "totalTracks": 5
+    },
+    {
+      "id": "1150617",
+      "name": "Ishq Bulaava",
+      "localPath": "/Volumes/samsung/Music/Vishal Dadlani/Ishq Bulaava 2015",
+      "songs": [
+        {
+          "id": "rimt7ttW",
+          "name": "Mitwa (From \"Kabhi Alvida Naa Kehna\")",
+          "audioPath": "/Volumes/samsung/Music/Vishal Dadlani/Ishq Bulaava 2015/12. Mitwa (From -Kabhi Alvida Naa Kehna-).mp3"
+        }
+      ],
+      "totalTracks": 15
+    },
+    {
+      "id": "11783251",
+      "name": "Goonja Sa Koi Iktara",
+      "localPath": "/Volumes/samsung/Music/Amit Trivedi/Goonja Sa Koi Iktara 2009",
+      "songs": [
+        {
+          "id": "RkjywDKF",
+          "name": "Sajdaa (From \"My Name Is Khan\")",
+          "audioPath": "/Volumes/samsung/Music/Amit Trivedi/Goonja Sa Koi Iktara 2009/05. Sajdaa (From -My Name Is Khan-).mp3"
+        }
+      ],
+      "totalTracks": 10
+    },
+    {
+      "id": "1023515",
+      "name": "Chandni Chowk To China",
+      "localPath": "/Volumes/samsung/Music/Kailash-Paresh-Naresh/Chandni Chowk To China 2008",
+      "songs": [
+        {
+          "id": "_uKO18JI",
+          "name": "Tere Naina",
+          "audioPath": "/Volumes/samsung/Music/Kailash-Paresh-Naresh/Chandni Chowk To China 2008/04. Tere Naina.mp3"
+        }
+      ],
+      "totalTracks": 8
+    },
+    {
+      "id": "48037317",
+      "name": "Jawan (TAMIL)",
+      "localPath": "/Volumes/samsung/Music/Anirudh Ravichander/Jawan (TAMIL) 2023",
+      "songs": [
+        {
+          "id": "6d1WWj2Y",
+          "name": "Vandha Edam",
+          "audioPath": "/Volumes/samsung/Music/Anirudh Ravichander/Jawan (TAMIL) 2023/01. Vandha Edam.mp3"
+        }
+      ],
+      "totalTracks": 6
+    },
+    {
+      "id": "48037104",
+      "name": "Jawan",
+      "localPath": "/Volumes/samsung/Music/Anirudh Ravichander/Jawan 2023",
+      "songs": [
+        {
+          "id": "faloMmjX",
+          "name": "Chaleya",
+          "audioPath": "/Volumes/samsung/Music/Anirudh Ravichander/Jawan 2023/02. Chaleya.mp3"
+        },
+        {
+          "id": "2OWYOMAB",
+          "name": "Jawan Title Track",
+          "audioPath": "/Volumes/samsung/Music/Anirudh Ravichander/Jawan 2023/05. Jawan Title Track.mp3"
         }
       ],
       "totalTracks": 7

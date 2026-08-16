@@ -1,0 +1,864 @@
+{
+  "artistId": "455496",
+  "artistName": "Vidyasagar",
+  "source": "Wikipedia + JioSaavn API",
+  "extractedAt": "2026-08-16T06:38:38.210Z",
+  "totalAlbums": 107,
+  "foundAlbums": 32,
+  "notFoundAlbums": 75,
+  "albums": [
+    {
+      "title": "Paravaigal Palavitham",
+      "year": 1988,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Poo Manam",
+      "year": 1989,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Seetha",
+      "year": 1990,
+      "language": "Tamil",
+     
+      "found": false
+    },
+    {
+      "title": "Nila Pennae",
+      "year": 1990,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Aatha Naan Pass Ayittaen",
+      "year": 1990,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Maathangal Ezhu",
+      "year": 1993,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Jai Hind",
+      "year": 1994,
+      "language": "Tamil",
+      "id": "48007647",
+      "image": "https://c.saavncdn.com/884/Jai-Hind-Tamil-1994-20260119133326-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Karnaa",
+      "year": 1995,
+      "language": "Tamil",
+      "id": "1244031",
+      "image": "https://c.saavncdn.com/853/Karna-Original-Motion-Picture-Soundtrack-Tamil-1995-20230620182751-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Pasumpon",
+      "year": 1995,
+      "language": "Tamil",
+      "id": "1131524",
+      "image": "https://c.saavncdn.com/152/Pasumpon-Original-Motion-Picture-Soundtrack-Tamil-1995-20231026165012-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Murai Maman",
+      "year": 1995,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Villadhi Villain",
+      "year": 1995,
+      "language": "Tamil",
+      "id": "17346247",
+      "image": "https://c.saavncdn.com/621/Villain-Tamil-2002-20240913164650-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Mr. Madras",
+      "year": 1995,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Ayudha Poojai",
+      "year": 1995,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Coimbatore Mappillai",
+      "year": 1996,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Musthaffaa",
+      "year": 1996,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Sengottai",
+      "year": 1996,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Priyam",
+      "year": 1996,
+      "language": "Tamil",
+      "id": "10785971",
+      "image": "https://c.saavncdn.com/767/Priyam-Tamil-1996-20241120134709-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Subash",
+      "year": 1996,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Tata Birla",
+      "year": 1996,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Nethaji",
+      "year": 1996,
+      "language": "Tamil",
+      "id": "69175691",
+      "image": "https://c.saavncdn.com/646/Nethaji-Tamil-1996-20251014154037-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Pudhayal",
+      "year": 1997,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Thaali Pudhusu",
+      "year": 1997,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Aaha Enna Porutham",
+      "year": 1997,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Arasiyal",
+      "year": 1997,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Smile Please",
+      "year": 1997,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Nilaave Vaa",
+      "year": 1998,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Thayin Manikodi",
+      "year": 1998,
+      "language": "Tamil",
+      "id": "34677413",
+      "image": "https://c.saavncdn.com/380/Thayin-Manikodi-Tamil-1997-20220429143441-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Uyirodu Uyiraga",
+      "year": 1998,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Ethirum Pudhirum",
+      "year": 1999,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Suyamvaram",
+      "year": 1999,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Pooparika Varugirom",
+      "year": 1999,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Puratchikkaaran",
+      "year": 2000,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Snehithiye",
+      "year": 2000,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Dhill",
+      "year": 2001,
+      "language": "Tamil",
+      "id": "38515508",
+      "image": "https://c.saavncdn.com/501/Dhill-Tamil-2001-20260120193614-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Poovellam Un Vasam",
+      "year": 2001,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Vedham",
+      "year": 2001,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Alli Thandha Vaanam",
+      "year": 2001,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Thavasi",
+      "year": 2001,
+      "language": "Tamil",
+      "id": "14849270",
+      "image": "https://c.saavncdn.com/237/Thavasi-Tamil-2001-20190114032809-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Karmegham",
+      "year": 2002,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Run",
+      "year": 2002,
+      "language": "Tamil",
+      "id": "28194915",
+      "image": "https://c.saavncdn.com/142/Run-Tamil-2002-20210702195824-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Villain",
+      "year": 2002,
+      "language": "Tamil",
+      "id": "17346247",
+      "image": "https://c.saavncdn.com/621/Villain-Tamil-2002-20240913164650-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Dhool",
+      "year": 2003,
+      "language": "Tamil",
+      "id": "14821656",
+      "image": "https://c.saavncdn.com/179/Dhol-Tamil--Tamil-2002-20190110152707-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Anbe Sivam",
+      "year": 2003,
+      "language": "Tamil",
+      "id": "36195502",
+      "image": "https://c.saavncdn.com/325/Anbe-Sivam-Tamil-2025-20250930144106-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Anbu",
+      "year": 2003,
+      "language": "Tamil",
+      "id": "13010994",
+      "image": "https://c.saavncdn.com/022/Anbu-Tamil-2002-20180531-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Pallavan",
+      "year": 2003,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Well Done",
+      "year": 2003,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Parthiban Kanavu",
+      "year": 2003,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Aaha Ethanai Azhagu",
+      "year": 2003,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Kadhal Kisu Kisu",
+      "year": 2003,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Thithikudhe",
+      "year": 2003,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Alai",
+      "year": 2003,
+      "language": "Tamil",
+      "id": "38434945",
+      "image": "https://c.saavncdn.com/549/Alai-Tamil-2005-20260402133355-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Thirumalai",
+      "year": 2003,
+      "language": "Tamil",
+      "id": "1133902",
+      "image": "https://c.saavncdn.com/258/Thirumalai-2003-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Iyarkai",
+      "year": 2003,
+      "language": "Tamil",
+      "id": "38543596",
+      "image": "https://c.saavncdn.com/976/Iyarkai-Tamil-2003-20260421163627-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Joot",
+      "year": 2003,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Thendral",
+      "year": 2004,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Varnajalam",
+      "year": 2004,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Ghilli",
+      "year": 2004,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Sullan",
+      "year": 2004,
+      "language": "Tamil",
+      "id": "10785973",
+      "image": "https://c.saavncdn.com/804/Sullaan-Tamil-2004-20201214110732-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Madhurey",
+      "year": 2004,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Ji",
+      "year": 2005,
+      "language": "Tamil",
+      "id": "1133594",
+      "image": "https://c.saavncdn.com/105/Ji-2005-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "London",
+      "year": 2005,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Chandramukhi",
+      "year": 2005,
+      "language": "Tamil",
+      "id": "16345519",
+      "image": "https://c.saavncdn.com/414/Chandramukhi-Tamil-2005-20190626182509-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Kana Kandaen",
+      "year": 2005,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Power of Women",
+      "year": 2005,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Ponniyin Selvan",
+      "year": 2005,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Majaa",
+      "year": 2005,
+      "language": "Tamil",
+      "id": "45530266",
+      "image": "https://c.saavncdn.com/521/Majaa-Tamil-2005-20230525180021-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Paramasivan",
+      "year": 2006,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Aathi",
+      "year": 2006,
+      "language": "Tamil",
+      "id": "1132753",
+      "image": "https://c.saavncdn.com/434/Aathi-2005-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Pasa Kiligal",
+      "year": 2006,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Thambi",
+      "year": 2006,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Em Magan",
+      "year": 2006,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Sivappathigaram",
+      "year": 2006,
+      "language": "Tamil",
+      "id": "1049140",
+      "image": "https://c.saavncdn.com/254/Sivappathigaram-Tamil-2006-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Poi",
+      "year": 2006,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Mozhi",
+      "year": 2007,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Periyar",
+      "year": 2007,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Pirivom Santhippom",
+      "year": 2008,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Arai En 305-il Kadavul",
+      "year": 2008,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Kuruvi",
+      "year": 2008,
+      "language": "Tamil",
+      "id": "38218144",
+      "image": "https://c.saavncdn.com/290/Kuruvi-Tamil-2008-20260120193614-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Muniyandi Vilangial Moonramandu",
+      "year": 2008,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Jeyam Kondaan",
+      "year": 2008,
+      "language": "Tamil",
+      "id": "38345756",
+      "image": "https://c.saavncdn.com/863/Jeyam-Kondan-Tamil-2008-20260421163628-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Alibhabha",
+      "year": 2008,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Raman Thediya Seethai",
+      "year": 2008,
+      "language": "Tamil",
+      "id": "12626333",
+      "image": "https://c.saavncdn.com/340/Raman-Thediya-Seethai-Tamil-2008-20260120201449-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Ellam Avan Seyal",
+      "year": 2008,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Mahesh, Saranya Matrum Palar",
+      "year": 2008,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Abhiyum Naanum",
+      "year": 2008,
+      "language": "Tamil",
+      "id": "2666615",
+      "image": "https://c.saavncdn.com/230/Abhiyum-Naanum-Tamil-2008-20200627101028-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Kadhalna Summa Illai",
+      "year": 2009,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "1977",
+      "year": 2009,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Peraanmai",
+      "year": 2009,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Kanden Kadhalai",
+      "year": 2009,
+      "language": "Tamil",
+      "id": "2666634",
+      "image": "https://c.saavncdn.com/194/Kanden-Kadhalai-Tamil-2009-20200620122146-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Ilamai Itho Itho",
+      "year": 2009,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Mandhira Punnagai",
+      "year": 2010,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Magizhchi",
+      "year": 2010,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Ilaignan",
+      "year": 2011,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Siruthai",
+      "year": 2011,
+      "language": "Tamil",
+      "id": "1049025",
+      "image": "https://c.saavncdn.com/025/Siruthai-2010-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Kaavalan",
+      "year": 2011,
+      "language": "Tamil",
+      "id": "1076641",
+      "image": "https://c.saavncdn.com/251/Kaavalan-Tamil-2010-20240229141705-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Thambi Vettothi Sundaram",
+      "year": 2011,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Sadhurangam",
+      "year": 2011,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Thalaivan",
+      "year": 2013,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Puthiya Thiruppangal",
+      "year": 2013,
+      "language": "Tamil",
+          "found": false
+    },
+    {
+      "title": "Jannal Oram",
+      "year": 2013,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Eli",
+      "year": 2015,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Uchathula Shiva",
+      "year": 2016,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Thiruttu Payale 2",
+      "year": 2017,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Aaruthra",
+      "year": 2018,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Double Tuckerr",
+      "year": 2024,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Uyir Thamizhukku",
+      "year": 2024,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Desingu Raja 2",
+      "year": 2025,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    }
+  ]
+}

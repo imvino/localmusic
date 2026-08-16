@@ -4,6 +4,17 @@ const path = require('path');
 const Fuse = require('fuse.js');
 const { fetchFromMusicServiceOfficial, getBestImage, fuzzyMatchAlbumName } = require('../src/utils');
 
+// Load composer aliases
+let composerAliases = {};
+try {
+  const aliasesPath = path.join(__dirname, '../config/composer-aliases.json');
+  if (fs.existsSync(aliasesPath)) {
+    composerAliases = JSON.parse(fs.readFileSync(aliasesPath, 'utf8'));
+  }
+} catch (error) {
+  console.log('Warning: Could not load composer aliases');
+}
+
 // Parse command line arguments (handle both --arg=value and --arg value formats)
 const args = process.argv.slice(2);
 const getArg = (name) => {
@@ -33,6 +44,31 @@ if (!composer || !artistId || !inputFile || !outputFile) {
 
 const API_BASE = 'http://localhost:3001/api';
 
+// Search for album using fallback queries
+async function searchAlbum(albumName, composerName) {
+  const queries = [
+    `${albumName} ${composerName} tamil`,
+    `${albumName} ${composerName}`,
+    albumName
+  ];
+  
+  for (const query of queries) {
+    try {
+      const response = await axios.get(`${API_BASE}/search`, { params: { q: query } });
+      if (response.data.success && response.data.data && response.data.data.albums) {
+        const results = response.data.data.albums.results || [];
+        if (results.length > 0) {
+          return results;
+        }
+      }
+    } catch (error) {
+      console.log(`  ✗ Search query "${query}" failed: ${error.message}`);
+    }
+  }
+  
+  return [];
+}
+
 // Verify album by checking language, composer, and name
 async function verifyAlbum(albumId, expectedTitle) {
   try {
@@ -59,15 +95,21 @@ async function verifyAlbum(albumId, expectedTitle) {
     const normalizeName = (name) => name.replace(/\s+/g, '').toLowerCase();
     const normalizedComposer = normalizeName(composer);
     
+    // Also check aliases
+    const aliases = Object.keys(composerAliases).filter(k => 
+      normalizeName(composerAliases[k]) === normalizedComposer
+    );
+    const allComposerNames = [composer, ...aliases];
+    
     const composers = data.composers || [];
     const hasComposerInComposers = composers.some(c => 
-      c && normalizeName(c.name || c).includes(normalizedComposer)
+      c && allComposerNames.some(cn => normalizeName(c.name || c).includes(normalizeName(cn)))
     );
     
     let hasComposerInArtists = false;
     if (!hasComposerInComposers && data.artists && data.artists.all) {
       hasComposerInArtists = data.artists.all.some(a => 
-        a && a.name && normalizeName(a.name).includes(normalizedComposer)
+        a && a.name && allComposerNames.some(cn => normalizeName(a.name).includes(normalizeName(cn)))
       );
     }
     
@@ -119,9 +161,10 @@ async function main() {
     const albumName = album.albumName || album.name;
     const year = album.year;
     
-    // Try to find matching album in artist's album list
+    // Try to find matching album using search API with fallback queries
     let verifiedMatch = null;
     
+    // First try artist's album list (faster)
     for (const artistAlbum of artistAlbums) {
       if (!artistAlbum.id) continue;
       
@@ -138,6 +181,30 @@ async function main() {
       if (isVerified) {
         verifiedMatch = artistAlbum;
         break;
+      }
+    }
+    
+    // If not found in artist's list, try search API
+    if (!verifiedMatch) {
+      const searchResults = await searchAlbum(albumName, composer);
+      
+      for (const result of searchResults) {
+        if (!result.id) continue;
+        
+        // Check language first (should be Tamil)
+        const language = (result.language || '').toLowerCase();
+        if (!language.includes('tamil')) continue;
+        
+        // Check name with fuzzy match
+        const apiName = result.name || '';
+        if (!fuzzyMatchAlbumName(albumName, apiName)) continue;
+        
+        // Verify the album to check composer
+        const isVerified = await verifyAlbum(result.id, albumName);
+        if (isVerified) {
+          verifiedMatch = result;
+          break;
+        }
       }
     }
     
@@ -164,7 +231,7 @@ async function main() {
     albumsWithMetadata.push(albumMetadata);
     
     // Add delay between album verifications to avoid rate limiting
-    await new Promise(resolve => setTimeout(resolve, 500));
+    await new Promise(resolve => setTimeout(resolve, 1000));
   }
   
   // Create final metadata structure

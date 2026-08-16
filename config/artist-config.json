@@ -34,6 +34,11 @@
       "name": "G. V. Prakash Kumar",
       "metadataFile": "g-v-prakash-kumar-albums-metadata.json",
       "image": "https://c.saavncdn.com/artists/G_V__Prakash_Kumar_003_20251113063655_150x150.jpg"
+    },
+    "455496": {
+      "name": "Vidyasagar",
+      "metadataFile": "vidyasagar-albums-metadata.json",
+      "image": "https://c.saavncdn.com/artists/Vidyasagar_150x150.jpg"
     }
   }
 }

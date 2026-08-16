@@ -3,8 +3,8 @@
   "artistName": "Devi Sri Prasad",
   "source": "Wikipedia + JioSaavn API",
   "extractedAt": "2026-08-09T09:26:21.632Z",
-  "totalAlbums": 24,
-  "foundAlbums": 22,
+  "totalAlbums": 26,
+  "foundAlbums": 24,
   "notFoundAlbums": 2,
   "albums": [
     {
@@ -197,6 +197,22 @@
       "language": "Tamil",
       "id": "63918411",
       "image": "https://c.saavncdn.com/079/Kuberaa-Tamil-Tamil-2025-20250718113545-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Pushpa - The Rise",
+      "year": 2021,
+      "language": "Tamil",
+      "id": "29010060",
+      "image": "https://c.saavncdn.com/blob/060/Pushpa-The-Rise-Tamil-2021-20211218130419-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Pushpa 2 The Rule",
+      "year": 2024,
+      "language": "Tamil",
+      "id": "60254271",
+      "image": "https://c.saavncdn.com/373/Pushpa-2-The-Rule-Tamil-Tamil-2024-20241205211022-150x150.jpg",
       "found": true
     }
   ]

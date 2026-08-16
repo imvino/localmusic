@@ -4,6 +4,8 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
+    "dev": "node server.js",
+    "dev2": "concurrently \"pnpm dev\" \"cd client && pnpm dev\"",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -18,5 +20,8 @@
     "express": "^5.2.1",
     "fuse.js": "^7.5.0",
     "node-id3": "^0.2.9"
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.4"
   }
 }
