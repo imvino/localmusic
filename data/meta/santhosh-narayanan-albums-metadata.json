@@ -1,0 +1,403 @@
+{
+  "artistId": "557323",
+  "artistName": "Santhosh Narayanan",
+  "source": "Wikipedia + JioSaavn API",
+  "extractedAt": "2026-08-16T10:04:12.015Z",
+  "totalAlbums": 49,
+  "foundAlbums": 41,
+  "notFoundAlbums": 8,
+  "albums": [
+    {
+      "title": "Attakathi",
+      "year": 2012,
+      "language": "Tamil",
+      "id": "1225054",
+      "image": "https://c.saavncdn.com/664/Attakathi-Tamil-2011-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Uyir Mozhi",
+      "year": 2012,
+      "language": "Tamil",
+      "id": "1081467",
+      "image": "https://c.saavncdn.com/966/Uyirmozhi-2012-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Pizza",
+      "year": 2012,
+      "language": "Tamil",
+      "id": "1225060",
+      "image": "https://c.saavncdn.com/097/Pizza-Original-Motion-Picture-Soundtrack-Tamil-2012-20250910161118-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Soodhu Kavvum",
+      "year": 2013,
+      "language": "Tamil",
+      "id": "1164206",
+      "image": "https://c.saavncdn.com/000/Soodhu-Kavvum-Tamil-2013-20221230120928-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Pizza II: Villa",
+      "year": 2013,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Cuckoo",
+      "year": 2014,
+      "language": "Tamil",
+      "id": "1164220",
+      "image": "https://c.saavncdn.com/622/Cuckoo-Original-Motion-Picture-Soundtrack-Tamil-2014-20250910162253-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Jigarthanda",
+      "year": 2014,
+      "language": "Tamil",
+      "id": "48719630",
+      "image": "https://c.saavncdn.com/929/Jigarthanda-Original-Motion-Picture-Soundtrack-Tamil-2014-20250910161933-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Madras",
+      "year": 2014,
+      "language": "Tamil",
+      "id": "67946781",
+      "image": "https://c.saavncdn.com/844/Madras-Original-Motion-Picture-Soundtrack-Tamil-2014-20250910162302-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Enakkul Oruvan",
+      "year": 2015,
+      "language": "Tamil",
+      "id": "1196290",
+      "image": "https://c.saavncdn.com/967/Enakkul-Oruvan-Original-Motion-Picture-Soundtrack-Tamil-2014-20250910161923-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "36 Vayathinile",
+      "year": 2015,
+      "language": "Tamil",
+      "id": "1234740",
+      "image": "https://c.saavncdn.com/193/36-Vayadhinile-Original-Motion-Picture-Soundtrack-Tamil-2015-20250910161139-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Irudhi Suttru",
+      "year": 2016,
+      "language": "Tamil",
+      "id": "67204578",
+      "image": "https://c.saavncdn.com/629/Irudhi-Suttru-Tamil-2016-20250814181629-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Kadhalum Kadandhu Pogum",
+      "year": 2016,
+      "language": "Tamil",
+      "id": "10316265",
+      "image": "https://c.saavncdn.com/135/Kadhalum-Kadanthu-Pogum-Tamil-2016-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Manithan",
+      "year": 2016,
+      "language": "Tamil",
+      "id": "2169292",
+      "image": "https://c.saavncdn.com/386/Manithan-Tamil-2016-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Iraivi",
+      "year": 2016,
+      "language": "Tamil",
+      "id": "2167385",
+      "image": "https://c.saavncdn.com/271/Iraivi-Tamil-2016-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Kabali",
+      "year": 2016,
+      "language": "Tamil",
+      "id": "2370602",
+      "image": "https://c.saavncdn.com/506/Kabali-Original-Motion-Picture-Soundtrack-Tamil-2016-20250905072302-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Kodi",
+      "year": 2016,
+      "language": "Tamil",
+      "id": "2779615",
+      "image": "https://c.saavncdn.com/967/Kodi-Tamil-2016-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Kaashmora",
+      "year": 2016,
+      "language": "Tamil",
+      "id": "62366491",
+      "image": "https://c.saavncdn.com/089/Kaashmora-Tamil-2016-20250228170920-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Bairavaa",
+      "year": 2017,
+      "language": "Tamil",
+      "id": "68897082",
+      "image": "https://c.saavncdn.com/034/Bairavaa-Tamil-2016-20251025140000-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Server Sundaram",
+      "year": 2017,
+      "language": "Tamil",
+      "id": "10248654",
+      "image": "https://c.saavncdn.com/797/Server-Sundaram-Original-Motion-Picture-Soundtrack-Tamil-2017-20251026074536-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Kaala",
+      "year": 2018,
+      "language": "Tamil",
+      "id": "12342960",
+      "image": "https://c.saavncdn.com/237/Kaala-Tamil-Tamil-2018-20251210013452-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Mercury",
+      "year": 2018,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Pariyerum Perumal",
+      "year": 2018,
+      "language": "Tamil",
+      "id": "14424982",
+      "image": "https://c.saavncdn.com/434/Pariyerum-Perumal-Original-Background-Score-Tamil-2018-20251024161353-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Vada Chennai",
+      "year": 2018,
+      "language": "Tamil",
+      "id": "13548043",
+      "image": "https://c.saavncdn.com/173/VadaChennai-Tamil-2018-20260108133313-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "A1",
+      "year": 2019,
+      "language": "Tamil",
+      "id": "16043735",
+      "image": "https://c.saavncdn.com/908/A1-Original-Motion-Picture-Soundtrack-Tamil-2019-20251026055155-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Otha Seruppu Size 7",
+      "year": 2019,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Gypsy",
+      "year": 2020,
+      "language": "Tamil",
+      "id": "14923449",
+      "image": "https://c.saavncdn.com/343/Gypsy-Tamil-2019-20190522101104-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Penguin",
+      "year": 2020,
+      "language": "Tamil",
+      "id": "21019773",
+      "image": "https://c.saavncdn.com/525/Penguin-Tamil-2020-20200622122446-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Parris Jeyaraj",
+      "year": 2021,
+      "language": "Tamil",
+      "id": "24393937",
+      "image": "https://c.saavncdn.com/817/Parris-Jeyaraj-Original-Motion-Picture-Soundtrack-Tamil-2021-20251026074545-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Karnan",
+      "year": 2021,
+      "language": "Tamil",
+      "id": "25404813",
+      "image": "https://c.saavncdn.com/923/Karnan-Original-Motion-Picture-Soundtrack-Unknown-2021-20251024161312-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Jagame Thanthiram",
+      "year": 2021,
+      "language": "Tamil",
+      "id": "27691748",
+      "image": "https://c.saavncdn.com/212/Jagame-Thandhiram-Original-Motion-Picture-Soundtrack--Tamil-2021-20210607095427-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Vellai Yaanai",
+      "year": 2021,
+      "language": "Tamil",
+      "id": "18796245",
+      "image": "https://c.saavncdn.com/687/Vellaiyanai-Tamil-2020-20200512131540-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Sarpatta Parambarai",
+      "year": 2021,
+      "language": "Tamil",
+      "id": "53968798",
+      "image": "https://c.saavncdn.com/239/Sarpatta-Parambarai-Original-Motion-Picture-Soundtrack-Tamil-2024-20260227060110-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Navarasa",
+      "year": 2021,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Kasada Thapara",
+      "year": 2021,
+      "language": "Tamil",
+      "id": "28994705",
+      "image": "https://c.saavncdn.com/504/Kasada-Tabara-Tamil-2021-20210826080108-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Mahaan",
+      "year": 2022,
+      "language": "Tamil",
+      "id": "32789042",
+      "image": "https://c.saavncdn.com/362/Mahaan-Tamil-2022-20260702171359-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Kadaisi Vivasayi",
+      "year": 2022,
+      "language": "Tamil",
+      "id": "33138767",
+      "image": "https://c.saavncdn.com/214/Kadaisi-Vivasayi-Tamil-2022-20220223021403-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Gulu Gulu",
+      "year": 2022,
+      "language": "Tamil",
+      "id": "36824106",
+      "image": "https://c.saavncdn.com/181/Gulu-Gulu-Original-Motion-Picture-Soundtrack-Tamil-2022-20220727180531-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Buffoon",
+      "year": 2022,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Anel Meley Pani Thuli",
+      "year": 2022,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Naai Sekar Returns",
+      "year": 2022,
+      "language": "Tamil",
+      "id": "39961086",
+      "image": "https://c.saavncdn.com/883/Naai-Sekar-Returns-Original-Motion-Picture-Soundtrack-Tamil-2022-20250910153458-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Chithha",
+      "year": 2023,
+      "language": "Tamil",
+      "id": "47929690",
+      "image": "https://c.saavncdn.com/404/Chithha-Original-Motion-Picture-Soundtrack-Tamil-2023-20250905072413-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Jigarthanda DoubleX",
+      "year": 2023,
+      "language": "Tamil",
+      "id": "48840159",
+      "image": "https://c.saavncdn.com/935/Jigarthanda-DoubleX-Original-Motion-Picture-Soundtrack-Tamil-2023-20250905072714-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Andhagan",
+      "year": 2024,
+      "language": "Tamil",
+      "id": "43020888",
+      "image": "https://c.saavncdn.com/276/Andhagan-Original-Motion-Picture-Soundtrack-Tamil-2023-20230227175705-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Vaazhai",
+      "year": 2024,
+      "language": "Tamil",
+      "id": "56301187",
+      "image": "https://c.saavncdn.com/535/Vaazhai-Original-Motion-Picture-Soundtrack-Tamil-2024-20250905071631-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Retro",
+      "year": 2025,
+      "language": "Tamil",
+      "id": "64846015",
+      "image": "https://c.saavncdn.com/483/Retro-Side-B-Tamil-2025-20250526131026-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Thalaivan Thalaivii",
+      "year": 2025,
+      "language": "Tamil",
+      "id": "66271066",
+      "image": "https://c.saavncdn.com/702/Thalaivan-Thalaivii-Original-Motion-Picture-Soundtrack-Tamil-2025-20250712201724-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Vaa Vaathiyaar",
+      "year": 2026,
+      "language": "Tamil",
+      "id": "71556593",
+      "image": "https://c.saavncdn.com/148/Vaa-Vaathiyaar-Original-Motion-Picture-Soundtrack-Tamil-2026-20260420210332-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Seyon",
+      "year": 2026,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Chiyaan 63",
+      "year": 2026,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    }
+  ]
+}

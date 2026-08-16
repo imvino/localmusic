@@ -39,6 +39,16 @@
       "name": "Vidyasagar",
       "metadataFile": "vidyasagar-albums-metadata.json",
       "image": "https://c.saavncdn.com/artists/Vidyasagar_150x150.jpg"
+    },
+    "557323": {
+      "name": "Santhosh Narayanan",
+      "metadataFile": "santhosh-narayanan-albums-metadata.json",
+      "image": "https://c.saavncdn.com/artists/Santhosh_Narayanan_002_20250527101718_150x150.jpg"
+    },
+    "544471": {
+      "name": "Thaman S",
+      "metadataFile": "thaman-s-albums-metadata.json",
+      "image": "https://c.saavncdn.com/artists/Thaman_S__007_20231106094011_150x150.jpg"
     }
   }
 }

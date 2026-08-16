@@ -126,6 +126,25 @@ function isAlbumLocal(albumId) {
   return false;
 }
 
+// Get local metadata for an album (isLocal, songCount, totalTracks)
+function getAlbumLocalDetails(albumId) {
+  if (!isMusicDirAvailable()) return { isLocal: false, totalTracks: null, songCount: 0 };
+  
+  // Build indexes if not available
+  if (!songIdIndex || !albumIdIndex) {
+    buildIndexes();
+  }
+  
+  const album = albumIdIndex.get(albumId);
+  const isLocal = !!(album && album.songs && album.songs.length > 0 && album.songs.some(s => s.audioPath && fs.existsSync(s.audioPath)));
+  
+  return {
+    isLocal,
+    totalTracks: isLocal ? (album.totalTracks || null) : null,
+    songCount: isLocal ? (album.songs.length || 0) : 0
+  };
+}
+
 // Configure CORS
 const corsOptions = {
   origin: isProduction 
@@ -2434,7 +2453,7 @@ app.get('/api/artist/:id', async (req, res) => {
         language: album.language,
         image: imageArray,
         playCount: album.play_count || album.playCount || 0,
-        isLocal: isAlbumLocal(albumId)
+        ...getAlbumLocalDetails(albumId)
       };
     });
 

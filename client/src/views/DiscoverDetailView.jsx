@@ -637,7 +637,7 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
                   : 'text-zinc-400 hover:text-white'
               }`}
             >
-              Mix Tap
+              Mix Tape
             </button>
           )}
         </div>

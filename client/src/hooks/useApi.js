@@ -5,7 +5,9 @@ const VERCEL_API_BASE = import.meta.env.VITE_VERCEL_API_URL
 
 // Helper function to get the correct API base based on endpoint
 function getAPIBase(endpoint) {
-  // Route search and artist endpoints to Vercel for geolocation
+  // In development, always use the local API so local library metadata (e.g. badge counts) is available
+  if (import.meta.env.DEV) return API_BASE
+  // In production, route search and artist endpoints to Vercel for geolocation
   if (endpoint.startsWith('/search') || endpoint.startsWith('/artist')) {
     return VERCEL_API_BASE || API_BASE
   }

@@ -56,7 +56,8 @@ async function searchAlbum(albumName, composerName) {
     try {
       const response = await axios.get(`${API_BASE}/search`, { params: { q: query } });
       if (response.data.success && response.data.data && response.data.data.albums) {
-        const results = response.data.data.albums.results || [];
+        // Albums is returned as an array directly, not with a results property
+        const results = Array.isArray(response.data.data.albums) ? response.data.data.albums : [];
         if (results.length > 0) {
           return results;
         }
@@ -70,7 +71,7 @@ async function searchAlbum(albumName, composerName) {
 }
 
 // Verify album by checking language, composer, and name
-async function verifyAlbum(albumId, expectedTitle) {
+async function verifyAlbum(albumId, expectedTitle, skipComposerCheck = false) {
   try {
     const response = await axios.get(`${API_BASE}/album/${albumId}`);
     const albumData = response.data;
@@ -89,33 +90,36 @@ async function verifyAlbum(albumId, expectedTitle) {
       return false;
     }
     
-    // Check composer (should include the specified composer)
-    // First check composers field, then check artists array with music role
-    // Normalize spaces for comparison (e.g., "G. V." vs "G.V.")
-    const normalizeName = (name) => name.replace(/\s+/g, '').toLowerCase();
-    const normalizedComposer = normalizeName(composer);
-    
-    // Also check aliases
-    const aliases = Object.keys(composerAliases).filter(k => 
-      normalizeName(composerAliases[k]) === normalizedComposer
-    );
-    const allComposerNames = [composer, ...aliases];
-    
-    const composers = data.composers || [];
-    const hasComposerInComposers = composers.some(c => 
-      c && allComposerNames.some(cn => normalizeName(c.name || c).includes(normalizeName(cn)))
-    );
-    
-    let hasComposerInArtists = false;
-    if (!hasComposerInComposers && data.artists && data.artists.all) {
-      hasComposerInArtists = data.artists.all.some(a => 
-        a && a.name && allComposerNames.some(cn => normalizeName(a.name).includes(normalizeName(cn)))
+    // Skip composer check if flag is set (for artist's own albums)
+    if (!skipComposerCheck) {
+      // Check composer (should include the specified composer)
+      // First check composers field, then check artists array with music role
+      // Normalize spaces for comparison (e.g., "G. V." vs "G.V.")
+      const normalizeName = (name) => name.replace(/\s+/g, '').toLowerCase();
+      const normalizedComposer = normalizeName(composer);
+      
+      // Also check aliases
+      const aliases = Object.keys(composerAliases).filter(k => 
+        normalizeName(composerAliases[k]) === normalizedComposer
       );
-    }
-    
-    if (!hasComposerInComposers && !hasComposerInArtists) {
-      console.log(`  ✗ Album ${albumId} composer does not include ${composer}`);
-      return false;
+      const allComposerNames = [composer, ...aliases];
+      
+      const composers = data.composers || [];
+      const hasComposerInComposers = composers.some(c => 
+        c && allComposerNames.some(cn => normalizeName(c.name || c).includes(normalizeName(cn)))
+      );
+      
+      let hasComposerInArtists = false;
+      if (!hasComposerInComposers && data.artists && data.artists.all) {
+        hasComposerInArtists = data.artists.all.some(a => 
+          a && a.name && allComposerNames.some(cn => normalizeName(a.name).includes(normalizeName(cn)))
+        );
+      }
+      
+      if (!hasComposerInComposers && !hasComposerInArtists) {
+        console.log(`  ✗ Album ${albumId} composer does not include ${composer}`);
+        return false;
+      }
     }
     
     // Check name with fuzzy match
@@ -176,8 +180,8 @@ async function main() {
       const apiName = artistAlbum.name || '';
       if (!fuzzyMatchAlbumName(albumName, apiName)) continue;
       
-      // Verify the album to check composer
-      const isVerified = await verifyAlbum(artistAlbum.id, albumName);
+      // Verify the album with skipComposerCheck=true (since it's from artist's own list)
+      const isVerified = await verifyAlbum(artistAlbum.id, albumName, true);
       if (isVerified) {
         verifiedMatch = artistAlbum;
         break;
@@ -199,8 +203,8 @@ async function main() {
         const apiName = result.name || '';
         if (!fuzzyMatchAlbumName(albumName, apiName)) continue;
         
-        // Verify the album to check composer
-        const isVerified = await verifyAlbum(result.id, albumName);
+        // Verify the album with skipComposerCheck=true (search results may have incomplete composer data)
+        const isVerified = await verifyAlbum(result.id, albumName, true);
         if (isVerified) {
           verifiedMatch = result;
           break;

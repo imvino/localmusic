@@ -1,0 +1,427 @@
+{
+  "artistId": "544471",
+  "artistName": "Thaman S",
+  "source": "Wikipedia + JioSaavn API",
+  "extractedAt": "2026-08-16T10:36:09.161Z",
+  "totalAlbums": 52,
+  "foundAlbums": 41,
+  "notFoundAlbums": 11,
+  "albums": [
+    {
+      "title": "Sindhanai Sei",
+      "year": 2009,
+      "language": "Tamil",
+      "id": "1658352",
+      "image": "https://c.saavncdn.com/554/Sindhanai-Sei-Tamil-2009-20200627075716-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Eeram",
+      "year": 2009,
+      "language": "Tamil",
+      "id": "1026530",
+      "image": "https://c.saavncdn.com/580/Eeram-Tamil-2009-20200714133719-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Mundhinam Paartheney",
+      "year": 2010,
+      "language": "Tamil",
+      "id": "2666606",
+      "image": "https://c.saavncdn.com/771/Mun-Dhinam-Paartheney-Tamil-2010-20200518123010-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Moscowin Kavery",
+      "year": 2010,
+      "language": "Tamil",
+      "id": "1039285",
+      "image": "https://c.saavncdn.com/610/Moscowin-Kaveri-Tamil-2009-20190629141133-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Nagaram Marupakkam",
+      "year": 2010,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Ayyanar",
+      "year": 2010,
+      "language": "Tamil",
+      "id": "2666964",
+      "image": "https://c.saavncdn.com/559/Ayyanar-Tamil-2010-20200620120608-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Aridhu Aridhu",
+      "year": 2010,
+      "language": "Tamil",
+      "id": "72290866",
+      "image": "https://c.saavncdn.com/046/Aridhu-Aridhu-Tamil-2026-20260428134501-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Mambattiyan",
+      "year": 2011,
+      "language": "Tamil",
+      "id": "1059567",
+      "image": "https://c.saavncdn.com/425/Mambattiyan-2010-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Sabash Sariyana Potti",
+      "year": 2011,
+      "language": "Tamil",
+      "id": "2666627",
+      "image": "https://c.saavncdn.com/735/Sabaash-Sariyana-Potti-Tamil-2011-20190731134123-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Kanchana",
+      "year": 2011,
+      "language": "Tamil",
+      "id": "16041128",
+      "image": "https://c.saavncdn.com/011/Kanchana-Tamil-2011-20220815161446-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Vandhaan Vendraan",
+      "year": 2011,
+      "language": "Tamil",
+      "id": "2666986",
+      "image": "https://c.saavncdn.com/860/Vandhaan-Vendraan-Tamil-2011-20190731131655-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Osthe",
+      "year": 2011,
+      "language": "Tamil",
+      "id": "2801762",
+      "image": "https://c.saavncdn.com/486/Osthe-Original-Motion-Picture-Soundtrack--Tamil-2011-20210604182024-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Mouna Guru",
+      "year": 2011,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Kadhalil Sodhappuvadhu Yeppadi",
+      "year": 2012,
+      "language": "Tamil",
+      "id": "1225055",
+      "image": "https://c.saavncdn.com/977/Kadhalil-Sodhapuvadhu-Yeppadi-Original-Motion-Picture-Soundtrack-Tamil-2012-20250910161811-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Ishtam",
+      "year": 2012,
+      "language": "Tamil",
+      "id": "2666680",
+      "image": "https://c.saavncdn.com/260/Ishtam-Tamil-2012-20190801140923-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Thadaiyara Thaakka",
+      "year": 2012,
+      "language": "Tamil",
+      "id": "3195965",
+      "image": "https://c.saavncdn.com/493/Thadaiyara-Thakka-Tamil-2012-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Kanna Laddu Thinna Aasaiya",
+      "year": 2012,
+      "language": "Tamil",
+      "id": "27448645",
+      "image": "https://c.saavncdn.com/448/Kanna-Laddu-Thinna-Aasaiya-Tamil-2012-20210526164412-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Settai",
+      "year": 2013,
+      "language": "Tamil",
+      "id": "12619704",
+      "image": "https://c.saavncdn.com/976/Settai-Tamil-2013-20210119211811-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Gouravam",
+      "year": 2013,
+      "language": "Tamil",
+      "id": "1140954",
+      "image": "https://c.saavncdn.com/946/Gouravam-Tamil-2013-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Pattathu Yaanai",
+      "year": 2013,
+      "language": "Tamil",
+      "id": "1141865",
+      "image": "https://c.saavncdn.com/999/Pattatthu-Yaanai-Tamil-2013-20190822135106-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "All in All Azhagu Raja",
+      "year": 2013,
+      "language": "Tamil",
+      "id": "1145507",
+      "image": "https://c.saavncdn.com/791/All-in-All-Azhagu-Raja-Tamil-2013-20200807101838-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Vallinam",
+      "year": 2014,
+      "language": "Tamil",
+      "id": "1132391",
+      "image": "https://c.saavncdn.com/844/Vallinam-Tamil-2013-20190822134145-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Damaal Dumeel",
+      "year": 2014,
+      "language": "Tamil",
+      "id": "1150681",
+      "image": "https://c.saavncdn.com/262/Damaal-Dumeel-Tamil-2014-20190822142150-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Athiyayam",
+      "year": 2014,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Meaghamann",
+      "year": 2014,
+      "language": "Tamil",
+      "id": "1194542",
+      "image": "https://c.saavncdn.com/625/Meaghamann-Tamil-2014-20190822124408-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Vanmam",
+      "year": 2014,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Tamizhuku En Ondrai Azhuthavum",
+      "year": 2014,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Savaale Samaali",
+      "year": 2015,
+      "language": "Tamil",
+      "id": "1488052",
+      "image": "https://c.saavncdn.com/162/Savaale-Samaali-Original-Motion-Picture-Soundtrack-Tamil-2015-20250910161107-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Vaalu",
+      "year": 2015,
+      "language": "Tamil",
+      "id": "1304989",
+      "image": "https://c.saavncdn.com/285/Vaalu-Original-Motion-Picture-Soundtrack-Tamil-2015-20250905081428-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Kanchana 2",
+      "year": 2015,
+      "language": "Tamil",
+      "id": "16041128",
+      "image": "https://c.saavncdn.com/011/Kanchana-Tamil-2011-20220815161446-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Vaa Deal",
+      "year": 2015,
+      "language": "Tamil",
+      "id": "1239989",
+      "image": "https://c.saavncdn.com/187/Vaa-Tamil-2015-20200806073239-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Sakalakala Vallavan Appatakkar",
+      "year": 2015,
+      "language": "Tamil",
+      "id": "1297555",
+      "image": "https://c.saavncdn.com/997/Sakalakala-Vallavan-Appatakkar-Tamil-2015-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Saagasam",
+      "year": 2015,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Aarathu Sinam",
+      "year": 2016,
+      "language": "Tamil",
+      "id": "28393050",
+      "image": "https://c.saavncdn.com/703/Thanimaiye-From-Aarathu-Sinam-Tamil-2021-20250307133657-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Dhilluku Dhuddu",
+      "year": 2016,
+      "language": "Tamil",
+      "id": "23845304",
+      "image": "https://c.saavncdn.com/146/Dhilluku-Dhuddu-Tamil-2016-20260107193516-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Shivalinga",
+      "year": 2017,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Vaigai Express",
+      "year": 2017,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Ivan Thanthiran",
+      "year": 2017,
+      "language": "Tamil",
+      "id": "10984226",
+      "image": "https://c.saavncdn.com/199/Ivan-Thanthiran-Tamil-2017-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Yaar Ivan",
+      "year": 2017,
+      "language": "Tamil",
+      "id": "68913759",
+      "image": "https://c.saavncdn.com/128/Yaarivan-Tamil-2017-20251012042635-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Sketch",
+      "year": 2018,
+      "language": "Tamil",
+      "id": "11998157",
+      "image": "https://c.saavncdn.com/275/Sketch-Tamil-2017-20180110-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Bhaagamathie",
+      "year": 2018,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Ayogya",
+      "year": 2019,
+      "language": "Tamil",
+      "id": "67205053",
+      "image": "https://c.saavncdn.com/801/Ayogya-Tamil-2019-20250814183101-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Aruvam",
+      "year": 2019,
+      "language": "Tamil",
+      "id": "18206001",
+      "image": "https://c.saavncdn.com/499/Aruvam-Tamil-2019-20191205115612-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Magamuni",
+      "year": 2019,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Eeswaran",
+      "year": 2021,
+      "language": "Tamil",
+      "id": "24024847",
+      "image": "https://c.saavncdn.com/756/Eeswaran-Original-Motion-Picture-Soundtrack-Tamil-2021-20251026074541-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Prince",
+      "year": 2022,
+      "language": "Tamil",
+      "id": "37830356",
+      "image": "https://c.saavncdn.com/blob/356/Prince-Tamil-Tamil-2022-20221104065110-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Varisu",
+      "year": 2023,
+      "language": "Tamil",
+      "id": "41106332",
+      "image": "https://c.saavncdn.com/145/Varisu-Tamil-2022-20221226190213-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Annapoorani: The Goddess of Food",
+      "year": 2023,
+      "language": "Tamil",
+      "id": null,
+      "image": null,
+      "found": false
+    },
+    {
+      "title": "Rasavathi",
+      "year": 2024,
+      "language": "Tamil",
+      "id": "55427115",
+      "image": "https://c.saavncdn.com/129/Rasavathi-Tamil-2024-20260203194003-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Sabdham",
+      "year": 2025,
+      "language": "Tamil",
+      "id": "62009827",
+      "image": "https://c.saavncdn.com/506/Sabdham-Tamil-2025-20250228125403-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Idhayam Murali",
+      "year": 2026,
+      "language": "Tamil",
+      "id": "77854055",
+      "image": "https://c.saavncdn.com/439/Idhayam-Murali-Original-Motion-Picture-Soundtrack-Tamil-2026-20260710133855-150x150.jpg",
+      "found": true
+    },
+    {
+      "title": "Sigma",
+      "year": "TBA",
+      "language": "Tamil",
+      "id": "79130802",
+      "image": "https://c.saavncdn.com/974/Ayyayo-Ammaadi-From-Sigma-Tamil-Tamil-2026-20260811093845-150x150.jpg",
+      "found": true
+    }
+  ]
+}
