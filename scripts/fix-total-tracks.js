@@ -5,7 +5,7 @@ const path = require('path');
 const { loadLibrary, saveLibrary } = require('../src/utils');
 
 const LIBRARY_FILE = path.join(__dirname, '../data/music-library.json');
-const PRIMARY_API = 'https://nepotuneapi.vercel.app/api';
+const PRIMARY_API = 'https://saavn.sumit.co/api';
 
 async function fetchAlbumTotalTracks(albumId) {
   try {

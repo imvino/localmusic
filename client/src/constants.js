@@ -1,2 +1,2 @@
-export const PRIMARY_API = 'https://nepotuneapi.vercel.app/api';
-export const FALLBACK_API = 'https://saavnapi-nine.vercel.app/api';
+export const PRIMARY_API = 'https://saavn.sumit.co/api';
+export const FALLBACK_API = 'https://shnwazdev-jiosaavn-apii.vercel.app/api';

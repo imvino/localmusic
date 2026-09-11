@@ -397,28 +397,34 @@ const streamHandler = async (req, res, bitrate = '320') => {
       let streamUrl;
       const fallbackUrl = req.query.url; // Fallback downloadUrl from query param
       
-      // Try primary API first (nepotuneapi.vercel.app)
+      const requestedQuality = `${bitrate}kbps`;
+
+      // Try primary API first
       try {
         const response = await axios.get(`${MUSIC_API_BASE}/songs`, { params: { ids: req.params.songId } });
         const songsData = response.data?.data;
-        
+
         if (songsData && songsData.length > 0) {
           const songData = songsData[0];
           const downloadUrls = songData.downloadUrl || [];
-          streamUrl = downloadUrls.find(u => u.quality === '320kbps')?.url || 
-                      downloadUrls.find(u => u.quality === '160kbps')?.url || null;
+          streamUrl = downloadUrls.find(u => u.quality === requestedQuality)?.url ||
+                      downloadUrls.find(u => u.quality === '320kbps')?.url ||
+                      downloadUrls.find(u => u.quality === '160kbps')?.url ||
+                      downloadUrls.find(u => u.quality === '96kbps')?.url || null;
         }
       } catch (primaryError) {
         console.log('Primary API failed for stream, trying fallback API');
         try {
           const fallbackResponse = await axios.get(`${FALLBACK_API}/songs?ids=${req.params.songId}`);
           const fallbackData = fallbackResponse.data?.data;
-          
+
           if (fallbackData && fallbackData.length > 0) {
             const fallbackSong = fallbackData[0];
             const downloadUrls = fallbackSong.downloadUrl || [];
-            streamUrl = downloadUrls.find(u => u.quality === '320kbps')?.url || 
-                        downloadUrls.find(u => u.quality === '160kbps')?.url || null;
+            streamUrl = downloadUrls.find(u => u.quality === requestedQuality)?.url ||
+                        downloadUrls.find(u => u.quality === '320kbps')?.url ||
+                        downloadUrls.find(u => u.quality === '160kbps')?.url ||
+                        downloadUrls.find(u => u.quality === '96kbps')?.url || null;
           }
         } catch (fallbackError) {
           console.error('Fallback API also failed for stream:', fallbackError.message);
@@ -1319,7 +1325,7 @@ app.get('/api/song/:id', async (req, res) => {
       }
     }
     
-    // Otherwise, fetch from nepotuneapi.vercel.app API with fallback
+    // Otherwise, fetch from music service API with fallback
     let songData;
     let externalStreamUrl;
     
