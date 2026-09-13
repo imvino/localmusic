@@ -97,7 +97,7 @@ function getBestImage(imageObj) {
   
   // Handle array format
   if (!Array.isArray(imageObj)) return null;
-  const best = imageObj.find(img => img.quality === '150x150') || imageObj.find(img => img.quality === '500x500');
+  const best = imageObj.find(img => img.quality === '500x500') || imageObj.find(img => img.quality === '150x150');
   let url = best ? best.url : null;
   
   // Replace JioSaavn brand logo with local logo
@@ -362,6 +362,33 @@ async function fetchWithFallback(endpoint, params, type = 'songs') {
   }
 }
 
+let aliasesCache = null;
+
+function getComposerAliases() {
+  if (aliasesCache) return aliasesCache;
+  try {
+    const aliasFile = path.join(__dirname, '../config/composer-aliases.json');
+    if (fs.existsSync(aliasFile)) {
+      aliasesCache = JSON.parse(fs.readFileSync(aliasFile, 'utf8'));
+      return aliasesCache;
+    }
+  } catch (e) {}
+  return aliasesCache || {};
+}
+
+function applyComposerAlias(composerName) {
+  if (!composerName) return composerName;
+  const aliases = getComposerAliases();
+  const normalized = decodeHtmlEntities(String(composerName)).trim().replace(/\s+/g, ' ');
+  const lower = normalized.toLowerCase();
+  for (const [alias, canonical] of Object.entries(aliases)) {
+    if (alias.trim().toLowerCase() === lower) {
+      return canonical;
+    }
+  }
+  return normalized;
+}
+
 module.exports = {
   decodeHtmlEntities,
   loadLibrary,
@@ -376,5 +403,6 @@ module.exports = {
   generateJioSaavnAuthUrls,
   fetchFromMusicServiceOfficial,
   fuzzyMatchAlbumName,
-  fetchWithFallback
+  fetchWithFallback,
+  applyComposerAlias
 };

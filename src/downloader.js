@@ -4,23 +4,12 @@ const fs = require('fs');
 const path = require('path');
 const NodeID3 = require('node-id3');
 const { exec } = require('child_process');
-const { decodeHtmlEntities, loadLibrary, saveLibrary, detectComposerFromSongs, getBestImage, get320kbpsUrl, extractYearFromCopyright, sanitizeFilename, fetchWithFallback } = require('./utils');
+const { decodeHtmlEntities, loadLibrary, saveLibrary, detectComposerFromSongs, getBestImage, get320kbpsUrl, extractYearFromCopyright, sanitizeFilename, fetchWithFallback, applyComposerAlias } = require('./utils');
 const { PRIMARY_API } = require('./constants');
 
 const MUSIC_DIR = '/Volumes/samsung/Music';
 const JIO_SAAVN_BASE = PRIMARY_API;
 const LIBRARY_FILE = path.join(__dirname, '../data/music-library.json');
-
-// Helper functions for composer mappings
-function getComposerAliases() {
-  try {
-    const aliasFile = path.join(__dirname, '../config/composer-aliases.json');
-    if (fs.existsSync(aliasFile)) {
-      return JSON.parse(fs.readFileSync(aliasFile, 'utf8'));
-    }
-  } catch (e) {}
-  return {};
-}
 
 function getComposerOverrides() {
   try {
@@ -30,14 +19,6 @@ function getComposerOverrides() {
     }
   } catch (e) {}
   return {};
-}
-
-function applyComposerAlias(composerName) {
-  if (!composerName) return composerName;
-  const aliases = getComposerAliases();
-  const normalized = composerName.trim();
-  const result = aliases[normalized] || aliases[composerName] || normalized;
-  return result;
 }
 
 
@@ -346,8 +327,8 @@ async function writeID3Tags(songPath, songData, albumData, composer, artworkBuff
   );
 
   const artistNames = singers.length > 0
-    ? singers.map(a => a.name)
-    : (songData.artists?.primary?.map(a => a.name) || ['Unknown Artist']);
+    ? singers.map(a => decodeHtmlEntities(a.name))
+    : (songData.artists?.primary?.map(a => decodeHtmlEntities(a.name)) || ['Unknown Artist']);
 
   const tags = {
     title: decodeHtmlEntities(songData.name),
@@ -355,7 +336,7 @@ async function writeID3Tags(songPath, songData, albumData, composer, artworkBuff
     album: decodeHtmlEntities(albumData.name),
     year: albumData.year,
     trackNumber: `${songData.trackNumber || 1}/${albumData.songCount || 1}`,
-    performerInfo: composer || 'Unknown Composer', // TPE2 - Album Artist (critical for Navidrome)
+    performerInfo: applyComposerAlias(composer) || 'Unknown Composer', // TPE2 - Album Artist (critical for Navidrome)
     genre: songData.language || albumData.language || 'Unknown',
     copyright: songData.copyright || albumData.copyright || '',
     publisher: songData.label || albumData.label || ''
