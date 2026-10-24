@@ -1,8 +1,8 @@
 import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Play, Shuffle, Music, ArrowUp, ArrowDown, Trash2, Pencil } from 'lucide-react'
+import { ArrowLeft, Play, Shuffle, Music, ArrowUp, ArrowDown, Trash2, Pencil, Share2 } from 'lucide-react'
 import { useState } from 'react'
 import { usePlaylistStore } from '../stores/playlistStore'
-import { getBestImageUrl, formatDuration } from '../utils'
+import { getBestImageUrl, formatDuration, encodePlaylistShare, haptic } from '../utils'
 import TrackMenu from '../components/TrackMenu'
 
 export default function PlaylistDetailView({ onSongClick, onShufflePlay, onPlayNext, onAddToQueue, onGoToAlbum, onSongRadio, likedSongs, onLikeToggle, currentSong, isPlaying, showToast }) {
@@ -78,6 +78,20 @@ export default function PlaylistDetailView({ onSongClick, onShufflePlay, onPlayN
                 className="flex items-center gap-2 px-5 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-white text-sm font-semibold rounded-full transition-colors touch-target"
               >
                 <Shuffle size={16} /> Shuffle
+              </button>
+              <button
+                onClick={async () => {
+                  haptic()
+                  // Whole playlist travels inside the link — recipient previews/imports it
+                  const url = `${window.location.origin}/shared/${encodePlaylistShare(playlist.name, playlist.songs)}`
+                  try {
+                    if (navigator.share) await navigator.share({ title: playlist.name, text: `Playlist: ${playlist.name}`, url })
+                    else { await navigator.clipboard.writeText(url); showToast?.('Playlist link copied', 'success') }
+                  } catch { /* dismissed */ }
+                }}
+                className="flex items-center gap-2 px-5 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-white text-sm font-semibold rounded-full transition-colors touch-target"
+              >
+                <Share2 size={16} /> Share
               </button>
             </div>
           )}

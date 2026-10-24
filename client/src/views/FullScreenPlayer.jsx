@@ -46,15 +46,25 @@ export default function FullScreenPlayer({
 
   if (!currentSong) return null
 
-  // Swipe-down to dismiss — finger-follows, releases past threshold close
-  const onTouchStart = (e) => { touch.current = { y: e.touches[0].clientY, id: e.touches[0].identifier } }
+  // Gestures — vertical drag dismisses; horizontal swipe changes track.
+  // Axis locks on first meaningful movement so diagonal swipes don't fire both.
+  const onTouchStart = (e) => {
+    touch.current = { x: e.touches[0].clientX, y: e.touches[0].clientY, id: e.touches[0].identifier, axis: null }
+  }
   const onTouchMove = (e) => {
     if (!touch.current) return
+    const dx = e.touches[0].clientX - touch.current.x
     const dy = e.touches[0].clientY - touch.current.y
-    if (dy > 0) setDragY(dy)
+    if (!touch.current.axis && (Math.abs(dx) > 10 || Math.abs(dy) > 10)) {
+      touch.current.axis = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y'
+    }
+    if (touch.current.axis === 'y' && dy > 0) setDragY(dy)
+    if (touch.current.axis === 'x') touch.current.dx = dx
   }
   const onTouchEnd = () => {
-    if (dragY > 140) onClose()
+    if (touch.current?.axis === 'x' && Math.abs(touch.current.dx || 0) > 70) {
+      if (touch.current.dx < 0) onNext?.(); else onPrev?.()
+    } else if (dragY > 140) onClose()
     setDragY(0)
     touch.current = null
   }

@@ -59,6 +59,17 @@ export const usePlaylistStore = create(persist(
       })
     },
 
+    importPlaylist: (name, songs) => {
+      const id = `pl_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
+      set(state => ({
+        playlists: {
+          ...state.playlists,
+          [id]: { id, name: (name || '').trim() || 'Shared Playlist', songs: songs || [], createdAt: Date.now() }
+        }
+      }))
+      return id
+    },
+
     moveSong: (id, from, to) => {
       set(state => {
         const playlist = state.playlists[id]

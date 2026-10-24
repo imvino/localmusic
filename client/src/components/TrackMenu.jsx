@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import { MoreHorizontal, Heart, ListPlus, Play, Disc3, ListMusic, Plus, ChevronLeft, Radio, Mic2, Share2, Download, Check } from 'lucide-react'
 import { usePlaylistStore } from '../stores/playlistStore'
 import { downloadSong, removeDownload, isDownloaded } from '../utils/downloads'
+import { haptic } from '../utils'
 import LyricsModal from './LyricsModal'
 
 export default function TrackMenu({ song, likedSongs, onLikeToggle, onPlayNext, onAddToQueue, onGoToAlbum, onSongRadio, showToast }) {
@@ -55,7 +56,7 @@ export default function TrackMenu({ song, likedSongs, onLikeToggle, onPlayNext, 
     }
   }, [open])
 
-  const act = (fn) => { setOpen(false); setShowPlaylistPicker(false); fn?.() }
+  const act = (fn) => { setOpen(false); setShowPlaylistPicker(false); haptic(); fn?.() }
 
   const handleAddTo = (pid) => {
     const result = addSong(pid, song)

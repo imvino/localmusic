@@ -21,6 +21,7 @@ import LikedSongsView from './views/LikedSongsView'
 import StatsView from './views/StatsView'
 import LibraryView from './views/LibraryView'
 import DownloadsView from './views/DownloadsView'
+import SharedPlaylistView from './views/SharedPlaylistView'
 import QueueDrawer from './components/QueueDrawer'
 import ErrorBoundary from './components/ErrorBoundary'
 import { enableEq, warmEq, setEqGains } from './audio/eq'
@@ -1611,6 +1612,7 @@ function AppContent() {
             <Route path="/stats" element={<StatsView likedSongs={likedSongs} />} />
             <Route path="/library" element={<LibraryView likedSongs={likedSongs} />} />
             <Route path="/downloads" element={<DownloadsView onSongClick={handleSongSelect} showToast={showToastMessage} />} />
+            <Route path="/shared/:data" element={<SharedPlaylistView onSongClick={handleSongSelect} showToast={showToastMessage} />} />
             <Route path="/terms" element={<TermsOfService />} />
             <Route path="/privacy" element={<PrivacyPolicy />} />
             <Route path="/dmca" element={<DMCA />} />

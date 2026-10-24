@@ -87,6 +87,10 @@
       "destination": "/index.html"
     },
     {
+      "source": "/shared/:path*",
+      "destination": "/index.html"
+    },
+    {
       "source": "/terms",
       "destination": "/index.html"
     },

@@ -18,6 +18,7 @@ export default function SearchView({ query, onSongClick, onAlbumClick, onArtistC
   const [recentSearches, setRecentSearches] = useState(() => {
     try { return JSON.parse(localStorage.getItem('recentSearches')) || [] } catch { return [] }
   })
+  const [tab, setTab] = useState('all')
 
   // Debounce — query prop tracks the input live; the API only fires after
   // a 300ms pause instead of per keystroke
@@ -140,10 +141,22 @@ export default function SearchView({ query, onSongClick, onAlbumClick, onArtistC
         }}
       />
 
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-4">
         <h1 className="text-2xl font-bold text-white">
           Results for <span className="text-zinc-400 font-normal">"{query}"</span>
         </h1>
+      </div>
+
+      <div className="flex gap-2 mb-6 overflow-x-auto no-scrollbar">
+        {[['all', 'All'], ['songs', 'Songs'], ['albums', 'Albums'], ['artists', 'Artists'], ['playlists', 'Playlists']].map(([key, label]) => (
+          <button
+            key={key}
+            onClick={() => setTab(key)}
+            className={`px-4 py-1.5 rounded-full text-xs font-semibold shrink-0 transition-colors ${tab === key ? 'bg-white text-black' : 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700'}`}
+          >
+            {label}
+          </button>
+        ))}
       </div>
 
       {loading && (
@@ -162,7 +175,7 @@ export default function SearchView({ query, onSongClick, onAlbumClick, onArtistC
       {onlineResults && !loading && (
         <>
           {/* TOP RESULT */}
-          {onlineResults.topResult && (
+          {tab === 'all' && onlineResults.topResult && (
             <section className="mb-8">
               <h2 className="flex items-center gap-2 text-lg font-bold text-white mb-4">
                 <Music size={18} className="text-[#fc3c44]" /> Top Result
@@ -218,7 +231,7 @@ export default function SearchView({ query, onSongClick, onAlbumClick, onArtistC
           )}
 
           {/* SONGS */}
-          {onlineResults?.songs?.length > 0 && (
+          {(tab === 'all' || tab === 'songs') && onlineResults?.songs?.length > 0 && (
             <section className="mb-8">
               <h2 className="flex items-center gap-2 text-lg font-bold text-white mb-4">
                 <Music size={18} className="text-[#fc3c44]" /> Songs
@@ -289,7 +302,7 @@ export default function SearchView({ query, onSongClick, onAlbumClick, onArtistC
           )}
 
           {/* ALBUMS */}
-          {onlineResults?.albums?.length > 0 && (
+          {(tab === 'all' || tab === 'albums') && onlineResults?.albums?.length > 0 && (
             <section className="mb-8">
               <h2 className="flex items-center gap-2 text-lg font-bold text-white mb-4">
                 <Disc3 size={18} className="text-[#fc3c44]" /> Albums
@@ -337,7 +350,7 @@ export default function SearchView({ query, onSongClick, onAlbumClick, onArtistC
           )}
 
           {/* ARTISTS */}
-          {onlineResults?.artists?.length > 0 && (
+          {(tab === 'all' || tab === 'artists') && onlineResults?.artists?.length > 0 && (
             <section className="mb-8">
               <h2 className="flex items-center gap-2 text-lg font-bold text-white mb-4">
                 <Mic2 size={18} className="text-[#fc3c44]" /> Artists
@@ -381,7 +394,7 @@ export default function SearchView({ query, onSongClick, onAlbumClick, onArtistC
           )}
 
           {/* PLAYLISTS */}
-          {onlineResults?.playlists?.length > 0 && (
+          {(tab === 'all' || tab === 'playlists') && onlineResults?.playlists?.length > 0 && (
             <section className="mb-8">
               <h2 className="flex items-center gap-2 text-lg font-bold text-white mb-4">
                 <ListMusic size={18} className="text-[#fc3c44]" /> Playlists
