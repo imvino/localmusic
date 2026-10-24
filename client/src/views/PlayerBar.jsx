@@ -1,8 +1,10 @@
 import { useRef } from 'react'
 import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, Shuffle, Repeat, Repeat1, Heart, Music, Loader2, ListVideo, Mic2 } from 'lucide-react'
+import { Range, getTrackBackground } from 'react-range'
 import { formatTime, decodeHtmlEntities, getSongArtwork } from '../utils'
+import TrackMenu from '../components/TrackMenu'
 
-export default function PlayerBar({ currentSong, isPlaying, onTogglePlay, onPrev, onNext, volume, onVolumeChange, muted, onMuteToggle, shuffle, onShuffleToggle, repeat, onRepeatToggle, liked, onLikeToggle, currentTime, duration, onSeek, onArtworkClick, onQueueToggle, onLyricsToggle, isSearchingAlbum, isMobileMiniplayer = false, onOpenFullScreen = null }) {
+export default function PlayerBar({ currentSong, isPlaying, onTogglePlay, onPrev, onNext, volume, onVolumeChange, muted, onMuteToggle, shuffle, onShuffleToggle, repeat, onRepeatToggle, liked, onLikeToggle, currentTime, duration, onSeek, onArtworkClick, onQueueToggle, onLyricsToggle, isSearchingAlbum, isMobileMiniplayer = false, onOpenFullScreen = null, likedSongs, onPlayNext, onAddToQueue, onGoToAlbum, onSongRadio, showToast }) {
   const touch = useRef(null)
 
   if (!currentSong) {
@@ -132,6 +134,16 @@ export default function PlayerBar({ currentSong, isPlaying, onTogglePlay, onPrev
         <button onClick={onLikeToggle} className="flex-shrink-0 ml-1">
           <Heart size={15} className={`transition-colors ${liked ? 'text-[#fc3c44] fill-[#fc3c44]' : 'text-zinc-600 hover:text-[#fc3c44]'}`} />
         </button>
+        <TrackMenu
+          song={currentSong}
+          likedSongs={likedSongs}
+          onLikeToggle={onLikeToggle ? () => onLikeToggle() : undefined}
+          onPlayNext={onPlayNext}
+          onAddToQueue={onAddToQueue}
+          onGoToAlbum={onGoToAlbum}
+          onSongRadio={onSongRadio}
+          showToast={showToast}
+        />
       </div>
 
       {/* Controls */}
@@ -161,17 +173,37 @@ export default function PlayerBar({ currentSong, isPlaying, onTogglePlay, onPrev
         </div>
         <div className="w-full flex items-center gap-2 text-xs text-zinc-600">
           <span>{formatTime(currentTime)}</span>
-          <div 
-            className="flex-1 h-1 bg-zinc-800 rounded-full cursor-pointer group relative"
-            onClick={(e) => {
-              const rect = e.currentTarget.getBoundingClientRect()
-              const percent = (e.clientX - rect.left) / rect.width
-              onSeek(percent * duration)
-            }}
-          >
-            <div 
-              className="h-full bg-zinc-400 rounded-full group-hover:bg-zinc-300 transition-colors" 
-              style={{ width: duration > 0 ? `${(currentTime / duration) * 100}%` : '0%' }}
+          <div className="flex-1 relative group py-1.5 -my-1.5">
+            <Range
+              step={0.1}
+              min={0}
+              max={duration || 100}
+              values={[currentTime]}
+              onChange={(values) => onSeek(values[0])}
+              renderTrack={({ props, children }) => (
+                <div
+                  {...props}
+                  className="h-1 rounded-full"
+                  style={{
+                    ...props.style,
+                    background: getTrackBackground({
+                      values: [currentTime],
+                      colors: ['#a1a1aa', '#27272a'],
+                      min: 0,
+                      max: duration || 100
+                    })
+                  }}
+                >
+                  {children}
+                </div>
+              )}
+              renderThumb={({ props, isDragged }) => (
+                <div
+                  {...props}
+                  className={`h-3 w-3 bg-white rounded-full shadow cursor-grab active:cursor-grabbing transition-opacity ${isDragged ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
+                  style={{ ...props.style }}
+                />
+              )}
             />
           </div>
           <span>{formatTime(duration)}</span>

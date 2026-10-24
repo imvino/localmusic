@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useRef } from 'react'
 import { useAuth, useClerk } from '@clerk/clerk-react'
 import { Lock, LogIn } from 'lucide-react'
+import { isPullDone, onPullDone } from '../utils/sync'
 
 // Freemium gate — guests can search + play; EVERYTHING else (likes, playlists,
 // downloads, library, stats, sync) is locked behind sign-in, Spotify-style.
@@ -42,12 +43,21 @@ function ClerkAuthProvider({ children }) {
     onDeny?.()
   }
 
+  // The pending action must run AFTER the library sync pull — otherwise the
+  // pull's replace of likedSongs/playlists would silently drop it.
   useEffect(() => {
-    if (isSignedIn && pendingRef.current) {
-      const fn = pendingRef.current
+    if (!isSignedIn || !pendingRef.current) return
+    const fn = pendingRef.current
+    if (isPullDone()) {
       pendingRef.current = null
       fn()
+      return
     }
+    const off = onPullDone(() => { pendingRef.current = null; fn() })
+    const safety = setTimeout(() => {
+      if (pendingRef.current === fn) { pendingRef.current = null; fn() }
+    }, 5000) // sync pull failed (offline) — still honor the user's intent
+    return () => { off(); clearTimeout(safety) }
   }, [isSignedIn])
 
   return (

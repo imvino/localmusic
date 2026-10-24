@@ -109,7 +109,10 @@ function AppContent() {
 
   const [currentSong, setCurrentSong] = useState(null)
   const [isPlaying, setIsPlaying] = useState(false)
-  const [volume, setVolume] = useState(0.75)
+  const [volume, setVolume] = useState(() => {
+    const saved = parseFloat(localStorage.getItem('volume'))
+    return Number.isFinite(saved) ? Math.min(1, Math.max(0, saved)) : 0.75
+  })
   const [muted, setMuted] = useState(false)
   const [shuffle, setShuffle] = useState(false)
   const [shuffleOrder, setShuffleOrder] = useState([])
@@ -242,12 +245,15 @@ function AppContent() {
     }
   }
 
-  // Function to show toast notifications
+  // Function to show toast notifications — each new toast resets the 5s
+  // hide timer so rapid messages don't vanish early
+  const toastTimerRef = useRef(null)
   const showToastMessage = (message, type = 'error') => {
     setToastMessage(message)
     setToastType(type)
     setShowToast(true)
-    setTimeout(() => setShowToast(false), 5000)
+    clearTimeout(toastTimerRef.current)
+    toastTimerRef.current = setTimeout(() => setShowToast(false), 5000)
   }
 
   // Title bar mirrors now-playing — like Spotify's window title / tab text
@@ -421,6 +427,7 @@ function AppContent() {
         audio.load()
       }
       if (!fadingRef.current) audio.volume = muted ? 0 : volume
+      try { localStorage.setItem('volume', String(volume)) } catch { /* quota */ }
 
       if (isPlaying) {
         audio.play().catch(e => {
@@ -453,6 +460,14 @@ function AppContent() {
             setCurrentTime(details.seekTime)
           }
         })
+        try {
+          navigator.mediaSession.setActionHandler('seekbackward', (d) => {
+            if (audioRef.current) audioRef.current.currentTime = Math.max(0, audioRef.current.currentTime - (d.seekOffset || 10))
+          })
+          navigator.mediaSession.setActionHandler('seekforward', (d) => {
+            if (audioRef.current) audioRef.current.currentTime = Math.min(audioRef.current.duration || 0, audioRef.current.currentTime + (d.seekOffset || 10))
+          })
+        } catch { /* older browsers lack these actions */ }
       }
     } else {
       // Clear media session when no song is playing
@@ -613,6 +628,13 @@ function AppContent() {
       if (!(e.target instanceof Element) ||
           e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' ||
           e.target.closest('button, a, [role="button"], select')) {
+        return
+      }
+
+      // / or Cmd+K / Ctrl+K jumps to search (Spotify's quick-switcher)
+      if (e.code === 'Slash' || (e.code === 'KeyK' && (e.metaKey || e.ctrlKey))) {
+        e.preventDefault()
+        navigate('/search')
         return
       }
 
@@ -1102,6 +1124,30 @@ function AppContent() {
       setQueue(newQueue)
       if (queueIndex === displayPos) setQueueIndex(to)
       else if (queueIndex === to) setQueueIndex(displayPos)
+    }
+  }
+
+  // Drag-to-position: splice the row to a new slot and remap the play cursor
+  const handleQueueMoveTo = (fromPos, toPos) => {
+    queueEpochRef.current++
+    const remap = (cursor, from, to) =>
+      cursor === from ? to : (from < cursor && to >= cursor) ? cursor - 1 : (from > cursor && to <= cursor) ? cursor + 1 : cursor
+    if (shuffle && shuffleOrder.length > 0) {
+      if (toPos < 0 || toPos >= shuffleOrder.length || fromPos === toPos) return
+      if (fromPos > shufflePos && toPos <= shufflePos) return
+      const newOrder = [...shuffleOrder]
+      const [moved] = newOrder.splice(fromPos, 1)
+      newOrder.splice(toPos, 0, moved)
+      setShuffleOrder(newOrder)
+      setShufflePos(remap(shufflePos, fromPos, toPos))
+    } else {
+      if (toPos < 0 || toPos >= queue.length || fromPos === toPos) return
+      if (fromPos > queueIndex && toPos <= queueIndex) return
+      const newQueue = [...queue]
+      const [moved] = newQueue.splice(fromPos, 1)
+      newQueue.splice(toPos, 0, moved)
+      setQueue(newQueue)
+      setQueueIndex(remap(queueIndex, fromPos, toPos))
     }
   }
 
@@ -1804,6 +1850,12 @@ function AppContent() {
             onQueueToggle={() => setQueueOpen(o => !o)}
             onLyricsToggle={() => currentSong && setDesktopLyricsOpen(o => !o)}
             isSearchingAlbum={isSearchingAlbum}
+            likedSongs={likedSongs}
+            onPlayNext={handlePlayNext}
+            onAddToQueue={handleAddToQueue}
+            onGoToAlbum={handleGoToAlbum}
+            onSongRadio={handleSongRadio}
+            showToast={showToast}
           />
         </div>
       </div>
@@ -1920,6 +1972,7 @@ function AppContent() {
         onPlayAt={handleQueuePlayAt}
         onRemoveAt={handleQueueRemoveAt}
         onMove={handleQueueMove}
+        onMoveTo={handleQueueMoveTo}
         onClear={handleQueueClear}
       />
 

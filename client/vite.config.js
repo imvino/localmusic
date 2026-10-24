@@ -47,6 +47,34 @@ export default defineConfig(({ mode }) => {
           globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
           runtimeCaching: [
             {
+              // Explicit downloads — SEPARATE cache from the passive stream
+              // cache so the audio-cache LRU never evicts songs the user
+              // chose to keep (Spotify contract: downloaded stays downloaded).
+              // Matched by the dl=1 marker; must precede the general pattern.
+              urlPattern: /^https?:\/\/[^/]+\/api\/stream\/.*\bdl=1\b/,
+              handler: 'CacheFirst',
+              options: {
+                cacheName: 'audio-downloads',
+                rangeRequests: true,
+                plugins: [
+                  {
+                    requestWillFetch: async ({ request }) => {
+                      if (!request.headers.has('range')) return request
+                      const headers = new Headers(request.headers)
+                      headers.delete('range')
+                      return new Request(request.url, { headers, mode: 'cors' })
+                    }
+                  }
+                ],
+                cacheableResponse: { statuses: [0, 200] },
+                expiration: {
+                  maxEntries: 1000,
+                  maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
+                  purgeOnQuotaError: false
+                }
+              }
+            },
+            {
               // Audio streams (any origin — dev same-origin, prod Render API).
               // The element always sends Range → server answers 206, which the
               // Cache API CANNOT store. So on cache-miss we strip Range and fetch

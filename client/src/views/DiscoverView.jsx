@@ -426,7 +426,21 @@ function SongCard({ song, onSongClick, downloadProgress, setDownloadProgress, li
             <p className="text-white text-xs text-center">{progress.progress}%</p>
           </div>
         )}
-        <div className={`absolute inset-0 bg-black/50 transition-opacity flex items-center justify-center gap-2 ${progress ? 'opacity-0' : 'opacity-0 group-hover:opacity-100'}`}>
+        {/* Touch: always-visible ⋯ chip (invisible hover overlays are
+            unhittable on mobile); Desktop: hover overlay with all actions */}
+        <div className="absolute top-1.5 right-1.5 md:hidden">
+          <TrackMenu
+            song={song}
+            likedSongs={likedSongs}
+            onLikeToggle={onLikeToggle}
+            onPlayNext={onPlayNext}
+            onAddToQueue={onAddToQueue}
+            onGoToAlbum={onGoToAlbum} onSongRadio={onSongRadio}
+            showToast={showToast}
+            triggerClass="p-1.5 rounded-full bg-black/60 text-white hover:bg-black/80 transition-colors"
+          />
+        </div>
+        <div className={`absolute inset-0 bg-black/50 transition-opacity hidden md:flex items-center justify-center gap-2 ${progress ? 'opacity-0 pointer-events-none' : 'opacity-0 group-hover:opacity-100'}`}>
           <button
             onClick={handlePlay}
             className="rounded-full p-2 bg-[#fc3c44] hover:bg-[#e6353d] text-white transition-colors cursor-pointer"

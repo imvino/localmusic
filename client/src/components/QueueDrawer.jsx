@@ -1,7 +1,10 @@
-import { X, ArrowUp, ArrowDown, Trash2, ListX, Music } from 'lucide-react'
+import { useState } from 'react'
+import { X, ArrowUp, ArrowDown, Trash2, ListX, Music, GripVertical } from 'lucide-react'
 import { getImageSrc } from '../utils'
 
-export default function QueueDrawer({ open, onClose, queue, queueIndex, shuffle, shuffleOrder, shufflePos = -1, isPlaying, onPlayAt, onRemoveAt, onMove, onClear }) {
+export default function QueueDrawer({ open, onClose, queue, queueIndex, shuffle, shuffleOrder, shufflePos = -1, isPlaying, onPlayAt, onRemoveAt, onMove, onMoveTo, onClear }) {
+  const [dragPos, setDragPos] = useState(null)
+  const [dropPos, setDropPos] = useState(null)
   if (!open) return null
 
   // Display order: shuffleOrder when shuffling, else raw queue indices
@@ -9,6 +12,14 @@ export default function QueueDrawer({ open, onClose, queue, queueIndex, shuffle,
     ? shuffleOrder
     : queue.map((_, i) => i)
   const currentPos = order.findIndex(i => i === queueIndex)
+
+  const finishDrag = () => {
+    if (dragPos != null && dropPos != null && dropPos !== dragPos) {
+      onMoveTo?.(dragPos, dropPos)
+    }
+    setDragPos(null)
+    setDropPos(null)
+  }
 
   const SongRow = ({ queueIdx, displayPos, dimmed }) => {
     const song = queue[queueIdx]
@@ -19,8 +30,14 @@ export default function QueueDrawer({ open, onClose, queue, queueIndex, shuffle,
     const art = getImageSrc(song.image) || song.imageUrl
     return (
       <div
-        className={`group flex items-center gap-3 px-4 py-2 hover:bg-zinc-800/60 transition-colors ${isCurrent ? 'bg-zinc-800/40' : ''} ${dimmed ? 'opacity-50' : ''}`}
+        draggable={!isCurrent}
+        onDragStart={e => { e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', ''); setDragPos(displayPos) }}
+        onDragOver={e => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; if (dropPos !== displayPos) setDropPos(displayPos) }}
+        onDrop={e => { e.preventDefault(); finishDrag() }}
+        onDragEnd={finishDrag}
+        className={`group flex items-center gap-3 px-4 py-2 hover:bg-zinc-800/60 transition-colors ${isCurrent ? 'bg-zinc-800/40' : ''} ${dimmed ? 'opacity-50' : ''} ${dragPos === displayPos ? 'opacity-40' : ''} ${dropPos === displayPos && dragPos !== displayPos ? 'border-t-2 border-[#fc3c44]' : 'border-t-2 border-transparent'}`}
       >
+        <GripVertical size={14} className="text-zinc-600 group-hover:text-zinc-400 cursor-grab active:cursor-grabbing shrink-0 hidden md:block" />
         <button
           onClick={() => onPlayAt(displayPos)}
           className="flex-1 flex items-center gap-3 text-left min-w-0"

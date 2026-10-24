@@ -2,7 +2,9 @@
 // downloaded songs also play offline, and remember them in a local registry.
 const API_BASE = import.meta.env.VITE_API_URL
 const KEY = 'downloads'
-const CACHE = 'audio-cache'
+// Dedicated SW cache (see vite.config) — explicit downloads MUST NOT share
+// the audio-cache LRU, or streaming ~100 songs would silently evict them.
+const CACHE = 'audio-downloads'
 const DL_BITRATE = 96 // smallest stream; offline quality trade-off, ~1MB/min
 
 const read = () => { try { return JSON.parse(localStorage.getItem(KEY) || '[]') } catch { return [] } }
@@ -10,7 +12,8 @@ const write = (list) => { try { localStorage.setItem(KEY, JSON.stringify(list)) 
 
 export const getDownloads = () => read()
 export const isDownloaded = (id) => read().some(d => d.id === id)
-export const downloadUrlFor = (id) => `${API_BASE}/api/stream/${id}?bitrate=${DL_BITRATE}`
+// dl=1 routes this to the downloads cache, not the LRU'd passive stream cache
+export const downloadUrlFor = (id) => `${API_BASE}/api/stream/${id}?bitrate=${DL_BITRATE}&dl=1`
 
 // URL the player should use: downloaded songs always play their cached copy,
 // which is also what makes them work fully offline.
@@ -47,8 +50,8 @@ export async function removeDownload(id) {
 }
 
 // Sequential batch download — powers the "Download" buttons on album,
-// playlist, and liked-songs headers. One at a time (keeps the audio-cache LRU
-// sane, doesn't hammer the stream proxy). Skips already-downloaded songs.
+// playlist, and liked-songs headers. One at a time (doesn't hammer the
+// stream proxy). Skips already-downloaded songs.
 export async function downloadSongs(songs, { onProgress } = {}) {
   const list = Array.isArray(songs) ? songs.filter(s => s?.id) : []
   const results = { done: 0, failed: 0, total: list.length }
@@ -72,7 +75,8 @@ export async function downloadSongs(songs, { onProgress } = {}) {
   return results
 }
 
-// Drop registry entries whose audio was evicted from the shared cache.
+// Drop registry entries whose audio was evicted from the downloads cache
+// (browser storage pressure can still clear caches even with a high cap).
 export async function reconcileDownloads() {
   const list = read()
   if (!list.length) return []

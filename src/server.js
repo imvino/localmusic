@@ -19,6 +19,7 @@ if (process.env.CLERK_SECRET_KEY) {
 }
 
 const app = express();
+app.set('trust proxy', 1); // honor X-Forwarded-For on Render so req.ip is the real client
 const PORT = process.env.PORT || 3001;
 const MUSIC_DIR = process.env.MUSIC_DIR || '/Volumes/media/music';
 const LIBRARY_FILE = path.join(__dirname, '../data/music-library.json');
@@ -509,70 +510,67 @@ const streamHandler = async (req, res, bitrate = '320') => {
       
       const requestedQuality = `${bitrate}kbps`;
 
-      // Try primary API first
-      try {
-        const response = await axios.get(`${MUSIC_API_BASE}/songs`, { params: { ids: req.params.songId } });
-        const songsData = response.data?.data;
+      const pickUrl = (urls) => (urls || []).find(u => u.quality === requestedQuality)?.url ||
+        urls?.find(u => u.quality === '320kbps')?.url ||
+        urls?.find(u => u.quality === '160kbps')?.url ||
+        urls?.find(u => u.quality === '96kbps')?.url || null;
 
-        if (songsData && songsData.length > 0) {
-          const songData = songsData[0];
-          const downloadUrls = songData.downloadUrl || [];
-          streamUrl = downloadUrls.find(u => u.quality === requestedQuality)?.url ||
-                      downloadUrls.find(u => u.quality === '320kbps')?.url ||
-                      downloadUrls.find(u => u.quality === '160kbps')?.url ||
-                      downloadUrls.find(u => u.quality === '96kbps')?.url || null;
-        }
+      // Primary API
+      try {
+        const response = await axios.get(`${MUSIC_API_BASE}/songs`, {
+          params: { ids: req.params.songId }, timeout: 10000
+        });
+        const songsData = response.data?.data;
+        if (songsData?.length > 0) streamUrl = pickUrl(songsData[0].downloadUrl);
       } catch (primaryError) {
         console.log('Primary API failed for stream, trying fallback API');
-        try {
-          const fallbackResponse = await axios.get(`${FALLBACK_API}/songs?ids=${req.params.songId}`);
-          const fallbackData = fallbackResponse.data?.data;
+      }
 
-          if (fallbackData && fallbackData.length > 0) {
-            const fallbackSong = fallbackData[0];
-            const downloadUrls = fallbackSong.downloadUrl || [];
-            streamUrl = downloadUrls.find(u => u.quality === requestedQuality)?.url ||
-                        downloadUrls.find(u => u.quality === '320kbps')?.url ||
-                        downloadUrls.find(u => u.quality === '160kbps')?.url ||
-                        downloadUrls.find(u => u.quality === '96kbps')?.url || null;
-          }
+      // Fallback API — runs when the primary errored OR returned no usable URL
+      if (!streamUrl) {
+        try {
+          const fallbackResponse = await axios.get(`${FALLBACK_API}/songs?ids=${req.params.songId}`, { timeout: 10000 });
+          const fallbackData = fallbackResponse.data?.data;
+          if (fallbackData?.length > 0) streamUrl = pickUrl(fallbackData[0].downloadUrl);
         } catch (fallbackError) {
           console.error('Fallback API also failed for stream:', fallbackError.message);
-          
-          // Try official JioSaavn API as third fallback
-          console.log('Trying official JioSaavn API for stream');
-          try {
-            const officialResponse = await axios.get('https://www.jiosaavn.com/api.php', {
-              params: {
-                __call: 'song.getDetails',
-                _format: 'json',
-                _marker: 0,
-                api_version: 4,
-                ctx: 'web6dot0',
-                pids: req.params.songId
-              },
-              headers: { 'User-Agent': 'Mozilla/5.0' }
-            });
-            const officialData = officialResponse.data;
-            
-            // Handle different response structures
-            let officialSong = null;
-            if (Array.isArray(officialData) && officialData.length > 0) {
-              officialSong = officialData[0];
-            } else if (officialData.songs && Array.isArray(officialData.songs) && officialData.songs.length > 0) {
-              officialSong = officialData.songs[0];
-            } else if (officialData.id) {
-              officialSong = officialData;
-            }
-            
-            if (officialSong && officialSong.more_info?.encrypted_media_url) {
-              // Generate auth token to get authenticated streaming URL with requested bitrate
-              const authUrl = await generateJioSaavnAuthToken(officialSong.more_info.encrypted_media_url, parseInt(bitrate));
-              streamUrl = authUrl;
-            }
-          } catch (officialError) {
-            console.error('Official API also failed for stream:', officialError.message);
+        }
+      }
+
+      // Official JioSaavn API — last resort
+      if (!streamUrl) {
+        try {
+          const officialResponse = await axios.get('https://www.jiosaavn.com/api.php', {
+            params: {
+              __call: 'song.getDetails',
+              _format: 'json',
+              _marker: 0,
+              api_version: 4,
+              ctx: 'web6dot0',
+              pids: req.params.songId
+            },
+            headers: { 'User-Agent': 'Mozilla/5.0' },
+            timeout: 10000
+          });
+          const officialData = officialResponse.data;
+
+          // Handle different response structures
+          let officialSong = null;
+          if (Array.isArray(officialData) && officialData.length > 0) {
+            officialSong = officialData[0];
+          } else if (officialData.songs && Array.isArray(officialData.songs) && officialData.songs.length > 0) {
+            officialSong = officialData.songs[0];
+          } else if (officialData?.id) {
+            officialSong = officialData;
           }
+
+          if (officialSong?.more_info?.encrypted_media_url) {
+            // Generate auth token to get authenticated streaming URL with requested bitrate
+            const authUrl = await generateJioSaavnAuthToken(officialSong.more_info.encrypted_media_url, parseInt(bitrate));
+            streamUrl = authUrl;
+          }
+        } catch (officialError) {
+          console.error('Official API also failed for stream:', officialError.message);
         }
       }
       
@@ -1645,8 +1643,21 @@ app.post('/api/translate', async (req, res) => {
     const to = typeof req.query.lang === 'string' ? req.query.lang.slice(0, 8) : 'en';
     if (Array.isArray(lines)) {
       const chunk = lines.slice(0, 200).map(l => String(l || '').slice(0, 1000));
-      const out = [];
-      for (const line of chunk) out.push(await translateText(line, to));
+      // Fast path: one upstream call for the whole song — join on \n (gtx
+      // preserves line breaks), then re-split 1:1 to keep karaoke sync.
+      const joined = await translateText(chunk.join('\n'), to);
+      let out = joined ? joined.split('\n').map(s => s.trim()) : null;
+      if (!out || out.length !== chunk.length) {
+        // Provider merged/split lines — fall back to parallel per-line calls
+        out = new Array(chunk.length);
+        const POOL = 8;
+        for (let i = 0; i < chunk.length; i += POOL) {
+          const batch = await Promise.all(
+            chunk.slice(i, i + POOL).map(l => translateText(l, to))
+          );
+          batch.forEach((t, j) => { out[i + j] = t });
+        }
+      }
       return res.json({ success: true, data: { lines: out } });
     }
     const out = await translateText(String(text || '').slice(0, 4500), to);

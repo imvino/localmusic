@@ -1,71 +1,11 @@
 import { useEffect, useRef } from 'react'
 import { useAuth } from '@clerk/clerk-react'
 import { usePlaylistStore } from '../stores/playlistStore'
-import { getImageSrc } from '../utils'
 import { clearPersonalData, getLastUserId, setLastUserId } from '../utils/personalData'
+import { slimSong, slimPlaylists, mergePlaylists, mergeHistory, mergeCollections, markPullDone, resetPullDone, isPullDone } from '../utils/sync'
 
 const API_BASE = import.meta.env.VITE_API_URL
 const LAST_SYNC_KEY = 'libraryLastSync'
-
-// Songs are heavy (image arrays, artist lists, server paths). Shrink to the
-// fields the player + UI actually need so sync payloads stay tiny.
-function slimSong(s) {
-  if (!s?.id) return null
-  return {
-    id: s.id,
-    name: s.name || s.title || '',
-    artist: s.artist || s.artists?.primary?.[0]?.name || s.primaryArtists || '',
-    album: typeof s.album === 'object' ? s.album?.name : s.album || '',
-    albumId: s.album?.id || s.albumId || '',
-    duration: Number(s.duration) || 0,
-    image: getImageSrc(s.image) || s.imageUrl || '',
-    isLocal: !!s.isLocal
-  }
-}
-
-function slimPlaylists(playlists) {
-  const out = {}
-  for (const [id, p] of Object.entries(playlists || {})) {
-    out[id] = {
-      id: p.id || id,
-      name: p.name || 'Untitled Playlist',
-      createdAt: p.createdAt || Date.now(),
-      songs: (p.songs || []).map(slimSong).filter(Boolean)
-    }
-  }
-  return out
-}
-
-// Union playlists by id — used ONLY for the first-ever merge (importing a
-// pre-account local library into a brand-new account).
-function mergePlaylists(local, server) {
-  const merged = {}
-  const ids = new Set([...Object.keys(local || {}), ...Object.keys(server || {})])
-  for (const id of ids) {
-    const l = local[id]
-    const s = server[id]
-    if (!l) { merged[id] = s; continue }
-    if (!s) { merged[id] = l; continue }
-    const seen = new Set(l.songs.map(x => x.id))
-    const songs = [
-      ...l.songs,
-      ...(s.songs || []).filter(x => !seen.has(x.id))
-    ]
-    merged[id] = { ...s, ...l, songs }
-  }
-  return merged
-}
-
-// History is append data — union by song id, newest entry wins, cap 200.
-function mergeHistory(local, server) {
-  const byId = new Map()
-  for (const s of [...(server || []), ...(local || [])]) {
-    if (!s?.id) continue
-    const prev = byId.get(s.id)
-    if (!prev || (s.ts || 0) > (prev.ts || 0)) byId.set(s.id, s)
-  }
-  return [...byId.values()].sort((a, b) => (b.ts || 0) - (a.ts || 0)).slice(0, 200)
-}
 
 const readLS = (k, fb) => { try { return JSON.parse(localStorage.getItem(k) || '') ?? fb } catch { return fb } }
 const writeLS = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)) } catch { /* quota */ } }
@@ -106,7 +46,12 @@ async function pushSnapshot(getToken, likedSongs, playlists, collections) {
 //     made on another device must propagate, not resurrect).
 //  C) First-ever sign-in on this device → UNION local into the account
 //     (imports the pre-account library).
-// After every pull the merged result is written back to localStorage (#12).
+// After every pull the merged result is written back to localStorage.
+//
+// CRITICAL ordering (F1/F3): the debounced push is gated on pullDone — it
+// must never fire before the session's first pull resolves. A push of the
+// just-wiped empty state would overwrite the good server doc AND stamp
+// libraryLastSync so the pull's apply is skipped: total loss both sides.
 export function useLibrarySync({ likedSongs, setLikedSongs, savedAlbums, setSavedAlbums, followedArtists, setFollowedArtists }) {
   const { isSignedIn, userId, getToken } = useAuth()
   const playlists = usePlaylistStore(s => s.playlists)
@@ -114,9 +59,12 @@ export function useLibrarySync({ likedSongs, setLikedSongs, savedAlbums, setSave
     try { return parseInt(localStorage.getItem(LAST_SYNC_KEY) || '0', 10) || 0 } catch { return 0 }
   })
 
+  // Sign-in pull — also resets pullDone so pushes hold until it resolves
   useEffect(() => {
-    if (!isSignedIn || !userId) return
+    if (!isSignedIn || !userId) { if (!isSignedIn) resetPullDone(); return }
+    resetPullDone()
     let live = true
+    const done = () => { if (live) markPullDone() }
     ;(async () => {
       const lastUser = getLastUserId()
       const firstLogin = !lastUser
@@ -173,7 +121,7 @@ export function useLibrarySync({ likedSongs, setLikedSongs, savedAlbums, setSave
         usePlaylistStore.setState({ playlists: mergedPls })
 
         const applyCollection = (serverArr, localKey, setState) => {
-          const next = union ? [...(serverArr || []), ...readLS(localKey, []).filter(l => !(serverArr || []).some(s => s.id === l.id))] : (serverArr || [])
+          const next = union ? mergeCollections(readLS(localKey, []), serverArr || []) : (serverArr || [])
           writeLS(localKey, next)
           setState?.(new Set(next.map(x => x.id)))
           return next
@@ -192,14 +140,17 @@ export function useLibrarySync({ likedSongs, setLikedSongs, savedAlbums, setSave
           mergedPls,
           { savedAlbums: nextAlbums, followedArtists: nextArtists })
       } catch { /* offline — local wins */ }
+      finally { done() }
     })()
     return () => { live = false }
   }, [isSignedIn, userId]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Debounced push on any local change
+  // Debounced push on any local change — held until the session's first
+  // pull resolves so a fresh/empty state can never clobber the server.
   useEffect(() => {
     if (!isSignedIn) return
     const t = setTimeout(() => {
+      if (!isPullDone()) return
       pushSnapshot(getToken, likedSongs, usePlaylistStore.getState().playlists,
         { savedAlbums: readLS('savedAlbums', []), followedArtists: readLS('followedArtists', []) })
     }, 2500)

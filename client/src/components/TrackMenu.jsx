@@ -8,10 +8,12 @@ import { haptic } from '../utils'
 import LyricsModal from './LyricsModal'
 import { useAppAuth } from './AuthGate'
 
-export default function TrackMenu({ song, likedSongs, onLikeToggle, onPlayNext, onAddToQueue, onGoToAlbum, onSongRadio, showToast }) {
+export default function TrackMenu({ song, likedSongs, onLikeToggle, onPlayNext, onAddToQueue, onGoToAlbum, onSongRadio, showToast, triggerClass }) {
   const navigate = useNavigate()
   const [open, setOpen] = useState(false)
   const [showPlaylistPicker, setShowPlaylistPicker] = useState(false)
+  const [newPlName, setNewPlName] = useState('')
+  const [creatingPl, setCreatingPl] = useState(false)
   const [lyricsOpen, setLyricsOpen] = useState(false)
   const [downloaded, setDownloaded] = useState(() => isDownloaded(song.id))
   const [downloading, setDownloading] = useState(false)
@@ -123,7 +125,7 @@ export default function TrackMenu({ song, likedSongs, onLikeToggle, onPlayNext, 
       <button
         ref={triggerRef}
         onClick={(e) => { e.stopPropagation(); setOpen(o => !o); setShowPlaylistPicker(false) }}
-        className="p-2 text-zinc-500 hover:text-white transition-colors touch-target"
+        className={triggerClass || "p-2 text-zinc-500 hover:text-white transition-colors touch-target"}
         title="More options"
       >
         <MoreHorizontal size={18} />
@@ -151,12 +153,32 @@ export default function TrackMenu({ song, likedSongs, onLikeToggle, onPlayNext, 
                   <div className="px-3 py-2 text-xs text-zinc-500">No playlists yet</div>
                 )}
               </div>
-              <button className={itemCls} onClick={() => {
-                const name = window.prompt('Playlist name')
-                if (name?.trim()) handleAddTo(createPlaylist(name))
-              }}>
-                <Plus size={16} /> New playlist
-              </button>
+              {creatingPl ? (
+                <div className="flex items-center gap-2 px-3 py-2">
+                  <input
+                    autoFocus
+                    value={newPlName}
+                    onChange={e => setNewPlName(e.target.value)}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter' && newPlName.trim()) { handleAddTo(createPlaylist(newPlName)); setCreatingPl(false); setNewPlName('') }
+                      if (e.key === 'Escape') { setCreatingPl(false); setNewPlName('') }
+                    }}
+                    placeholder="Playlist name"
+                    className="flex-1 bg-zinc-800 text-sm text-white rounded px-2 py-1.5 outline-none placeholder:text-zinc-500 min-w-0"
+                  />
+                  <button
+                    disabled={!newPlName.trim()}
+                    onClick={() => { handleAddTo(createPlaylist(newPlName)); setCreatingPl(false); setNewPlName('') }}
+                    className="px-2 py-1 text-xs font-medium rounded bg-[#fc3c44] text-white disabled:opacity-40 transition-opacity"
+                  >
+                    Add
+                  </button>
+                </div>
+              ) : (
+                <button className={itemCls} onClick={() => setCreatingPl(true)}>
+                  <Plus size={16} /> New playlist
+                </button>
+              )}
             </>
           ) : (
             <>
