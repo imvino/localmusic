@@ -19,7 +19,9 @@ import DownloadManager from './views/DownloadManager'
 import PlaylistsView from './views/PlaylistsView'
 import PlaylistDetailView from './views/PlaylistDetailView'
 import LikedSongsView from './views/LikedSongsView'
+import StatsView from './views/StatsView'
 import QueueDrawer from './components/QueueDrawer'
+import { enableEq, warmEq, setEqGains } from './audio/eq'
 import TermsOfService from './pages/TermsOfService'
 import PrivacyPolicy from './pages/PrivacyPolicy'
 import DMCA from './pages/DMCA'
@@ -122,6 +124,31 @@ function AppContent() {
   const pendingSeekRef = useRef(null) // position to restore after loadedmetadata (resume)
   const [resumeSession, setResumeSession] = useState(null)
   const [queueOpen, setQueueOpen] = useState(false)
+  const [autoplayEnabled, setAutoplayEnabled] = useState(() => localStorage.getItem('autoplay') !== 'off')
+  const queueEpochRef = useRef(0) // bumped on every queue mutation — async ops bail if it moved
+  const autoplayAttemptedRef = useRef(false) // one suggestions fetch per queue-end event
+  const autoplayToastShownRef = useRef(false) // toast once per continuous chain
+  const pendingSuggestionsRef = useRef(null) // { seedId, songs } early-fetched near queue end
+  const [sleepTimer, setSleepTimer] = useState(null) // {type:'timer',endsAt} | {type:'eot'} | null
+  const sleepTimerRef = useRef(null) // onEnded reads the live value (stale-closure safe)
+  const liveQueueRef = useRef(null) // post-await commits read live queue/shuffle state
+  const [eqSettings, setEqSettings] = useState(() => {
+    try { return { enabled: false, low: 0, mid: 0, high: 0, preset: 'flat', ...JSON.parse(localStorage.getItem('eq') || '{}') } }
+    catch { return { enabled: false, low: 0, mid: 0, high: 0, preset: 'flat' } }
+  })
+  const [smoothTransitions, setSmoothTransitions] = useState(() => localStorage.getItem('smoothTransitions') === 'on')
+  const fadingRef = useRef(false) // true while a volume ramp owns audio.volume
+  const fadeRafRef = useRef(null)
+
+  // Mirror live queue/shuffle state — post-await commits must not use
+  // pre-await snapshots (user may toggle shuffle mid-fetch)
+  useEffect(() => {
+    liveQueueRef.current = { queue, shuffle, shuffleOrder, shufflePos }
+  }, [queue, shuffle, shuffleOrder, shufflePos])
+
+  useEffect(() => {
+    sleepTimerRef.current = sleepTimer
+  }, [sleepTimer])
 
   // Use TanStack Query for health check
   const { data: healthData, isError: healthError } = useHealthCheck(true)
@@ -134,6 +161,71 @@ function AppContent() {
     setShowToast(true)
     setTimeout(() => setShowToast(false), 5000)
   }
+
+  // Sleep timer — interval checks for timed expiry; 'eot' handled in onEnded
+  useEffect(() => {
+    if (sleepTimer?.type !== 'timer') return
+    const iv = setInterval(() => {
+      if (Date.now() >= sleepTimer.endsAt) {
+        setSleepTimer(null)
+        audioRef.current?.pause()
+        setIsPlaying(false)
+        showToastMessage('Sleep timer — playback stopped', 'success')
+      }
+    }, 1000)
+    return () => clearInterval(iv)
+  }, [sleepTimer])
+
+  const handleSleepTimer = (value) => {
+    if (value === 'off' || !value) {
+      setSleepTimer(null)
+      showToastMessage('Sleep timer off', 'success')
+    } else if (value === 'eot') {
+      setSleepTimer({ type: 'eot' })
+      showToastMessage('Sleeping at end of track', 'success')
+    } else {
+      const mins = parseInt(value)
+      setSleepTimer({ type: 'timer', endsAt: Date.now() + mins * 60000 })
+      showToastMessage(`Sleep timer: ${mins} min`, 'success')
+    }
+  }
+
+  // EQ — persist, build graph when enabled, apply gains on change.
+  // The MediaElementSource permanently reroutes the element once created,
+  // so "off" = flat gains; never disconnect.
+  useEffect(() => {
+    try { localStorage.setItem('eq', JSON.stringify(eqSettings)) } catch { /* quota */ }
+    const el = audioRef.current
+    if (!el) return
+    if (!warmEq(el)) return
+    if (eqSettings.enabled) {
+      enableEq(el) // resume() is a no-op until a user gesture — real resumes happen in play paths
+      setEqGains({ low: eqSettings.low, mid: eqSettings.mid, high: eqSettings.high })
+    } else {
+      setEqGains({ low: 0, mid: 0, high: 0 })
+    }
+  }, [eqSettings])
+
+  useEffect(() => {
+    try { localStorage.setItem('smoothTransitions', smoothTransitions ? 'on' : 'off') } catch { /* quota */ }
+  }, [smoothTransitions])
+
+  // Volume ramp helper — own audio.volume while fading so the volume effect
+  // doesn't stomp the animation
+  const fadeVolume = (to, ms) => new Promise(resolve => {
+    const audio = audioRef.current
+    if (!audio) return resolve()
+    if (fadeRafRef.current) cancelAnimationFrame(fadeRafRef.current)
+    const from = audio.volume
+    const start = performance.now()
+    const tick = now => {
+      const t = Math.min(1, (now - start) / ms)
+      audio.volume = Math.max(0, Math.min(1, from + (to - from) * t))
+      if (t < 1) fadeRafRef.current = requestAnimationFrame(tick)
+      else { fadeRafRef.current = null; resolve() }
+    }
+    fadeRafRef.current = requestAnimationFrame(tick)
+  })
 
   // Redirect to discover if on root
   useEffect(() => {
@@ -172,7 +264,7 @@ function AppContent() {
         audio.src = streamUrl
         audio.load()
       }
-      audio.volume = muted ? 0 : volume
+      if (!fadingRef.current) audio.volume = muted ? 0 : volume
 
       if (isPlaying) {
         audio.play().catch(e => {
@@ -274,6 +366,13 @@ function AppContent() {
           warmedNextRef.current = nextSong.id
           fetch(streamUrlFor(nextSong, currentBitrate), { headers: { Range: 'bytes=0-1' } })
             .catch(() => {}) // warming is best-effort
+        } else if (nextIdx === null && autoplayEnabled && !autoplayAttemptedRef.current &&
+                   pendingSuggestionsRef.current?.seedId !== currentSong.id) {
+          // Queue is about to end — prefetch suggestions so the autoplay
+          // extension doesn't cold-start with a fetch gap
+          fetchSuggestions(currentSong.id).then(songs => {
+            if (songs.length) pendingSuggestionsRef.current = { seedId: currentSong.id, songs }
+          })
         }
       }
     }
@@ -289,6 +388,12 @@ function AppContent() {
 
     // Record play history only when playback actually starts
     const handlePlaying = () => {
+      // Smooth transitions: fade in from silence (skip when muted at 0)
+      if (smoothTransitions && !muted && volume > 0) {
+        fadingRef.current = true
+        audio.volume = 0
+        fadeVolume(volume, 500).then(() => { fadingRef.current = false })
+      }
       const s = currentSong
       if (!s) return
       try {
@@ -313,7 +418,7 @@ function AppContent() {
       audio.removeEventListener('loadedmetadata', handleLoadedMetadata)
       audio.removeEventListener('playing', handlePlaying)
     }
-  }, [currentSong, isPlaying, volume, muted, currentBitrate, queue, queueIndex, shuffle, shuffleOrder, shufflePos, repeat])
+  }, [currentSong, isPlaying, volume, muted, currentBitrate, queue, queueIndex, shuffle, shuffleOrder, shufflePos, repeat, autoplayEnabled])
 
   // Handle shortcuts
   useEffect(() => {
@@ -396,13 +501,19 @@ function AppContent() {
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [currentSong, duration, queue, queueIndex, shuffle, shuffleOrder, shufflePos, repeat])
+  }, [currentSong, duration, queue, queueIndex, shuffle, shuffleOrder, shufflePos, repeat, autoplayEnabled])
 
   // Handle song end / repeat
   useEffect(() => {
     if (!audioRef.current) return
     const el = audioRef.current
     const onEnded = () => {
+      if (sleepTimerRef.current?.type === 'eot') {
+        setSleepTimer(null)
+        setIsPlaying(false)
+        showToastMessage('Sleep timer — playback stopped', 'success')
+        return
+      }
       if (repeat === 'one' && currentSong) {
         el.currentTime = 0
         el.play().catch(e => console.error('Repeat play error:', e))
@@ -412,7 +523,7 @@ function AppContent() {
     }
     el.addEventListener('ended', onEnded)
     return () => el.removeEventListener('ended', onEnded)
-  }, [repeat, currentSong, queue, queueIndex, shuffle, shuffleOrder, shufflePos])
+  }, [repeat, currentSong, queue, queueIndex, shuffle, shuffleOrder, shufflePos, autoplayEnabled])
 
   // Handle visibility change - resume playback when app returns from background (iOS/Android)
   useEffect(() => {
@@ -450,8 +561,14 @@ function AppContent() {
   useEffect(() => {
     const writeSession = () => {
       if (!currentSong) return
+      // Persist a window around the cursor — autoplay can grow the queue
+      // unboundedly and we share ~5MB with the TanStack query persister
+      const start = Math.max(0, queueIndex - 10)
+      const windowedQueue = queue.slice(start, queueIndex + 50)
       localStorage.setItem('playerSession', JSON.stringify({
-        queue, queueIndex, currentSong,
+        queue: windowedQueue,
+        queueIndex: queueIndex - start,
+        currentSong,
         currentTime: audioRef.current?.currentTime ?? currentTime,
         repeat, shuffle, ts: Date.now()
       }))
@@ -486,6 +603,12 @@ function AppContent() {
     const session = resumeSession
     setResumeSession(null)
     if (!session?.currentSong) return
+
+    // Replace of the whole queue — abort any in-flight autoplay/radio fetch
+    queueEpochRef.current++
+    autoplayAttemptedRef.current = false
+    autoplayToastShownRef.current = false
+    pendingSuggestionsRef.current = null
 
     setQueue(session.queue || [])
     setQueueIndex(session.queueIndex ?? 0)
@@ -662,6 +785,7 @@ function AppContent() {
   // Inserts append to `queue` end; position is expressed via shuffleOrder.
 
   const handlePlayNext = (song) => {
+    queueEpochRef.current++
     if (queueIndex === -1 || queue.length === 0) {
       handleSongSelect(song)
       showToastMessage('Playing now', 'success')
@@ -683,6 +807,7 @@ function AppContent() {
   }
 
   const handleAddToQueue = (song) => {
+    queueEpochRef.current++
     if (queueIndex === -1 || queue.length === 0) {
       handleSongSelect(song)
       showToastMessage('Playing now', 'success')
@@ -696,6 +821,7 @@ function AppContent() {
   }
 
   const handleQueuePlayAt = (displayPos) => {
+    queueEpochRef.current++ // user took over — abort any in-flight autoplay/radio commit
     const order = shuffle && shuffleOrder.length > 0 ? shuffleOrder : queue.map((_, i) => i)
     const queueIdx = order[displayPos]
     if (queueIdx === undefined) return
@@ -705,6 +831,7 @@ function AppContent() {
   }
 
   const handleQueueRemoveAt = (queueIdx) => {
+    queueEpochRef.current++
     const removedOrderPos = shuffleOrder.indexOf(queueIdx) // position in play order (-1 if absent)
     const remap = (idx) => idx > queueIdx ? idx - 1 : idx
 
@@ -745,6 +872,7 @@ function AppContent() {
   }
 
   const handleQueueMove = (displayPos, dir) => {
+    queueEpochRef.current++
     const to = displayPos + dir
     if (shuffle && shuffleOrder.length > 0) {
       if (to < 0 || to >= shuffleOrder.length) return
@@ -769,6 +897,7 @@ function AppContent() {
   }
 
   const handleQueueClear = () => {
+    queueEpochRef.current++
     if (!currentSong) {
       setQueue([])
       setQueueIndex(-1)
@@ -799,7 +928,129 @@ function AppContent() {
     if (albumId) navigateToView('album', { id: albumId, name: albumName })
   }
 
+  // ─── Autoplay + Radio ───
+
+  const fetchSuggestions = async (songId) => {
+    try {
+      const res = await fetch(`${API_BASE}/api/songs/${songId}/suggestions`)
+      const json = await res.json()
+      return json?.success ? (json.data || []) : []
+    } catch {
+      return []
+    }
+  }
+
+  // Dedup suggestions against queue + recent history
+  const pickSuggestions = (candidates, baseQueue) => {
+    let history = []
+    try { history = JSON.parse(localStorage.getItem('playHistory') || '[]').slice(0, 20) } catch {}
+    const seen = new Set([...baseQueue.map(s => s.id), ...history.map(h => h.id)])
+    return candidates.filter(s => s?.id && !seen.has(s.id)).slice(0, 20)
+  }
+
+  // Append similar songs at queue end and keep playing. Returns true on success.
+  const extendQueue = async (seedSong) => {
+    if (autoplayAttemptedRef.current) return false
+    autoplayAttemptedRef.current = true
+    const bail = () => { autoplayAttemptedRef.current = false; return false }
+
+    const epoch = queueEpochRef.current
+    const seedId = seedSong?.id
+    if (!seedId) return bail()
+
+    const candidates = pendingSuggestionsRef.current?.seedId === seedId
+      ? pendingSuggestionsRef.current.songs
+      : await fetchSuggestions(seedId)
+    pendingSuggestionsRef.current = null
+
+    // Queue replaced mid-fetch, or autoplay disabled while fetching — bail
+    if (queueEpochRef.current !== epoch) return bail()
+    if (localStorage.getItem('autoplay') === 'off') return bail()
+
+    // Commit against LIVE state — shuffle may have been toggled mid-fetch
+    const { queue: q, shuffle: sh, shuffleOrder: so, shufflePos: sp } = liveQueueRef.current
+    const picked = pickSuggestions(candidates, q)
+    if (picked.length === 0) return bail()
+
+    const newQueue = [...q, ...picked]
+    const newIndices = picked.map((_, i) => q.length + i)
+    queueEpochRef.current++
+    setQueue(newQueue)
+
+    if (sh && so.length > 0) {
+      const nextPos = sp + 1
+      // Appended indices always enter the order (no orphans if shuffle was
+      // just toggled on mid-fetch); nextPos lands on the next unplayed index
+      setShuffleOrder([...so, ...newIndices])
+      setShufflePos(nextPos)
+      const nextIdx = so[nextPos] ?? newIndices[0]
+      setQueueIndex(nextIdx)
+      await playQueueSong(nextIdx, newQueue)
+    } else {
+      setQueueIndex(q.length) // old length = index of first appended song
+      await playQueueSong(q.length, newQueue)
+    }
+
+    if (!autoplayToastShownRef.current) {
+      autoplayToastShownRef.current = true
+      showToastMessage('Playing similar songs', 'success')
+    }
+    return true
+  }
+
+  const handleSongRadio = (song) => {
+    // Radio is ordered — a persisted global shuffle would strand appended
+    // suggestions inside shuffleOrder
+    setShuffle(false)
+    setShuffleOrder([])
+    setShufflePos(0)
+    handleSongSelect(song)
+    const epoch = queueEpochRef.current
+    fetchSuggestions(song.id).then(candidates => {
+      if (queueEpochRef.current !== epoch) return
+      const picked = pickSuggestions(candidates, [song]).slice(0, 30)
+      if (picked.length === 0) {
+        showToastMessage("Couldn't find similar songs", 'warning')
+        return
+      }
+      queueEpochRef.current++ // appending while a permutation may exist — keep the epoch contract
+      setQueue(prev => [...prev, ...picked])
+      showToastMessage('Radio started', 'success')
+    })
+  }
+
+  const handleArtistRadio = (songs) => {
+    if (!songs?.length) return
+    const pool = songs.slice(0, 25)
+    const startIdx = Math.floor(Math.random() * pool.length)
+    setShuffle(true)
+    handleSongSelect(pool[startIdx], pool, startIdx, true)
+    const epoch = queueEpochRef.current
+    // Blend in suggestions seeded by the first few songs — non-blocking
+    Promise.all(pool.slice(0, 3).map(s => fetchSuggestions(s.id))).then(results => {
+      if (queueEpochRef.current !== epoch) return
+      const seen = new Set(pool.map(s => s.id))
+      const merged = []
+      results.flat().forEach(s => { if (s?.id && !seen.has(s.id)) { seen.add(s.id); merged.push(s) } })
+      if (merged.length === 0) return
+      // The closure's `queue` is stale — after handleSongSelect it IS `pool`
+      const newQueue = [...pool, ...merged]
+      const newIndices = merged.map((_, i) => pool.length + i)
+      queueEpochRef.current++
+      setQueue(newQueue)
+      setShuffleOrder(prev => [...prev, ...newIndices])
+      showToastMessage('Artist radio started', 'success')
+    })
+  }
+
   const handleSongSelect = async (song, songQueue = null, songIndex = null, forceShuffle = false) => {
+    // User-initiated queue change: bump epoch (aborts in-flight autoplay/radio
+    // fetches), reset autoplay one-shot + toast
+    queueEpochRef.current++
+    autoplayAttemptedRef.current = false
+    autoplayToastShownRef.current = false
+    pendingSuggestionsRef.current = null
+
     // Determine appropriate bitrate based on connection and preference
     const connType = getConnectionType()
     const maxBitrate = getMaxBitrate(connType, qualityPreference)
@@ -840,6 +1091,7 @@ function AppContent() {
         setShufflePos(0)
       }
     }
+    if (eqSettings.enabled) enableEq(audioRef.current)
     setIsPlaying(true)
     setCurrentTime(0)
 
@@ -901,6 +1153,10 @@ function AppContent() {
       let order = shuffleOrder
       if (nextPos >= order.length) {
         if (repeat === 'off') {
+          // Autoplay: extend the queue with similar songs instead of stopping
+          const epoch = queueEpochRef.current
+          if (autoplayEnabled && currentSong && await extendQueue(currentSong)) return
+          if (queueEpochRef.current !== epoch) return // user took over mid-fetch
           setIsPlaying(false)
           return
         }
@@ -919,8 +1175,11 @@ function AppContent() {
       return
     }
 
-    // If at end of queue and repeat is off, stop playback
+    // If at end of queue and repeat is off, try autoplay before stopping
     if (queueIndex === queue.length - 1 && repeat === 'off') {
+      const epoch = queueEpochRef.current
+      if (autoplayEnabled && currentSong && await extendQueue(currentSong)) return
+      if (queueEpochRef.current !== epoch) return // user took over mid-fetch
       setIsPlaying(false)
       return
     }
@@ -929,7 +1188,18 @@ function AppContent() {
     await playQueueSong(newIndex)
   }
 
+  const handleAutoplayToggle = () => {
+    setAutoplayEnabled(prev => {
+      const next = !prev
+      localStorage.setItem('autoplay', next ? 'on' : 'off')
+      if (!next) pendingSuggestionsRef.current = null
+      return next
+    })
+    showToastMessage(`Autoplay ${!autoplayEnabled ? 'on' : 'off'}`, 'success')
+  }
+
   const handleTogglePlay = () => {
+    if (eqSettings.enabled) enableEq(audioRef.current) // user gesture — resume AudioContext
     // Restart from the beginning when resuming after playback stopped at the end
     if (!isPlaying && audioRef.current && duration > 0 &&
         audioRef.current.currentTime >= duration - 0.5) {
@@ -950,8 +1220,16 @@ function AppContent() {
   }
 
   const playQueueSong = async (index, list = queue) => {
+    autoplayAttemptedRef.current = false // re-arm before the guard — a track change resets the one-shot
     const song = list[index]
     if (!song) return
+    if (eqSettings.enabled) enableEq(audioRef.current)
+    // Fade out the current track before swapping (smooth transitions)
+    if (smoothTransitions && isPlaying && audioRef.current && !audioRef.current.paused) {
+      fadingRef.current = true
+      await fadeVolume(0, 400)
+      fadingRef.current = false
+    }
 
     const connType = getConnectionType()
     const maxBitrate = getMaxBitrate(connType, qualityPreference)
@@ -1095,6 +1373,14 @@ function AppContent() {
               onClose={() => setSidebarOpen(false)}
               qualityPreference={qualityPreference}
               onQualityChange={setQualityPreference}
+              autoplayEnabled={autoplayEnabled}
+              onAutoplayToggle={handleAutoplayToggle}
+              sleepTimer={sleepTimer}
+              onSleepTimer={handleSleepTimer}
+              eqSettings={eqSettings}
+              onEqChange={setEqSettings}
+              smoothTransitions={smoothTransitions}
+              onSmoothTransitionsToggle={setSmoothTransitions}
             />
           </div>
         </div>
@@ -1108,6 +1394,14 @@ function AppContent() {
           showToast={showToastMessage}
           qualityPreference={qualityPreference}
           onQualityChange={setQualityPreference}
+          autoplayEnabled={autoplayEnabled}
+          onAutoplayToggle={handleAutoplayToggle}
+          sleepTimer={sleepTimer}
+          onSleepTimer={handleSleepTimer}
+          eqSettings={eqSettings}
+          onEqChange={setEqSettings}
+          smoothTransitions={smoothTransitions}
+          onSmoothTransitionsToggle={setSmoothTransitions}
         />
       </div>
       
@@ -1243,14 +1537,15 @@ function AppContent() {
         {/* Main Content - Add bottom padding on mobile for player and nav */}
         <div ref={scrollContainerRef} className="flex-1 overflow-y-auto bg-zinc-950 pb-32 md:pb-0">
           <Routes>
-            <Route path="/discover" element={<DiscoverView onSongClick={handleSongSelect} showToast={showToastMessage} likedSongs={likedSongs} onLikeToggle={handleLikeToggle} onPlayNext={handlePlayNext} onAddToQueue={handleAddToQueue} onGoToAlbum={handleGoToAlbum} />} />
-            <Route path="/discover/album/:id/:slug?" element={<DiscoverDetailView onSongClick={handleSongSelect} showToast={showToastMessage} currentSong={currentSong} isPlaying={isPlaying} sidebarOpen={sidebarOpen} likedSongs={likedSongs} onLikeToggle={handleLikeToggle} onPlayNext={handlePlayNext} onAddToQueue={handleAddToQueue} onGoToAlbum={handleGoToAlbum} onShufflePlay={handleShufflePlay} />} />
-            <Route path="/discover/playlist/:id" element={<DiscoverDetailView onSongClick={handleSongSelect} showToast={showToastMessage} currentSong={currentSong} isPlaying={isPlaying} sidebarOpen={sidebarOpen} likedSongs={likedSongs} onLikeToggle={handleLikeToggle} onPlayNext={handlePlayNext} onAddToQueue={handleAddToQueue} onGoToAlbum={handleGoToAlbum} onShufflePlay={handleShufflePlay} />} />
-            <Route path="/discover/artist/:id" element={<DiscoverDetailView onSongClick={handleSongSelect} showToast={showToastMessage} currentSong={currentSong} isPlaying={isPlaying} sidebarOpen={sidebarOpen} likedSongs={likedSongs} onLikeToggle={handleLikeToggle} onPlayNext={handlePlayNext} onAddToQueue={handleAddToQueue} onGoToAlbum={handleGoToAlbum} onShufflePlay={handleShufflePlay} />} />
-            <Route path="/search" element={<SearchView query={searchQuery} onSongClick={handleSongSelect} onAlbumClick={a => navigateToView('album', a)} onArtistClick={a => navigateToView('artist', a)} showToast={showToastMessage} likedSongs={likedSongs} onLikeToggle={handleLikeToggle} onPlayNext={handlePlayNext} onAddToQueue={handleAddToQueue} onGoToAlbum={handleGoToAlbum} />} />
+            <Route path="/discover" element={<DiscoverView onSongClick={handleSongSelect} showToast={showToastMessage} likedSongs={likedSongs} onLikeToggle={handleLikeToggle} onPlayNext={handlePlayNext} onAddToQueue={handleAddToQueue} onGoToAlbum={handleGoToAlbum} onSongRadio={handleSongRadio} />} />
+            <Route path="/discover/album/:id/:slug?" element={<DiscoverDetailView onSongClick={handleSongSelect} showToast={showToastMessage} currentSong={currentSong} isPlaying={isPlaying} sidebarOpen={sidebarOpen} likedSongs={likedSongs} onLikeToggle={handleLikeToggle} onPlayNext={handlePlayNext} onAddToQueue={handleAddToQueue} onGoToAlbum={handleGoToAlbum} onSongRadio={handleSongRadio} onShufflePlay={handleShufflePlay} onArtistRadio={handleArtistRadio} />} />
+            <Route path="/discover/playlist/:id" element={<DiscoverDetailView onSongClick={handleSongSelect} showToast={showToastMessage} currentSong={currentSong} isPlaying={isPlaying} sidebarOpen={sidebarOpen} likedSongs={likedSongs} onLikeToggle={handleLikeToggle} onPlayNext={handlePlayNext} onAddToQueue={handleAddToQueue} onGoToAlbum={handleGoToAlbum} onSongRadio={handleSongRadio} onShufflePlay={handleShufflePlay} onArtistRadio={handleArtistRadio} />} />
+            <Route path="/discover/artist/:id" element={<DiscoverDetailView onSongClick={handleSongSelect} showToast={showToastMessage} currentSong={currentSong} isPlaying={isPlaying} sidebarOpen={sidebarOpen} likedSongs={likedSongs} onLikeToggle={handleLikeToggle} onPlayNext={handlePlayNext} onAddToQueue={handleAddToQueue} onGoToAlbum={handleGoToAlbum} onSongRadio={handleSongRadio} onShufflePlay={handleShufflePlay} onArtistRadio={handleArtistRadio} />} />
+            <Route path="/search" element={<SearchView query={searchQuery} onSongClick={handleSongSelect} onAlbumClick={a => navigateToView('album', a)} onArtistClick={a => navigateToView('artist', a)} showToast={showToastMessage} likedSongs={likedSongs} onLikeToggle={handleLikeToggle} onPlayNext={handlePlayNext} onAddToQueue={handleAddToQueue} onGoToAlbum={handleGoToAlbum} onSongRadio={handleSongRadio} />} />
             <Route path="/playlists" element={<PlaylistsView showToast={showToastMessage} />} />
-            <Route path="/playlists/:id" element={<PlaylistDetailView onSongClick={handleSongSelect} onShufflePlay={handleShufflePlay} onPlayNext={handlePlayNext} onAddToQueue={handleAddToQueue} onGoToAlbum={handleGoToAlbum} likedSongs={likedSongs} onLikeToggle={handleLikeToggle} currentSong={currentSong} isPlaying={isPlaying} showToast={showToastMessage} />} />
-            <Route path="/liked" element={<LikedSongsView likedSongs={likedSongs} onLikeToggle={handleLikeToggle} onSongClick={handleSongSelect} onShufflePlay={handleShufflePlay} onPlayNext={handlePlayNext} onAddToQueue={handleAddToQueue} onGoToAlbum={handleGoToAlbum} currentSong={currentSong} isPlaying={isPlaying} showToast={showToastMessage} />} />
+            <Route path="/playlists/:id" element={<PlaylistDetailView onSongClick={handleSongSelect} onShufflePlay={handleShufflePlay} onPlayNext={handlePlayNext} onAddToQueue={handleAddToQueue} onGoToAlbum={handleGoToAlbum} onSongRadio={handleSongRadio} likedSongs={likedSongs} onLikeToggle={handleLikeToggle} currentSong={currentSong} isPlaying={isPlaying} showToast={showToastMessage} />} />
+            <Route path="/liked" element={<LikedSongsView likedSongs={likedSongs} onLikeToggle={handleLikeToggle} onSongClick={handleSongSelect} onShufflePlay={handleShufflePlay} onPlayNext={handlePlayNext} onAddToQueue={handleAddToQueue} onGoToAlbum={handleGoToAlbum} onSongRadio={handleSongRadio} currentSong={currentSong} isPlaying={isPlaying} showToast={showToastMessage} />} />
+            <Route path="/stats" element={<StatsView likedSongs={likedSongs} />} />
             <Route path="/terms" element={<TermsOfService />} />
             <Route path="/privacy" element={<PrivacyPolicy />} />
             <Route path="/dmca" element={<DMCA />} />

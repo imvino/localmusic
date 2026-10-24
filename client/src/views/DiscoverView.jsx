@@ -4,8 +4,8 @@ import { useNavigate } from 'react-router-dom'
 import MetaTags from '../components/MetaTags'
 import HorizontalScroll from '../components/HorizontalScroll'
 import TrackMenu from '../components/TrackMenu'
-import { decodeHtmlEntities } from '../utils'
-import { useJioFeaturedPlaylists, useJioNewReleases } from '../hooks/useApi'
+import { decodeHtmlEntities, getBestImageUrl } from '../utils'
+import { useJioFeaturedPlaylists, useJioNewReleases, useCharts, useTrending, useNewReleaseAlbums } from '../hooks/useApi'
 import { useArtistConfig } from '../artist-config'
 
 const API_BASE = import.meta.env.VITE_API_URL
@@ -23,7 +23,7 @@ function formatPlayCount(count) {
   return num.toString()
 }
 
-export default function DiscoverView({ onSongClick, showToast, likedSongs, onLikeToggle, onPlayNext, onAddToQueue, onGoToAlbum }) {
+export default function DiscoverView({ onSongClick, showToast, likedSongs, onLikeToggle, onPlayNext, onAddToQueue, onGoToAlbum, onSongRadio }) {
   const navigate = useNavigate()
   const [downloadProgress, setDownloadProgress] = useState({})
   const appUrl = import.meta.env.VITE_APP_URL
@@ -41,6 +41,9 @@ export default function DiscoverView({ onSongClick, showToast, likedSongs, onLik
   const { config: artistConfig, loading: configLoading } = useArtistConfig()
   const { data: featuredPlaylistsData, isLoading: playlistsLoading } = useJioFeaturedPlaylists()
   const { data: newReleasesData, isLoading: songsLoading } = useJioNewReleases()
+  const { data: charts } = useCharts()
+  const { data: trending } = useTrending()
+  const { data: newAlbums } = useNewReleaseAlbums()
 
   const loading = configLoading || playlistsLoading || songsLoading
 
@@ -84,6 +87,16 @@ export default function DiscoverView({ onSongClick, showToast, likedSongs, onLik
     navigate(`/discover/playlist/${playlist.id}`, { state: { playlist } })
   }
 
+  const handleAlbumClick = (album) => {
+    const slug = (album.name || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+    navigate(`/discover/album/${album.id}/${slug}`, { state: { albumName: album.name } })
+  }
+
+  const handleEntityClick = (item) => {
+    if (item.type === 'playlist' || item.songCount !== undefined) handlePlaylistClick(item)
+    else handleAlbumClick(item)
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-full">
@@ -120,7 +133,7 @@ export default function DiscoverView({ onSongClick, showToast, likedSongs, onLik
           icon={History}
           items={recentlyPlayed}
           renderItem={(song) => (
-            <SongCard song={song} onSongClick={onSongClick} downloadProgress={downloadProgress} likedSongs={likedSongs} onLikeToggle={onLikeToggle} onPlayNext={onPlayNext} onAddToQueue={onAddToQueue} onGoToAlbum={onGoToAlbum} showToast={showToast} />
+            <SongCard song={song} onSongClick={onSongClick} downloadProgress={downloadProgress} likedSongs={likedSongs} onLikeToggle={onLikeToggle} onPlayNext={onPlayNext} onAddToQueue={onAddToQueue} onGoToAlbum={onGoToAlbum} onSongRadio={onSongRadio} showToast={showToast} />
           )}
           emptyMessage=""
         />
@@ -141,7 +154,7 @@ export default function DiscoverView({ onSongClick, showToast, likedSongs, onLik
         title="Top Songs"
         items={newSongs}
         renderItem={(song, index) => (
-          <SongCard song={song} onSongClick={onSongClick} downloadProgress={downloadProgress} likedSongs={likedSongs} onLikeToggle={onLikeToggle} onPlayNext={onPlayNext} onAddToQueue={onAddToQueue} onGoToAlbum={onGoToAlbum} showToast={showToast} />
+          <SongCard song={song} onSongClick={onSongClick} downloadProgress={downloadProgress} likedSongs={likedSongs} onLikeToggle={onLikeToggle} onPlayNext={onPlayNext} onAddToQueue={onAddToQueue} onGoToAlbum={onGoToAlbum} onSongRadio={onSongRadio} showToast={showToast} />
         )}
         emptyMessage="No top songs found"
       />
@@ -156,6 +169,62 @@ export default function DiscoverView({ onSongClick, showToast, likedSongs, onLik
         )}
         emptyMessage="No featured playlists found"
       />
+
+      {/* Charts (editorial playlists) */}
+      {charts?.length > 0 && (
+        <HorizontalScroll
+          title="Charts"
+          icon={ListMusic}
+          items={charts}
+          renderItem={(chart) => (
+            <EntityCard item={chart} onClick={() => handleEntityClick(chart)} subtitle={chart.songCount ? `${chart.songCount} songs` : 'Chart'} />
+          )}
+          emptyMessage=""
+        />
+      )}
+
+      {/* Trending albums */}
+      {trending?.length > 0 && (
+        <HorizontalScroll
+          title="Trending Albums"
+          items={trending}
+          renderItem={(album) => (
+            <EntityCard item={album} onClick={() => handleAlbumClick(album)} subtitle={album.year || 'Album'} />
+          )}
+          emptyMessage=""
+        />
+      )}
+
+      {/* New release albums */}
+      {newAlbums?.length > 0 && (
+        <HorizontalScroll
+          title="New Releases"
+          items={newAlbums}
+          renderItem={(album) => (
+            <EntityCard item={album} onClick={() => handleAlbumClick(album)} subtitle={album.year || 'Album'} />
+          )}
+          emptyMessage=""
+        />
+      )}
+    </div>
+  )
+}
+
+function EntityCard({ item, onClick, subtitle }) {
+  const imageUrl = getBestImageUrl(item.image) || ''
+  return (
+    <div onClick={onClick} className="w-32 md:w-40 flex-shrink-0 bg-zinc-900/50 rounded-lg p-3 hover:bg-zinc-800/50 transition-colors cursor-pointer">
+      <div className="aspect-square rounded-md overflow-hidden mb-3 bg-zinc-800">
+        {imageUrl ? (
+          <img src={imageUrl} alt={item.name} className="w-full h-full object-cover" loading="lazy" />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-zinc-600">
+            <Disc size={32} />
+          </div>
+        )}
+      </div>
+      <h3 className="text-xs font-medium text-white truncate">{decodeHtmlEntities(item.name)}</h3>
+      <p className="text-xs text-zinc-400 truncate">{subtitle}</p>
     </div>
   )
 }
@@ -185,7 +254,7 @@ function ArtistCard({ artist, onArtistClick }) {
   )
 }
 
-function SongCard({ song, onSongClick, downloadProgress, likedSongs, onLikeToggle, onPlayNext, onAddToQueue, onGoToAlbum, showToast }) {
+function SongCard({ song, onSongClick, downloadProgress, likedSongs, onLikeToggle, onPlayNext, onAddToQueue, onGoToAlbum, onSongRadio, showToast }) {
   const imageUrl = song.image || ''
   const progress = downloadProgress?.[song.id]
 
@@ -289,7 +358,7 @@ function SongCard({ song, onSongClick, downloadProgress, likedSongs, onLikeToggl
             onLikeToggle={onLikeToggle}
             onPlayNext={onPlayNext}
             onAddToQueue={onAddToQueue}
-            onGoToAlbum={onGoToAlbum}
+            onGoToAlbum={onGoToAlbum} onSongRadio={onSongRadio}
             showToast={showToast}
           />
         </div>

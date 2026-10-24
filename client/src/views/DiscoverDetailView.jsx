@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { useParams, useNavigate, useLocation } from 'react-router-dom'
-import { ArrowLeft, Disc, Download, Loader2, ChevronDown, Play, Shuffle } from 'lucide-react'
+import { ArrowLeft, Disc, Download, Loader2, ChevronDown, Play, Shuffle, Radio, Share2 } from 'lucide-react'
 import TrackMenu from '../components/TrackMenu'
 import { useDownloadStore } from '../stores/downloadStore'
 import MetaTags from '../components/MetaTags'
@@ -12,7 +12,7 @@ import { useArtistConfig, hasCustomAlbums, getAlbumsTabLabel } from '../artist-c
 const API_BASE = import.meta.env.VITE_API_URL
 const isProduction = import.meta.env.MODE === 'production'
 
-export default function DiscoverDetailView({ onSongClick, showToast, currentSong, isPlaying, sidebarOpen, likedSongs, onLikeToggle, onPlayNext, onAddToQueue, onGoToAlbum, onShufflePlay }) {
+export default function DiscoverDetailView({ onSongClick, showToast, currentSong, isPlaying, sidebarOpen, likedSongs, onLikeToggle, onPlayNext, onAddToQueue, onGoToAlbum, onSongRadio, onShufflePlay, onArtistRadio }) {
   const { id, slug } = useParams()
   const navigate = useNavigate()
   const location = useLocation()
@@ -515,6 +515,32 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
             >
               <Shuffle size={16} /> Shuffle
             </button>
+            {isArtist && onArtistRadio && (
+              <button
+                onClick={() => onArtistRadio(songs)}
+                className="flex items-center gap-2 px-5 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-white text-sm font-semibold rounded-full transition-colors touch-target"
+              >
+                <Radio size={16} /> Radio
+              </button>
+            )}
+            <button
+              onClick={async () => {
+                const type = isAlbum ? 'album' : isArtist ? 'artist' : 'playlist'
+                const url = `${window.location.origin}/discover/${type}/${id}`
+                try {
+                  if (navigator.share) await navigator.share({ title: data?.name || type, url })
+                  else { await navigator.clipboard.writeText(url); showToast?.('Link copied', 'success') }
+                } catch (e) {
+                  if (e?.name !== 'AbortError') {
+                    try { await navigator.clipboard.writeText(url); showToast?.('Link copied', 'success') }
+                    catch { showToast?.('Could not share', 'error') }
+                  }
+                }
+              }}
+              className="flex items-center gap-2 px-5 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-white text-sm font-semibold rounded-full transition-colors touch-target"
+            >
+              <Share2 size={16} /> Share
+            </button>
           </div>
           
           {isAlbum && (
@@ -768,7 +794,7 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
                         onLikeToggle={onLikeToggle}
                         onPlayNext={onPlayNext}
                         onAddToQueue={onAddToQueue}
-                        onGoToAlbum={onGoToAlbum}
+                        onGoToAlbum={onGoToAlbum} onSongRadio={onSongRadio}
                         showToast={showToast}
                       />
                     </div>
@@ -1044,7 +1070,7 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
                   onLikeToggle={onLikeToggle}
                   onPlayNext={onPlayNext}
                   onAddToQueue={onAddToQueue}
-                  onGoToAlbum={onGoToAlbum}
+                  onGoToAlbum={onGoToAlbum} onSongRadio={onSongRadio}
                   showToast={showToast}
                 />
               </div>
@@ -1055,6 +1081,62 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
 
       {songs.length === 0 && (
         <p className="text-zinc-500 text-center py-8">No songs found</p>
+      )}
+
+      {/* Artist bio + similar artists (data already returned by /api/artist/:id) */}
+      {isArtist && data?.bio && (
+        <ArtistBio text={data.bio} />
+      )}
+      {isArtist && data?.similarArtists?.length > 0 && (
+        <div className="mt-10">
+          <h2 className="text-lg font-bold text-white mb-4">Fans also like</h2>
+          <div className="flex gap-4 overflow-x-auto pb-2">
+            {data.similarArtists.map(artist => (
+              <button
+                key={artist.id}
+                onClick={() => navigate(`/discover/artist/${artist.id}`)}
+                className="flex flex-col items-center gap-2 w-20 md:w-24 shrink-0 group"
+              >
+                <div className="w-20 md:w-24 h-20 md:h-24 rounded-full overflow-hidden bg-zinc-800 shadow-lg">
+                  {getArtistImageUrl(artist.image) ? (
+                    <img src={getArtistImageUrl(artist.image)} alt={artist.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform" loading="lazy" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-zinc-600">
+                      <Disc size={28} />
+                    </div>
+                  )}
+                </div>
+                <span className="text-xs font-medium text-white truncate w-full text-center group-hover:text-[#fc3c44] transition-colors">
+                  {decodeHtmlEntities(artist.name)}
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// Collapsible artist bio — strips HTML markup the API sometimes embeds
+function ArtistBio({ text }) {
+  const [expanded, setExpanded] = useState(false)
+  const clean = decodeHtmlEntities(String(text).replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim())
+  if (!clean) return null
+  const isLong = clean.length > 300
+  return (
+    <div className="mt-10">
+      <h2 className="text-lg font-bold text-white mb-3">About</h2>
+      <p className="text-sm text-zinc-400 leading-relaxed max-w-2xl">
+        {expanded || !isLong ? clean : `${clean.slice(0, 300)}…`}
+      </p>
+      {isLong && (
+        <button
+          onClick={() => setExpanded(e => !e)}
+          className="mt-2 text-sm text-[#fc3c44] hover:underline"
+        >
+          {expanded ? 'Show less' : 'Show more'}
+        </button>
       )}
     </div>
   )

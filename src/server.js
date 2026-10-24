@@ -1302,6 +1302,92 @@ app.get('/api/songs', async (req, res) => {
   }
 });
 
+// Similar-song suggestions for a seed song (autoplay / radio)
+// Prod-safe. No official-API tier — that API has no suggestions equivalent.
+app.get('/api/songs/:id/suggestions', async (req, res) => {
+  try {
+    const { id } = req.params;
+    let rawSongs = null;
+
+    for (const base of [PRIMARY_API, FALLBACK_API]) {
+      try {
+        const response = await axios.get(`${base}/songs/${id}/suggestions`, {
+          headers: { 'User-Agent': 'Mozilla/5.0' },
+          timeout: 6000
+        });
+        const list = Array.isArray(response.data?.data)
+          ? response.data.data
+          : Array.isArray(response.data) ? response.data : null;
+        if (list && list.length > 0) {
+          rawSongs = list;
+          break;
+        }
+      } catch (e) {
+        console.log(`suggestions via ${base} failed:`, e.message);
+      }
+    }
+
+    const songs = (rawSongs || [])
+      .filter(s => s && s.id)
+      .slice(0, 50)
+      .map(song => ({ ...song, isLocal: isSongLocal(song.id) }));
+
+    res.json({ success: true, data: songs });
+  } catch (error) {
+    console.error('Suggestions error:', error.message);
+    res.json({ success: true, data: [] }); // autoplay degrades to stop — never 500
+  }
+});
+
+// Lyrics for a song — JioSaavn official first, LRCLIB (open-source) fallback
+app.get('/api/lyrics/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // 1) Official JioSaavn lyrics endpoint
+    try {
+      const official = await fetchFromMusicServiceOfficial('lyrics.getLyricsById', { lyrics_id: id });
+      const lyrics = official?.lyrics || official?.data?.lyrics;
+      if (lyrics && typeof lyrics === 'string' && lyrics.trim()) {
+        return res.json({ success: true, data: { lyrics, source: 'jiosaavn' } });
+      }
+    } catch (e) {
+      console.log('Official lyrics failed:', e.message);
+    }
+
+    // 2) LRCLIB fallback — needs title/artist/duration, so resolve the song
+    const songResult = await fetchWithFallback('songs', { ids: id }, 'songs');
+    const song = Array.isArray(songResult?.data) ? songResult.data[0] : null;
+    const trackName = song?.name || song?.title;
+    const artistName = song?.artists?.primary?.[0]?.name || song?.primaryArtists;
+    const duration = parseInt(song?.duration) || undefined;
+
+    if (trackName) {
+      try {
+        const params = { track_name: trackName };
+        if (artistName) params.artist_name = artistName;
+        if (duration) params.duration = duration;
+        const lrclib = await axios.get('https://lrclib.net/api/get', {
+          params,
+          headers: { 'User-Agent': 'Torsongs/1.0 (https://torsongs.vercel.app)' },
+          timeout: 8000
+        });
+        const lyrics = lrclib.data?.plainLyrics || lrclib.data?.syncedLyrics;
+        if (lyrics && lyrics.trim()) {
+          return res.json({ success: true, data: { lyrics, source: 'lrclib' } });
+        }
+      } catch (e) {
+        console.log('LRCLIB failed:', e.message);
+      }
+    }
+
+    res.json({ success: true, data: null });
+  } catch (error) {
+    console.error('Lyrics error:', error.message);
+    res.json({ success: true, data: null }); // lyrics are optional — never 500
+  }
+});
+
 // Get song details with playable URL
 app.get('/api/song/:id', async (req, res) => {
   try {
@@ -2366,13 +2452,15 @@ app.get('/api/artist/:id', async (req, res) => {
     }
 
     // Normalize Similar Artists
+    // Prefer numeric id — slug ids route to the degraded search-fallback
+    // branch which returns no bio/similarArtists/topAlbums (dead-end nav)
     let similarArtists = [];
     if (artistData.similarArtists && Array.isArray(artistData.similarArtists)) {
       similarArtists = artistData.similarArtists.map(a => ({
-        id: a.perma_url ? a.perma_url.split('/').filter(Boolean).pop() : a.id,
+        id: a.id || (a.perma_url ? a.perma_url.split('/').filter(Boolean).pop() : null),
         name: a.name,
         image: [{ quality: '500x500', url: a.image_url || a.image }]
-      }));
+      })).filter(a => a.id);
     }
 
     const normalizedArtist = {

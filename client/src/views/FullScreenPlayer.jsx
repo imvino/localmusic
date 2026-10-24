@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from 'react'
-import { Play, Pause, SkipBack, SkipForward, Shuffle, Repeat, Repeat1, Heart, Music, Loader2, ChevronDown, ListVideo } from 'lucide-react'
+import { Play, Pause, SkipBack, SkipForward, Shuffle, Repeat, Repeat1, Heart, Music, Loader2, ChevronDown, ListVideo, Mic2 } from 'lucide-react'
 import { formatTime, decodeHtmlEntities } from '../utils'
 import { Range, getTrackBackground } from 'react-range'
+import LyricsModal from '../components/LyricsModal'
 
 export default function FullScreenPlayer({ 
   currentSong, 
@@ -23,6 +24,7 @@ export default function FullScreenPlayer({
   isSearchingAlbum 
 }) {
   const playerRef = useRef(null)
+  const [lyricsOpen, setLyricsOpen] = useState(false)
 
   if (!currentSong) {
     return null
@@ -163,6 +165,13 @@ export default function FullScreenPlayer({
             >
               <ListVideo size={20} />
             </button>
+            <button
+              onClick={() => setLyricsOpen(true)}
+              className="text-zinc-400 hover:text-white transition-colors"
+              title="Lyrics"
+            >
+              <Mic2 size={20} />
+            </button>
           </div>
 
           {/* Play Controls Row */}
@@ -194,6 +203,7 @@ export default function FullScreenPlayer({
           </div>
         </div>
       </div>
+      {lyricsOpen && <LyricsModal song={currentSong} onClose={() => setLyricsOpen(false)} />}
     </div>
   )
 }

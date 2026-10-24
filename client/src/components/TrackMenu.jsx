@@ -1,11 +1,13 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { MoreHorizontal, Heart, ListPlus, Play, Disc3, ListMusic, Plus, ChevronLeft } from 'lucide-react'
+import { MoreHorizontal, Heart, ListPlus, Play, Disc3, ListMusic, Plus, ChevronLeft, Radio, Mic2, Share2 } from 'lucide-react'
 import { usePlaylistStore } from '../stores/playlistStore'
+import LyricsModal from './LyricsModal'
 
-export default function TrackMenu({ song, likedSongs, onLikeToggle, onPlayNext, onAddToQueue, onGoToAlbum, showToast }) {
+export default function TrackMenu({ song, likedSongs, onLikeToggle, onPlayNext, onAddToQueue, onGoToAlbum, onSongRadio, showToast }) {
   const [open, setOpen] = useState(false)
   const [showPlaylistPicker, setShowPlaylistPicker] = useState(false)
+  const [lyricsOpen, setLyricsOpen] = useState(false)
   const [pos, setPos] = useState({ top: 0, left: 0 })
   const triggerRef = useRef(null)
   const menuRef = useRef(null)
@@ -63,6 +65,23 @@ export default function TrackMenu({ song, likedSongs, onLikeToggle, onPlayNext, 
   const itemCls = 'flex items-center gap-3 w-full px-3 py-2.5 text-sm text-zinc-200 hover:bg-zinc-800 transition-colors text-left'
   const albumId = song.albumId || (typeof song.album === 'object' ? song.album?.id : null)
 
+  const shareSong = async () => {
+    const base = window.location.origin
+    const url = albumId
+      ? `${base}/discover/album/${albumId}`
+      : `${base}/search?q=${encodeURIComponent(`${song.name || song.title || ''} ${song.artist || ''}`)}`
+    const title = song.name || song.title || 'Song'
+    try {
+      if (navigator.share) await navigator.share({ title, url })
+      else { await navigator.clipboard.writeText(url); showToast?.('Link copied', 'success') }
+    } catch (e) {
+      if (e?.name !== 'AbortError') {
+        try { await navigator.clipboard.writeText(url); showToast?.('Link copied', 'success') }
+        catch { showToast?.('Could not share', 'error') }
+      }
+    }
+  }
+
   return (
     <>
       <button
@@ -114,6 +133,9 @@ export default function TrackMenu({ song, likedSongs, onLikeToggle, onPlayNext, 
               <button className={itemCls} onClick={() => setShowPlaylistPicker(true)}>
                 <ListMusic size={16} /> Add to playlist
               </button>
+              <button className={itemCls} onClick={() => act(() => onSongRadio?.(song))}>
+                <Radio size={16} /> Go to song radio
+              </button>
               <button className={itemCls} onClick={() => act(() => onLikeToggle?.(song.id))}>
                 <Heart size={16} className={liked ? 'fill-[#fc3c44] text-[#fc3c44]' : ''} />
                 {liked ? 'Unlike' : 'Like'}
@@ -125,11 +147,19 @@ export default function TrackMenu({ song, likedSongs, onLikeToggle, onPlayNext, 
               >
                 <Disc3 size={16} /> Go to album
               </button>
+              <div className="border-t border-zinc-800 my-1" />
+              <button className={itemCls} onClick={() => act(() => setLyricsOpen(true))}>
+                <Mic2 size={16} /> View lyrics
+              </button>
+              <button className={itemCls} onClick={() => act(shareSong)}>
+                <Share2 size={16} /> Share
+              </button>
             </>
           )}
         </div>,
         document.body
       )}
+      {lyricsOpen && <LyricsModal song={song} onClose={() => setLyricsOpen(false)} />}
     </>
   )
 }

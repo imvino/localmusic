@@ -1,7 +1,8 @@
-import { Compass, RefreshCw, Keyboard, X, Trash2, ListMusic, Settings, Heart, Music } from 'lucide-react'
+import { Compass, RefreshCw, Keyboard, X, Trash2, ListMusic, Settings, Heart, Music, Radio, Timer, SlidersHorizontal, BarChart3, Waves } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import { usePlaylistStore } from '../stores/playlistStore'
+import { EQ_PRESETS, isEqAvailable } from '../audio/eq'
 
 const API_BASE = import.meta.env.VITE_API_URL
 const isProduction = import.meta.env.MODE === 'production'
@@ -10,13 +11,18 @@ const NAV_ITEMS = [
   { id: 'discover', label: 'Discover', icon: Compass, path: '/discover' },
 ]
 
-export default function Sidebar({ searchQuery, onSearch, showToast, onClose, qualityPreference, onQualityChange }) {
+export default function Sidebar({ showToast, onClose, qualityPreference, onQualityChange, autoplayEnabled, onAutoplayToggle, sleepTimer, onSleepTimer, eqSettings, onEqChange, smoothTransitions, onSmoothTransitionsToggle }) {
   const location = useLocation()
   const currentPath = location.pathname
   const playlists = usePlaylistStore(s => s.playlists)
   const [isScanning, setIsScanning] = useState(false)
   const [showShortcuts, setShowShortcuts] = useState(false)
   const [showQualitySettings, setShowQualitySettings] = useState(false)
+  const [showEqSettings, setShowEqSettings] = useState(false)
+
+  const sleepTimerValue = sleepTimer?.type === 'eot' ? 'eot'
+    : sleepTimer?.type === 'timer' ? String(Math.max(1, Math.round((sleepTimer.endsAt - Date.now()) / 60000)))
+    : 'off'
 
   const handleScan = async () => {
     setIsScanning(true)
@@ -191,6 +197,81 @@ export default function Sidebar({ searchQuery, onSearch, showToast, onClose, qua
             <Trash2 size={17} />
             Clear Cache
           </button>
+
+          <button
+            onClick={onAutoplayToggle}
+            className="flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-left w-full text-zinc-400 hover:text-white hover:bg-zinc-800/40"
+          >
+            <div className="flex items-center gap-3">
+              <Radio size={17} />
+              Autoplay
+            </div>
+            <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${autoplayEnabled ? 'bg-[#fc3c44] text-white' : 'bg-zinc-800 text-zinc-500'}`}>
+              {autoplayEnabled ? 'On' : 'Off'}
+            </span>
+          </button>
+
+          {/* Sleep timer */}
+          <div className="flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium text-zinc-400">
+            <div className="flex items-center gap-3">
+              <Timer size={17} className={sleepTimer ? 'text-[#fc3c44]' : ''} />
+              <span className={sleepTimer ? 'text-white' : ''}>Sleep timer</span>
+            </div>
+            <select
+              value={sleepTimerValue}
+              onChange={e => onSleepTimer?.(e.target.value)}
+              className="bg-zinc-800 text-zinc-200 text-xs rounded-lg px-2 py-1.5 outline-none border border-zinc-700 focus:border-zinc-500 cursor-pointer"
+            >
+              <option value="off">Off</option>
+              <option value="15">15 min</option>
+              <option value="30">30 min</option>
+              <option value="60">60 min</option>
+              <option value="eot">End of track</option>
+            </select>
+          </div>
+
+          {/* EQ */}
+          {isEqAvailable() && (
+            <button
+              onClick={() => setShowEqSettings(true)}
+              className="flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-left w-full text-zinc-400 hover:text-white hover:bg-zinc-800/40"
+            >
+              <div className="flex items-center gap-3">
+                <SlidersHorizontal size={17} />
+                Equalizer
+              </div>
+              {eqSettings?.enabled && (
+                <span className="text-[10px] px-1.5 py-0.5 rounded font-medium bg-[#fc3c44] text-white">On</span>
+              )}
+            </button>
+          )}
+
+          {/* Smooth transitions */}
+          <button
+            onClick={() => onSmoothTransitionsToggle?.(!smoothTransitions)}
+            className="flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-left w-full text-zinc-400 hover:text-white hover:bg-zinc-800/40"
+          >
+            <div className="flex items-center gap-3">
+              <Waves size={17} />
+              Crossfade
+            </div>
+            <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${smoothTransitions ? 'bg-[#fc3c44] text-white' : 'bg-zinc-800 text-zinc-500'}`}>
+              {smoothTransitions ? 'On' : 'Off'}
+            </span>
+          </button>
+
+          {/* Stats */}
+          <Link
+            to="/stats"
+            onClick={onClose}
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-left w-full
+              ${currentPath === '/stats'
+                ? 'bg-zinc-800 text-white'
+                : 'text-zinc-400 hover:text-white hover:bg-zinc-800/40'}`}
+          >
+            <BarChart3 size={17} />
+            Your Stats
+          </Link>
         </div>
 
         {/* Library - local collections, no sign-in needed */}
@@ -387,6 +468,73 @@ export default function Sidebar({ searchQuery, onSearch, showToast, onClose, qua
                 {qualityPreference === 'high-quality' && <div className="w-2 h-2 bg-[#fc3c44] rounded-full" />}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* EQ Modal */}
+      {showEqSettings && (
+        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50" onClick={() => setShowEqSettings(false)}>
+          <div className="bg-zinc-900 rounded-xl p-6 max-w-md w-full mx-4 shadow-2xl" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-bold text-white">Equalizer</h2>
+              <button onClick={() => setShowEqSettings(false)} className="text-zinc-400 hover:text-white">
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Enable toggle */}
+            <button
+              onClick={() => onEqChange?.({ ...eqSettings, enabled: !eqSettings?.enabled })}
+              className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition-all mb-4
+                ${eqSettings?.enabled ? 'bg-zinc-800 text-white' : 'text-zinc-400 hover:text-white hover:bg-zinc-800/40'}`}
+            >
+              <div className="text-left">
+                <div className="font-medium">{eqSettings?.enabled ? 'Enabled' : 'Disabled'}</div>
+                <div className="text-xs text-zinc-500 mt-1">3-band EQ via Web Audio</div>
+              </div>
+              <div className={`w-2 h-2 rounded-full ${eqSettings?.enabled ? 'bg-[#fc3c44]' : 'bg-zinc-700'}`} />
+            </button>
+
+            {/* Presets */}
+            <div className="flex gap-2 mb-5 flex-wrap">
+              {Object.keys(EQ_PRESETS).map(name => (
+                <button
+                  key={name}
+                  onClick={() => onEqChange?.({ ...eqSettings, enabled: true, preset: name, ...EQ_PRESETS[name] })}
+                  className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors capitalize
+                    ${eqSettings?.preset === name && eqSettings?.enabled
+                      ? 'bg-[#fc3c44] text-white'
+                      : 'bg-zinc-800 text-zinc-400 hover:text-white'}`}
+                >
+                  {name === 'flat' ? 'Flat' : name === 'bass' ? 'Bass Boost' : name === 'vocal' ? 'Vocal' : 'Treble'}
+                </button>
+              ))}
+            </div>
+
+            {/* Band sliders */}
+            {[
+              { key: 'low', label: 'Bass', freq: '200 Hz' },
+              { key: 'mid', label: 'Mid', freq: '1 kHz' },
+              { key: 'high', label: 'Treble', freq: '3 kHz' }
+            ].map(({ key, label, freq }) => (
+              <div key={key} className="mb-4">
+                <div className="flex justify-between text-xs text-zinc-400 mb-1">
+                  <span>{label} <span className="text-zinc-600">({freq})</span></span>
+                  <span>{(eqSettings?.[key] ?? 0) > 0 ? '+' : ''}{eqSettings?.[key] ?? 0} dB</span>
+                </div>
+                <input
+                  type="range"
+                  min={-12}
+                  max={12}
+                  step={1}
+                  disabled={!eqSettings?.enabled}
+                  value={eqSettings?.[key] ?? 0}
+                  onChange={e => onEqChange?.({ ...eqSettings, enabled: true, preset: 'custom', [key]: parseInt(e.target.value) })}
+                  className="w-full accent-[#fc3c44] disabled:opacity-40"
+                />
+              </div>
+            ))}
           </div>
         </div>
       )}

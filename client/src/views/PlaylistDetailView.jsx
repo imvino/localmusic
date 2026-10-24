@@ -5,7 +5,7 @@ import { usePlaylistStore } from '../stores/playlistStore'
 import { getBestImageUrl, formatDuration } from '../utils'
 import TrackMenu from '../components/TrackMenu'
 
-export default function PlaylistDetailView({ onSongClick, onShufflePlay, onPlayNext, onAddToQueue, onGoToAlbum, likedSongs, onLikeToggle, currentSong, isPlaying, showToast }) {
+export default function PlaylistDetailView({ onSongClick, onShufflePlay, onPlayNext, onAddToQueue, onGoToAlbum, onSongRadio, likedSongs, onLikeToggle, currentSong, isPlaying, showToast }) {
   const { id } = useParams()
   const navigate = useNavigate()
   const playlist = usePlaylistStore(s => s.playlists[id])
@@ -134,7 +134,7 @@ export default function PlaylistDetailView({ onSongClick, onShufflePlay, onPlayN
                     onLikeToggle={onLikeToggle}
                     onPlayNext={onPlayNext}
                     onAddToQueue={onAddToQueue}
-                    onGoToAlbum={onGoToAlbum}
+                    onGoToAlbum={onGoToAlbum} onSongRadio={onSongRadio}
                     showToast={showToast}
                   />
                 </div>

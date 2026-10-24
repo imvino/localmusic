@@ -92,6 +92,39 @@ export function useJioNewReleases() {
   })
 }
 
+// Browse content (server has these but nothing consumed them)
+export function useCharts() {
+  return useQuery({
+    queryKey: ['charts'],
+    queryFn: () => fetchAPI('/charts'),
+    select: (data) => (Array.isArray(data?.data) ? data.data : []),
+  })
+}
+
+export function useTrending() {
+  return useQuery({
+    queryKey: ['trending'],
+    queryFn: () => fetchAPI('/trending'),
+    select: (data) => (Array.isArray(data?.data) ? data.data : []),
+  })
+}
+
+export function useFeaturedPlaylists() {
+  return useQuery({
+    queryKey: ['featured-playlists'],
+    queryFn: () => fetchAPI('/featured-playlists'),
+    select: (data) => (Array.isArray(data?.data) ? data.data : []),
+  })
+}
+
+export function useNewReleaseAlbums() {
+  return useQuery({
+    queryKey: ['new-release-albums'],
+    queryFn: () => fetchAPI('/new-releases'),
+    select: (data) => (Array.isArray(data?.data) ? data.data : []),
+  })
+}
+
 // Health check endpoint
 export function useHealthCheck(enabled = true) {
   return useQuery({

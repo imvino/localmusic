@@ -1,4 +1,4 @@
-import { Search, Mic2, Disc3, Music, ListMusic, ChevronDown } from 'lucide-react'
+import { Search, Mic2, Disc3, Music, ListMusic, ChevronDown, Clock3 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import MetaTags from '../components/MetaTags'
@@ -6,7 +6,7 @@ import TrackMenu from '../components/TrackMenu'
 import { useSearch } from '../hooks/useApi'
 import { decodeHtmlEntities, getBestImageUrl, getArtistImageUrl, formatDuration } from '../utils'
 
-export default function SearchView({ query, onSongClick, onAlbumClick, onArtistClick, showToast, likedSongs, onLikeToggle, onPlayNext, onAddToQueue, onGoToAlbum }) {
+export default function SearchView({ query, onSongClick, onAlbumClick, onArtistClick, showToast, likedSongs, onLikeToggle, onPlayNext, onAddToQueue, onGoToAlbum, onSongRadio }) {
   const navigate = useNavigate()
   const appUrl = import.meta.env.VITE_APP_URL
   const [visibleSongs, setVisibleSongs] = useState(5)
@@ -14,6 +14,36 @@ export default function SearchView({ query, onSongClick, onAlbumClick, onArtistC
   const [visibleArtists, setVisibleArtists] = useState(5)
   const [visiblePlaylists, setVisiblePlaylists] = useState(5)
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
+  const [debouncedQuery, setDebouncedQuery] = useState(query)
+  const [recentSearches, setRecentSearches] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('recentSearches')) || [] } catch { return [] }
+  })
+
+  // Debounce — query prop tracks the input live; the API only fires after
+  // a 300ms pause instead of per keystroke
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedQuery(query), 300)
+    return () => clearTimeout(t)
+  }, [query])
+
+  const recordSearch = (term) => {
+    const q = term.trim()
+    if (!q) return
+    setRecentSearches(prev => {
+      const next = [q, ...prev.filter(s => s.toLowerCase() !== q.toLowerCase())].slice(0, 8)
+      try { localStorage.setItem('recentSearches', JSON.stringify(next)) } catch { /* quota */ }
+      return next
+    })
+  }
+
+  const clearRecents = () => {
+    setRecentSearches([])
+    try { localStorage.removeItem('recentSearches') } catch { /* ignore */ }
+  }
+
+  const runRecent = (term) => {
+    navigate(`/search?q=${encodeURIComponent(term)}`)
+  }
 
   // Handle responsive album and artist counts
   useEffect(() => {
@@ -30,16 +60,43 @@ export default function SearchView({ query, onSongClick, onAlbumClick, onArtistC
     return () => window.removeEventListener('resize', handleResize)
   }, [])
 
-  // Use TanStack Query for search
-  const { data: onlineResults, isLoading: loading, error } = useSearch(query)
+  // Use TanStack Query for search (debounced — input stays instant)
+  const { data: onlineResults, isLoading: loading, error } = useSearch(debouncedQuery)
 
 
   if (!query.trim()) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-8">
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-8 w-full">
         <Search size={56} className="text-zinc-700 mb-4" />
         <h2 className="text-xl font-semibold text-white mb-2">Search Music</h2>
-        <p className="text-sm text-zinc-500">Find songs, albums, and artists online</p>
+        <p className="text-sm text-zinc-500 mb-8">Find songs, albums, and artists online</p>
+        {recentSearches.length > 0 && (
+          <div className="w-full max-w-md">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-semibold text-zinc-300 flex items-center gap-2">
+                <Clock3 size={14} className="text-zinc-500" /> Recent searches
+              </h3>
+              <button
+                onClick={clearRecents}
+                className="text-xs text-zinc-500 hover:text-white transition-colors"
+              >
+                Clear
+              </button>
+            </div>
+            <div className="flex flex-col gap-1">
+              {recentSearches.map(term => (
+                <button
+                  key={term}
+                  onClick={() => runRecent(term)}
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-zinc-800/60 transition-colors text-left group"
+                >
+                  <Clock3 size={14} className="text-zinc-600 shrink-0" />
+                  <span className="text-sm text-zinc-300 group-hover:text-white truncate flex-1">{term}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     )
   }
@@ -113,6 +170,7 @@ export default function SearchView({ query, onSongClick, onAlbumClick, onArtistC
               <button
                 className="flex flex-col md:flex-row items-center md:items-start gap-4 p-4 bg-zinc-900 rounded-xl hover:bg-zinc-800 transition-colors w-full group overflow-hidden"
                 onClick={() => {
+                  recordSearch(query)
                   if (onlineResults.topResult.type === 'song') {
                     onSongClick({
                       ...onlineResults.topResult,
@@ -167,12 +225,16 @@ export default function SearchView({ query, onSongClick, onAlbumClick, onArtistC
                     key={song.id}
                     role="button"
                     tabIndex={0}
-                    onClick={() => onSongClick({
-                      ...song
-                    }, onlineResults.songs, index)}
+                    onClick={() => {
+                      recordSearch(query)
+                      onSongClick({
+                        ...song
+                      }, onlineResults.songs, index)
+                    }}
                     onKeyDown={e => {
                       if (e.key === 'Enter' || e.key === ' ') {
                         e.preventDefault()
+                        recordSearch(query)
                         onSongClick({ ...song }, onlineResults.songs, index)
                       }
                     }}
@@ -203,7 +265,7 @@ export default function SearchView({ query, onSongClick, onAlbumClick, onArtistC
                         onLikeToggle={onLikeToggle}
                         onPlayNext={onPlayNext}
                         onAddToQueue={onAddToQueue}
-                        onGoToAlbum={onGoToAlbum}
+                        onGoToAlbum={onGoToAlbum} onSongRadio={onSongRadio}
                         showToast={showToast}
                       />
                     </div>
@@ -233,6 +295,7 @@ export default function SearchView({ query, onSongClick, onAlbumClick, onArtistC
                   <button
                     key={album.id}
                     onClick={() => {
+                      recordSearch(query)
                       const slug = (album.name || album.title).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
                       navigate(`/discover/album/${album.id}/${slug}`, { state: { album, albumName: album.name || album.title } });
                     }}
@@ -279,7 +342,7 @@ export default function SearchView({ query, onSongClick, onAlbumClick, onArtistC
                 {onlineResults.artists.slice(0, visibleArtists).map(artist => (
                   <button
                     key={artist.id}
-                    onClick={() => onArtistClick(artist)}
+                    onClick={() => { recordSearch(query); onArtistClick(artist) }}
                     className="flex flex-col items-center gap-2 group w-16 md:w-20"
                   >
                     <div className="w-16 md:w-20 h-16 md:h-20 rounded-full overflow-hidden bg-zinc-800 shadow">
@@ -323,7 +386,7 @@ export default function SearchView({ query, onSongClick, onAlbumClick, onArtistC
                 {onlineResults.playlists.slice(0, visiblePlaylists).map(playlist => (
                   <button
                     key={playlist.id}
-                    onClick={() => navigate(`/discover/playlist/${playlist.id}`, { state: { playlist } })}
+                    onClick={() => { recordSearch(query); navigate(`/discover/playlist/${playlist.id}`, { state: { playlist } }) }}
                     className="flex flex-col gap-2 group w-20 md:w-24"
                   >
                     <div className="w-20 md:w-24 h-20 md:h-24 rounded-xl overflow-hidden bg-zinc-800 shadow">

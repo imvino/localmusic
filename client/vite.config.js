@@ -2,6 +2,7 @@ import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
+
 import { resolve, dirname } from 'path'
 import { fileURLToPath } from 'url'
 
@@ -45,6 +46,23 @@ export default defineConfig(({ mode }) => {
         workbox: {
           globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
           runtimeCaching: [
+            {
+              // Audio streams (any origin — dev same-origin, prod Render API).
+              // CacheFirst + range plugin = heard songs replay offline incl. seeks.
+              urlPattern: /\/api\/stream\//i,
+              handler: 'CacheFirst',
+              options: {
+                cacheName: 'audio-cache',
+                rangeRequests: true, // serve seeks from the cached full response
+                cacheableResponse: {
+                  statuses: [0, 200, 206]
+                },
+                expiration: {
+                  maxEntries: 200,
+                  maxAgeSeconds: 60 * 60 * 24 * 30 // 30 days
+                }
+              }
+            },
             {
               urlPattern: /^https:\/\/saavn\.sumit\.co\/.*/i,
               handler: 'NetworkFirst',
