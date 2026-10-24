@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { usePlaylistStore } from '../stores/playlistStore'
 import { EQ_PRESETS, isEqAvailable } from '../audio/eq'
 import UserMenu from '../components/UserMenu'
+import BackupControls from '../components/BackupControls'
 
 const API_BASE = import.meta.env.VITE_API_URL
 const isProduction = import.meta.env.MODE === 'production'
@@ -12,7 +13,7 @@ const NAV_ITEMS = [
   { id: 'discover', label: 'Discover', icon: Compass, path: '/discover' },
 ]
 
-export default function Sidebar({ showToast, onClose, qualityPreference, onQualityChange, autoplayEnabled, onAutoplayToggle, sleepTimer, onSleepTimer, eqSettings, onEqChange, smoothTransitions, onSmoothTransitionsToggle, installPrompt, onInstall }) {
+export default function Sidebar({ showToast, onClose, qualityPreference, onQualityChange, autoplayEnabled, onAutoplayToggle, sleepTimer, onSleepTimer, eqSettings, onEqChange, smoothTransitions, onSmoothTransitionsToggle, installPrompt, onInstall, onImportLibrary }) {
   const location = useLocation()
   const currentPath = location.pathname
   const playlists = usePlaylistStore(s => s.playlists)
@@ -346,6 +347,12 @@ export default function Sidebar({ showToast, onClose, qualityPreference, onQuali
             </button>
           </div>
         )}
+
+        {/* Backup & restore — library safety net */}
+        <div className="flex flex-col gap-0.5">
+          <div className="text-[10px] font-semibold text-zinc-600 uppercase tracking-widest mb-1 px-2">Backup</div>
+          <BackupControls onImportLibrary={onImportLibrary} showToast={showToast} />
+        </div>
 
         {/* Legal links */}
         <div className="flex flex-col gap-0.5">

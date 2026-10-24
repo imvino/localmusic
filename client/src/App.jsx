@@ -28,6 +28,7 @@ import ErrorBoundary from './components/ErrorBoundary'
 import UserMenu from './components/UserMenu'
 import LyricsModal from './components/LyricsModal'
 import { useLibrarySync } from './hooks/useLibrarySync'
+import { usePlaylistStore } from './stores/playlistStore'
 import { enableEq, warmEq, setEqGains } from './audio/eq'
 import { isDownloaded, downloadUrlFor, reconcileDownloads } from './utils/downloads'
 import { getSongArtwork } from './utils'
@@ -178,6 +179,14 @@ function AppContent() {
 
   // Cross-device library sync — likes + playlists follow the signed-in user
   useLibrarySync({ likedSongs, setLikedSongs })
+
+  // Backup restore — refresh React state from an imported backup file
+  const handleImportLibrary = (backup) => {
+    if (Array.isArray(backup?.likedSongs)) setLikedSongs(new Set(backup.likedSongs))
+    if (backup?.playlists && typeof backup.playlists === 'object') {
+      usePlaylistStore.setState({ playlists: backup.playlists })
+    }
+  }
 
   // Function to show toast notifications
   const showToastMessage = (message, type = 'error') => {
@@ -1538,6 +1547,7 @@ function AppContent() {
               onSmoothTransitionsToggle={setSmoothTransitions}
               installPrompt={installPrompt}
               onInstall={handleInstall}
+              onImportLibrary={handleImportLibrary}
             />
           </div>
         </div>
@@ -1561,6 +1571,7 @@ function AppContent() {
           onSmoothTransitionsToggle={setSmoothTransitions}
           installPrompt={installPrompt}
           onInstall={handleInstall}
+          onImportLibrary={handleImportLibrary}
         />
       </div>
       
