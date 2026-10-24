@@ -1,13 +1,61 @@
+import { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Heart, ListMusic, Download, BarChart3, ChevronRight, Music } from 'lucide-react'
+import { Heart, Download, BarChart3, ChevronRight, ListMusic, Music, Disc3, Mic2, Loader2, Search, X } from 'lucide-react'
 import { usePlaylistStore } from '../stores/playlistStore'
-import { getBestImageUrl, decodeHtmlEntities } from '../utils'
+import ArtImage from '../components/ArtImage'
+import { getImageSrc, decodeHtmlEntities } from '../utils'
 
-export default function LibraryView({ likedSongs }) {
+const API_BASE = import.meta.env.VITE_API_URL
+
+// Your Library — the local collection browser. Albums/artists come straight
+// from the server's music-library index (dev/LAN: the owner's disk is the
+// library). The online half (liked, downloads, playlists, stats) stays on top.
+export default function LibraryView({ likedSongs, onSongClick }) {
   const navigate = useNavigate()
   const playlists = usePlaylistStore(s => s.playlists)
+  const [albums, setAlbums] = useState(null)
+  const [error, setError] = useState(false)
+  const [tab, setTab] = useState('albums') // albums | artists
+  const [query, setQuery] = useState('')
+
+  useEffect(() => {
+    let live = true
+    fetch(`${API_BASE}/api/albums`)
+      .then(r => r.ok ? r.json() : Promise.reject())
+      .then(data => { if (live) { setAlbums(Array.isArray(data) ? data : []) } })
+      .catch(() => { if (live) setError(true) })
+    return () => { live = false }
+  }, [])
+
+  const playlistList = Object.values(playlists).slice(0, 5)
   const downloads = (() => { try { return JSON.parse(localStorage.getItem('downloads') || '[]') } catch { return [] } })()
-  const playlistList = Object.values(playlists).slice(0, 6)
+
+  // Artist index — folder names in the library layout are the artist names
+  const artists = useMemo(() => {
+    if (!albums) return []
+    const map = new Map()
+    for (const a of albums) {
+      const parts = (a.localPath || '').split('/').filter(Boolean)
+      const artist = parts[parts.length - 2] || 'Unknown Artist'
+      if (!map.has(artist)) map.set(artist, { name: artist, count: 0, image: '' })
+      const entry = map.get(artist)
+      entry.count++
+      if (!entry.image) entry.image = a.songs?.find(s => s.imageUrl)?.imageUrl || ''
+    }
+    return [...map.values()].sort((a, b) => b.count - a.count)
+  }, [albums])
+
+  const filteredAlbums = useMemo(() => {
+    if (!albums) return []
+    const q = query.trim().toLowerCase()
+    if (!q) return albums
+    return albums.filter(a =>
+      (a.name || '').toLowerCase().includes(q) ||
+      (a.year || '').toString().includes(q)
+    )
+  }, [albums, query])
+
+  const filteredArtists = artists.filter(a => !query.trim() || a.name.toLowerCase().includes(query.trim().toLowerCase()))
 
   const Row = ({ icon: Icon, label, sub, to, tint }) => (
     <button
@@ -29,14 +77,134 @@ export default function LibraryView({ likedSongs }) {
     <div className="px-4 pt-4 pb-32">
       <h1 className="text-2xl font-bold text-white mb-4">Your Library</h1>
 
-      <div className="bg-zinc-900/60 rounded-xl overflow-hidden divide-y divide-zinc-800/60">
+      <div className="bg-zinc-900/60 rounded-xl overflow-hidden divide-y divide-zinc-800/60 mb-6">
         <Row icon={Heart} label="Liked Songs" sub={`${likedSongs?.size ?? 0} songs`} to="/liked" tint="bg-gradient-to-br from-[#fc3c44] to-[#7c1d26]" />
         <Row icon={Download} label="Downloads" sub={`${downloads.length} available offline`} to="/downloads" tint="bg-gradient-to-br from-emerald-500 to-emerald-800" />
         <Row icon={BarChart3} label="Your Stats" sub="Listening activity" to="/stats" tint="bg-gradient-to-br from-indigo-500 to-indigo-800" />
       </div>
 
-      <div className="flex items-center justify-between mt-6 mb-2 px-1">
-        <h2 className="text-lg font-bold text-white">Playlists</h2>
+      {/* Collection header — the local music index */}
+      <div className="flex items-center justify-between mb-2 px-1">
+        <h2 className="text-lg font-bold text-white flex items-center gap-2">
+          <Disc3 size={18} className="text-[#fc3c44]" /> Collection
+        </h2>
+        {albums && (
+          <span className="text-xs text-zinc-500">{albums.length} albums · {albums.reduce((n, a) => n + (a.songs?.length || 0), 0)} songs</span>
+        )}
+      </div>
+
+      {/* Tabs + search */}
+      <div className="flex items-center gap-2 mb-3">
+        <div className="flex gap-1 bg-zinc-900 rounded-full p-1">
+          {['albums', 'artists'].map(t => (
+            <button
+              key={t}
+              onClick={() => setTab(t)}
+              className={`px-4 py-1.5 rounded-full text-sm font-medium capitalize transition-colors ${
+                tab === t ? 'bg-[#fc3c44] text-white' : 'text-zinc-400 hover:text-white'
+              }`}
+            >
+              {t}
+            </button>
+          ))}
+        </div>
+        <div className="relative flex-1 max-w-xs">
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none" />
+          <input
+            value={query}
+            onChange={e => setQuery(e.target.value)}
+            placeholder={`Search ${tab}`}
+            className="w-full bg-zinc-900 text-sm text-white placeholder-zinc-600 rounded-full pl-9 pr-8 py-2 outline-none focus:border-zinc-700 border border-transparent transition-colors"
+          />
+          {query && (
+            <button onClick={() => setQuery('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-white">
+              <X size={14} />
+            </button>
+          )}
+        </div>
+      </div>
+
+      {albums === null && !error ? (
+        <div className="flex items-center justify-center py-16">
+          <Loader2 className="animate-spin text-zinc-500" size={28} />
+        </div>
+      ) : error ? (
+        <div className="flex flex-col items-center justify-center py-16 text-zinc-500 gap-3">
+          <Disc3 size={32} />
+          <p className="text-sm text-center">Your music collection isn't reachable right now.<br />Connect to your home server to browse albums.</p>
+        </div>
+      ) : tab === 'albums' ? (
+        filteredAlbums.length ? (
+          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-3">
+            {filteredAlbums.map(album => {
+              const art = album.songs?.find(s => s.imageUrl)?.imageUrl || ''
+              return (
+                <button
+                  key={album.id}
+                  onClick={() => navigate(`/library/album/${album.id}`, { state: { album } })}
+                  className="group text-left"
+                >
+                  <ArtImage
+                    image={art}
+                    alt={album.name}
+                    className="aspect-square w-full rounded-lg"
+                    imgClassName="group-hover:scale-105 transition-transform"
+                    iconSize={28}
+                    fallback={Disc3}
+                  />
+                  <div className="mt-2">
+                    <div className="text-xs font-medium text-white truncate group-hover:text-[#fc3c44] transition-colors">
+                      {decodeHtmlEntities(album.name)}
+                    </div>
+                    <div className="text-[11px] text-zinc-500 truncate">
+                      {(album.localPath || '').split('/').filter(Boolean).slice(-2)[0] || 'Album'}{album.year ? ` · ${album.year}` : ''}
+                    </div>
+                  </div>
+                </button>
+              )
+            })}
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center py-16 text-zinc-500 gap-3">
+            <Search size={32} />
+            <p className="text-sm">No albums match "{query}"</p>
+          </div>
+        )
+      ) : filteredArtists.length ? (
+        <div className="flex flex-wrap gap-4">
+          {filteredArtists.map(artist => (
+            <button
+              key={artist.name}
+              onClick={() => navigate(`/library/album/${albums.find(a => (a.localPath || '').includes(artist.name))?.id}`, {
+                state: { album: albums.find(a => (a.localPath || '').includes(artist.name)), artistName: artist.name }
+              })}
+              className="flex flex-col items-center gap-2 w-20 group"
+            >
+              <ArtImage
+                image={artist.image}
+                alt={artist.name}
+                className="w-20 h-20 rounded-full"
+                imgClassName="group-hover:scale-105 transition-transform"
+                iconSize={26}
+                fallback={Mic2}
+              />
+              <div className="text-xs font-medium text-white truncate w-full text-center group-hover:text-[#fc3c44] transition-colors">{artist.name}</div>
+              <div className="text-[11px] text-zinc-500 -mt-1.5">{artist.count} albums</div>
+            </button>
+          ))}
+        </div>
+      ) : (
+        <div className="flex flex-col items-center justify-center py-16 text-zinc-500 gap-3">
+          <Mic2 size={32} />
+          <p className="text-sm">No artists match "{query}"</p>
+        </div>
+      )}
+
+      {/* Playlists */}
+      <div className="flex items-center justify-between mt-8 mb-2 px-1">
+        <h2 className="text-lg font-bold text-white flex items-center gap-2">
+          <ListMusic size={18} className="text-[#fc3c44]" /> Playlists
+        </h2>
         <button onClick={() => navigate('/playlists')} className="text-sm text-[#fc3c44] font-medium">See all</button>
       </div>
       {playlistList.length ? (
@@ -49,11 +217,13 @@ export default function LibraryView({ likedSongs }) {
                 onClick={() => navigate(`/playlists/${pl.id}`)}
                 className="w-full flex items-center gap-4 px-4 py-3 hover:bg-zinc-900 active:bg-zinc-800 transition-colors text-left"
               >
-                <div className="w-11 h-11 rounded-lg bg-zinc-800 overflow-hidden shrink-0 flex items-center justify-center">
-                  {first?.imageUrl
-                    ? <img src={first.imageUrl} alt="" className="w-full h-full object-cover" />
-                    : <ListMusic size={18} className="text-zinc-600" />}
-                </div>
+                <ArtImage
+                  image={first?.image || first?.imageUrl}
+                  alt=""
+                  className="w-11 h-11 rounded-lg"
+                  iconSize={18}
+                  fallback={ListMusic}
+                />
                 <div className="flex-1 min-w-0">
                   <div className="text-white font-medium truncate">{decodeHtmlEntities(pl.name)}</div>
                   <div className="text-xs text-zinc-500">{pl.songs?.length || 0} songs</div>

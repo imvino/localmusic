@@ -20,6 +20,7 @@ import PlaylistDetailView from './views/PlaylistDetailView'
 import LikedSongsView from './views/LikedSongsView'
 import StatsView from './views/StatsView'
 import LibraryView from './views/LibraryView'
+import LocalAlbumView from './views/LocalAlbumView'
 import DownloadsView from './views/DownloadsView'
 import SharedPlaylistView from './views/SharedPlaylistView'
 import QueueDrawer from './components/QueueDrawer'
@@ -1687,6 +1688,7 @@ function AppContent() {
             <Route path="/liked" element={<LikedSongsView likedSongs={likedSongs} onLikeToggle={handleLikeToggle} onSongClick={handleSongSelect} onShufflePlay={handleShufflePlay} onPlayNext={handlePlayNext} onAddToQueue={handleAddToQueue} onGoToAlbum={handleGoToAlbum} onSongRadio={handleSongRadio} currentSong={currentSong} isPlaying={isPlaying} showToast={showToastMessage} />} />
             <Route path="/stats" element={<StatsView likedSongs={likedSongs} onSongClick={handleSongSelect} />} />
             <Route path="/library" element={<LibraryView likedSongs={likedSongs} />} />
+            <Route path="/library/album/:id" element={<LocalAlbumView onSongClick={handleSongSelect} onShufflePlay={handleShufflePlay} onPlayNext={handlePlayNext} onAddToQueue={handleAddToQueue} onGoToAlbum={handleGoToAlbum} onSongRadio={handleSongRadio} likedSongs={likedSongs} onLikeToggle={handleLikeToggle} currentSong={currentSong} isPlaying={isPlaying} showToast={showToastMessage} />} />
             <Route path="/downloads" element={<DownloadsView onSongClick={handleSongSelect} showToast={showToastMessage} />} />
             <Route path="/shared/:data" element={<SharedPlaylistView onSongClick={handleSongSelect} showToast={showToastMessage} />} />
             <Route path="/terms" element={<TermsOfService />} />

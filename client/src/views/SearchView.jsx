@@ -104,15 +104,17 @@ export default function SearchView({ query, onSongClick, onAlbumClick, onArtistC
   }
 
   // Determine if we have results
-  const hasOnlineResults = onlineResults && (
+  const hasResults = onlineResults && (
     onlineResults.topResult ||
     onlineResults.songs?.length ||
     onlineResults.albums?.length ||
     onlineResults.artists?.length ||
-    onlineResults.playlists?.length
+    onlineResults.playlists?.length ||
+    onlineResults.localAlbums?.length ||
+    onlineResults.localSongs?.length
   )
 
-  if (!loading && !hasOnlineResults && !error) {
+  if (!loading && !hasResults && !error) {
     return (
       <div className="p-8 flex flex-col items-center justify-center min-h-[40vh] text-center">
         <p className="text-zinc-400">
@@ -175,6 +177,64 @@ export default function SearchView({ query, onSongClick, onAlbumClick, onArtistC
       {/* Online Search Results */}
       {onlineResults && !loading && (
         <>
+          {/* FROM YOUR LIBRARY — local collection matches ride on top */}
+          {(tab === 'all' || tab === 'songs' || tab === 'albums') && (onlineResults.localAlbums?.length > 0 || onlineResults.localSongs?.length > 0) && (
+            <section className="mb-8">
+              <h2 className="flex items-center gap-2 text-lg font-bold text-white mb-4">
+                <Disc3 size={18} className="text-[#fc3c44]" /> From your library
+              </h2>
+              {onlineResults.localAlbums?.length > 0 && (
+                <div className="flex gap-3 md:gap-4 flex-wrap mb-4">
+                  {onlineResults.localAlbums.map(album => (
+                    <button
+                      key={album.id}
+                      onClick={() => navigate(`/library/album/${album.id}`)}
+                      className="flex flex-col gap-2 group w-20 md:w-24"
+                    >
+                      <ArtImage
+                        image={album.image}
+                        alt={album.name}
+                        className="w-20 md:w-24 h-20 md:h-24 rounded-xl"
+                        imgClassName="group-hover:scale-105 transition-transform"
+                        iconSize={24}
+                        fallback={Disc3}
+                      />
+                      <span className="text-xs text-zinc-300 group-hover:text-white transition-colors text-left w-24 truncate leading-snug">
+                        {decodeHtmlEntities(album.name)}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
+              {onlineResults.localSongs?.length > 0 && (
+                <div className="flex flex-col gap-0.5">
+                  {onlineResults.localSongs.map((song, index) => (
+                    <div
+                      key={song.id}
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => onSongClick({ ...song, isLocal: true }, onlineResults.localSongs, index)}
+                      onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSongClick({ ...song, isLocal: true }, onlineResults.localSongs, index) } }}
+                      className="flex items-center gap-2 md:gap-3 px-2 md:px-3 py-2 md:py-2.5 rounded-xl hover:bg-zinc-800/60 transition-colors text-left w-full group cursor-pointer"
+                    >
+                      <ArtImage
+                        image={song.image}
+                        alt={song.name}
+                        className="w-8 md:w-10 h-8 md:h-10 rounded-lg"
+                        iconSize={14}
+                        fallback={Music}
+                      />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-white truncate">{decodeHtmlEntities(song.name)}</p>
+                        <p className="text-xs text-zinc-500 truncate">{song.artist}{song.album ? ` · ${decodeHtmlEntities(song.album)}` : ''}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </section>
+          )}
+
           {/* TOP RESULT */}
           {tab === 'all' && onlineResults.topResult && (
             <section className="mb-8">

@@ -8,6 +8,7 @@ const { exec } = require('child_process');
 const { decodeHtmlEntities, loadLibrary: loadLibraryUtil, detectComposerFromSongs, getBestImage, fetchFromMusicServiceOfficial, fetchWithFallback, generateJioSaavnAuthToken, generateJioSaavnAuthUrls } = require('./utils');
 const { PRIMARY_API, FALLBACK_API } = require('./constants');
 const { createClerkClient } = require('@clerk/backend');
+const Fuse = require('fuse.js');
 
 // Clerk client for session verification — sync endpoints require a valid
 // session token; the stream/search proxy stays open for guests (Spotify-style
@@ -638,6 +639,64 @@ if (!isProduction) {
       res.status(500).json({ error: 'Failed to get artwork' });
     }
   });
+}
+
+// ─── Local-library search (fuse.js over the music-library index) ───────────
+// The local archive (rare albums, regional releases JioSaavn lacks) is where
+// a private server beats Spotify — it must be findable by name.
+let libraryFuse = null;
+let libraryFuseBuiltAt = 0;
+
+function buildLibraryFuse() {
+  const lib = loadLibrary();
+  const docs = [];
+  (lib.albums || []).forEach(album => {
+    const folderParts = (album.localPath || '').split('/').filter(Boolean);
+    const artist = folderParts[folderParts.length - 2] || '';
+    docs.push({
+      kind: 'album', id: album.id, name: album.name, year: album.year,
+      image: album.songs?.find(s => s.imageUrl)?.imageUrl || '', artist
+    });
+    (album.songs || []).forEach(song => {
+      docs.push({
+        kind: 'song', id: song.id, name: song.name, albumName: album.name,
+        albumId: album.id, image: song.imageUrl || '', artist
+      });
+    });
+  });
+  return new Fuse(docs, {
+    keys: ['name', 'albumName', 'artist'],
+    threshold: 0.4,
+    ignoreLocation: true,
+    minMatchCharLength: 2
+  });
+}
+
+function searchLocalLibrary(query, limit = 8) {
+  if (!query || !query.trim()) return { albums: [], songs: [] };
+  try {
+    const lib = loadLibrary();
+    if (!lib.albums?.length) return { albums: [], songs: [] };
+    if (!libraryFuse || Date.now() - libraryFuseBuiltAt > 60 * 1000) {
+      libraryFuse = buildLibraryFuse();
+      libraryFuseBuiltAt = Date.now();
+    }
+    const hits = libraryFuse.search(query.trim(), { limit });
+    const albums = [];
+    const songs = [];
+    for (const hit of hits) {
+      const item = hit.item;
+      if (item.kind === 'album' && albums.length < 4) {
+        albums.push({ id: item.id, name: item.name, year: item.year, artist: item.artist, image: item.image, isLocal: true });
+      } else if (item.kind === 'song' && songs.length < limit) {
+        songs.push({ id: item.id, name: item.name, artist: item.artist, album: item.albumName, albumId: item.albumId, image: item.image, isLocal: true });
+      }
+    }
+    return { albums, songs };
+  } catch (e) {
+    console.error('Local search error:', e.message);
+    return { albums: [], songs: [] };
+  }
 }
 
 // Helper: Fetch from music service API (for discover endpoints) using 3-tier fallback
@@ -2920,9 +2979,20 @@ app.get('/api/search', async (req, res) => {
         songs: normalizeResults(songsData, 'song'),
         albums: normalizeResults(albumsData, 'album'),
         artists: artistsWithImages,
-        playlists: normalizeResults(playlistsData, 'playlist')
+        playlists: normalizeResults(playlistsData, 'playlist'),
+        // Local collection hits ride along — the client shows them in a
+        // "From your library" section above the online results
+        localAlbums: [],
+        localSongs: []
       }
     };
+
+    // Local-library matches (dev/LAN only — prod has no index to search)
+    if (!isProduction) {
+      const local = searchLocalLibrary(query, 10);
+      response.data.localAlbums = local.albums;
+      response.data.localSongs = local.songs;
+    }
 
     // Set top result - prioritize songs, then albums
     if (response.data.songs.length > 0) {
