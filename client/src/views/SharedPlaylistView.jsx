@@ -49,6 +49,9 @@ export default function SharedPlaylistView({ onSongClick, showToast }) {
           <div className="text-xs text-zinc-500 uppercase tracking-widest mb-1">Shared Playlist</div>
           <h1 className="text-2xl md:text-4xl font-bold text-white mb-2 truncate">{name}</h1>
           <p className="text-sm text-zinc-400 mb-4">{songs.length} song{songs.length === 1 ? '' : 's'}</p>
+          {decoded.droppedLocal > 0 && (
+            <p className="text-xs text-amber-500/80 -mt-3 mb-4">{decoded.droppedLocal} local file{decoded.droppedLocal === 1 ? '' : 's'} not included — they only exist on the sender's device</p>
+          )}
           <div className="flex items-center gap-3 flex-wrap">
             <button
               onClick={() => onSongClick(songs[0], songs, 0)}

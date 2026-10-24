@@ -10,15 +10,18 @@ export function decodeHtmlEntities(text) {
 // path, so a whole playlist travels as a link. Import rebuilds minimal song
 // objects that the player/store already understand (id + isLocal drive streams).
 export function encodePlaylistShare(name, songs) {
+  const all = (songs || []).filter(s => s.i || s.id)
+  const localCount = all.filter(s => s.isLocal).length
   const payload = {
     v: 1, n: name,
-    s: (songs || []).slice(0, 100).map(s => ({
+    // local files can't play on anyone else's server — don't ship them
+    lc: localCount || undefined,
+    s: all.filter(s => !s.isLocal).slice(0, 100).map(s => ({
       i: s.id,
       n: s.name || s.title || '',
       a: s.artist || s.artists?.primary?.[0]?.name || s.primaryArtists || '',
       d: s.duration || 0,
-      m: getBestImageUrl(s.image) || s.imageUrl || '',
-      l: !!s.isLocal
+      m: getBestImageUrl(s.image) || s.imageUrl || ''
     })).filter(s => s.i)
   }
   return btoa(unescape(encodeURIComponent(JSON.stringify(payload))))
@@ -31,11 +34,14 @@ export function decodePlaylistShare(data) {
     const payload = JSON.parse(decodeURIComponent(escape(atob(b64))))
     if (payload?.v !== 1 || !Array.isArray(payload.s)) return null
     return {
-      name: payload.n || 'Shared Playlist',
-      songs: payload.s.map(s => ({
-        id: s.i, name: s.n, artist: s.a, duration: s.d, isLocal: !!s.l,
-        image: s.m ? [{ quality: '500x500', url: s.m }] : []
-      })).filter(s => s.id)
+      name: typeof payload.n === 'string' ? payload.n.slice(0, 200) : 'Shared Playlist',
+      droppedLocal: payload.lc || 0,
+      // Cap + coerce — shared links are user-supplied input, not trusted data
+      songs: payload.s.slice(0, 100).map(s => ({
+        id: s.i, name: String(s.n || ''), artist: String(s.a || ''),
+        duration: Number(s.d) || 0,
+        image: typeof s.m === 'string' && s.m ? [{ quality: '500x500', url: s.m }] : []
+      })).filter(s => typeof s.id === 'string' && s.id)
     }
   } catch { return null }
 }

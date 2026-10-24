@@ -12,10 +12,17 @@ export default function PlayerBar({ currentSong, isPlaying, onTogglePlay, onPrev
   const artwork = currentSong.artworkUrl || currentSong.moviePosterUrl || currentSong.imageUrl
 
   if (isMobileMiniplayer) {
-    // Swipe up on the mini player opens the full player (native feel)
-    const onTouchStart = (e) => { touch.current = e.touches[0].clientY }
+    // Swipe up on the mini player opens the full player (native feel).
+    // Ignore gestures that start on controls — a Play tap with thumb drift
+    // must not also open the player. touchcancel clears stale state.
+    const onTouchStart = (e) => {
+      if (e.target.closest('button')) return
+      const t = e.touches[0]
+      touch.current = { y: t.clientY, id: t.identifier }
+    }
     const onTouchEnd = (e) => {
-      if (touch.current != null && touch.current - e.changedTouches[0].clientY > 40) onOpenFullScreen?.()
+      const t = [...e.changedTouches].find(t => t.identifier === touch.current?.id)
+      if (t && touch.current.y - t.clientY > 40) onOpenFullScreen?.()
       touch.current = null
     }
     return (
@@ -23,6 +30,7 @@ export default function PlayerBar({ currentSong, isPlaying, onTogglePlay, onPrev
         className="h-16 bg-zinc-900 flex items-center px-3 gap-2 relative"
         onTouchStart={onTouchStart}
         onTouchEnd={onTouchEnd}
+        onTouchCancel={() => { touch.current = null }}
       >
         {/* Hairline progress across the top — like Spotify's mini player */}
         <div className="absolute top-0 left-0 right-0 h-0.5 bg-zinc-800">

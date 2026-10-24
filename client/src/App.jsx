@@ -25,7 +25,7 @@ import SharedPlaylistView from './views/SharedPlaylistView'
 import QueueDrawer from './components/QueueDrawer'
 import ErrorBoundary from './components/ErrorBoundary'
 import { enableEq, warmEq, setEqGains } from './audio/eq'
-import { isDownloaded, downloadUrlFor } from './utils/downloads'
+import { isDownloaded, downloadUrlFor, reconcileDownloads } from './utils/downloads'
 import TermsOfService from './pages/TermsOfService'
 import PrivacyPolicy from './pages/PrivacyPolicy'
 import DMCA from './pages/DMCA'
@@ -181,12 +181,28 @@ function AppContent() {
   useEffect(() => {
     if (!showFullScreenPlayer || !isPlaying || !('wakeLock' in navigator)) return
     let lock = null
-    const acquire = () => navigator.wakeLock.request('screen').then(l => { lock = l }).catch(() => {})
+    let released = false // promise can resolve after cleanup — don't leak the lock
+    const acquire = () => navigator.wakeLock.request('screen')
+      .then(l => { released ? l.release().catch(() => {}) : (lock = l) })
+      .catch(() => {})
     acquire()
-    const onVis = () => { if (document.visibilityState === 'visible') acquire() }
+    const onVis = () => { if (document.visibilityState === 'visible' && !released) acquire() }
     document.addEventListener('visibilitychange', onVis)
-    return () => { document.removeEventListener('visibilitychange', onVis); lock?.release?.().catch(() => {}) }
+    return () => {
+      released = true
+      document.removeEventListener('visibilitychange', onVis)
+      lock?.release?.().catch(() => {})
+    }
   }, [showFullScreenPlayer, isPlaying])
+
+  // Registry↔cache reconciliation — the SW LRU evicts cached audio but the
+  // registry survives; a stale entry would pin playback to a dead offline URL
+  useEffect(() => {
+    reconcileDownloads().catch(() => {})
+    const onVis = () => { if (document.visibilityState === 'visible') reconcileDownloads().catch(() => {}) }
+    document.addEventListener('visibilitychange', onVis)
+    return () => document.removeEventListener('visibilitychange', onVis)
+  }, [])
 
   // PWA install prompt — stash the event, surface "Install App" in the sidebar
   const [installPrompt, setInstallPrompt] = useState(null)

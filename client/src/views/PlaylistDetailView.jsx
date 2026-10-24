@@ -82,6 +82,12 @@ export default function PlaylistDetailView({ onSongClick, onShufflePlay, onPlayN
               <button
                 onClick={async () => {
                   haptic()
+                  const remote = playlist.songs.filter(s => !s.isLocal)
+                  if (remote.length < playlist.songs.length) {
+                    showToast?.(`${playlist.songs.length - remote.length} local file(s) can't be shared — skipped`, 'warning')
+                  }
+                  if (remote.length > 100) showToast?.('Shared playlists are capped at 100 songs', 'warning')
+                  if (!remote.length) { showToast?.('Nothing shareable — all songs are local files', 'error'); return }
                   // Whole playlist travels inside the link — recipient previews/imports it
                   const url = `${window.location.origin}/shared/${encodePlaylistShare(playlist.name, playlist.songs)}`
                   try {

@@ -7,7 +7,6 @@ const axios = require('axios');
 const { exec } = require('child_process');
 const { decodeHtmlEntities, loadLibrary: loadLibraryUtil, detectComposerFromSongs, getBestImage, fetchFromMusicServiceOfficial, fetchWithFallback, generateJioSaavnAuthToken, generateJioSaavnAuthUrls } = require('./utils');
 const { PRIMARY_API, FALLBACK_API } = require('./constants');
-// const { clerkClient, clerkExpressRequireAuth } = require('@clerk/backend');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -16,9 +15,6 @@ const LIBRARY_FILE = path.join(__dirname, '../data/music-library.json');
 
 // Check if we're in production mode
 const isProduction = process.env.NODE_ENV === 'production';
-
-// Clerk configuration
-const CLERK_SECRET_KEY = process.env.CLERK_SECRET_KEY;
 
 // Music Service API Configuration
 const MUSIC_API_BASE = PRIMARY_API;

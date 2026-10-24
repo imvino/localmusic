@@ -51,22 +51,25 @@ export default function FullScreenPlayer({
   const onTouchStart = (e) => {
     touch.current = { x: e.touches[0].clientX, y: e.touches[0].clientY, id: e.touches[0].identifier, axis: null }
   }
+  const activeTouch = (e) => [...e.touches, ...e.changedTouches].find(t => t.identifier === touch.current?.id)
   const onTouchMove = (e) => {
-    if (!touch.current) return
-    const dx = e.touches[0].clientX - touch.current.x
-    const dy = e.touches[0].clientY - touch.current.y
+    const t = activeTouch(e)
+    if (!t) return
+    const dx = t.clientX - touch.current.x
+    const dy = t.clientY - touch.current.y
     if (!touch.current.axis && (Math.abs(dx) > 10 || Math.abs(dy) > 10)) {
       touch.current.axis = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y'
     }
     if (touch.current.axis === 'y' && dy > 0) setDragY(dy)
     if (touch.current.axis === 'x') touch.current.dx = dx
   }
+  const resetTouch = () => { setDragY(0); touch.current = null }
   const onTouchEnd = () => {
+    // touchcancel leaves stale state that replays on the next tap — reset covers it
     if (touch.current?.axis === 'x' && Math.abs(touch.current.dx || 0) > 70) {
       if (touch.current.dx < 0) onNext?.(); else onPrev?.()
-    } else if (dragY > 140) onClose()
-    setDragY(0)
-    touch.current = null
+    } else if (touch.current && dragY > 140) onClose()
+    resetTouch()
   }
 
   const bg = tint
@@ -79,6 +82,7 @@ export default function FullScreenPlayer({
       onTouchStart={onTouchStart}
       onTouchMove={onTouchMove}
       onTouchEnd={onTouchEnd}
+      onTouchCancel={resetTouch}
       className="fixed inset-0 z-50 flex flex-col md:hidden"
       style={{
         background: bg,

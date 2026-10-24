@@ -36,7 +36,13 @@ export async function downloadSong(song) {
 }
 
 export async function removeDownload(id) {
-  try { (await caches.open(CACHE)).delete(downloadUrlFor(id)) } catch { /* no-op */ }
+  // If this exact URL is what's playing right now, deleting it mid-play breaks
+  // any seek past the buffered region — leave it for the LRU to evict instead.
+  const url = downloadUrlFor(id)
+  const liveSrc = document.querySelector('audio')?.src
+  try {
+    if (liveSrc !== url) await (await caches.open(CACHE)).delete(url)
+  } catch { /* no-op */ }
   write(read().filter(d => d.id !== id))
 }
 

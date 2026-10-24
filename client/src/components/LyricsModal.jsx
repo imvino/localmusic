@@ -25,11 +25,20 @@ export default function LyricsModal({ song, onClose, currentTime, onSeek }) {
   const karaoke = synced.length > 0 && typeof currentTime === 'number'
   const activeIdx = karaoke ? activeLrcIndex(synced, currentTime) : -1
 
-  // Keep the active line centered — auto-scroll like Apple Music lyrics
+  // Keep the active line centered — auto-scroll like Apple Music lyrics.
+  // Scroll ONLY the lyrics container (scrollIntoView yanks every ancestor),
+  // and back off for 5s after the user scrolls manually so it doesn't fight them.
+  const userScrollUntil = useRef(0)
   useEffect(() => {
     if (!karaoke || activeIdx < 0 || !scrollRef.current) return
-    const el = scrollRef.current.children[activeIdx]
-    if (el) el.scrollIntoView({ block: 'center', behavior: 'smooth' })
+    if (Date.now() < userScrollUntil.current) return
+    const container = scrollRef.current
+    const el = container.firstElementChild?.children?.[activeIdx]
+    if (!el) return
+    // rect math — offsetTop is relative to the offsetParent, not the scroller
+    const target = el.getBoundingClientRect().top - container.getBoundingClientRect().top
+      + container.scrollTop - container.clientHeight / 2 + el.clientHeight / 2
+    container.scrollTo({ top: Math.max(0, target), behavior: 'smooth' })
   }, [karaoke, activeIdx])
 
   useEffect(() => {
@@ -61,7 +70,12 @@ export default function LyricsModal({ song, onClose, currentTime, onSeek }) {
           </button>
         </div>
 
-        <div ref={scrollRef} className="flex-1 overflow-y-auto px-5 py-4">
+        <div
+          ref={scrollRef}
+          className="flex-1 overflow-y-auto px-5 py-4"
+          onWheel={() => { userScrollUntil.current = Date.now() + 5000 }}
+          onTouchMove={() => { userScrollUntil.current = Date.now() + 5000 }}
+        >
           {isLoading ? (
             <div className="flex items-center justify-center py-16">
               <div className="w-8 h-8 border-2 border-zinc-700 border-t-[#fc3c44] rounded-full animate-spin" />

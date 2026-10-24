@@ -25,17 +25,11 @@ export default function TermsOfService() {
         </section>
 
         <section>
-          <h2 className="text-base sm:text-lg font-semibold text-white mb-3">3. Authentication and Access</h2>
+          <h2 className="text-base sm:text-lg font-semibold text-white mb-3">3. Access</h2>
           <p>
-            Torsongs requires user authentication to access the service. We offer two tiers of access:
-          </p>
-          <ul className="list-disc list-inside space-y-2 ml-4">
-            <li><strong>Free Users:</strong> Limited to 5 minutes of listening per session</li>
-            <li><strong>Registered Users:</strong> Unlimited listening access</li>
-          </ul>
-          <p className="mt-2">
-            Authentication is provided through Clerk, a third-party authentication service. By creating an account,
-            you agree to Clerk's terms of service and privacy policy.
+            Torsongs is a private application for a limited circle of invited users and requires no account or
+            sign-up. Access is provided by sharing the application URL. If you received this link, please keep
+            it within the intended circle.
           </p>
         </section>
 

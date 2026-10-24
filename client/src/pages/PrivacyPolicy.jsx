@@ -19,8 +19,8 @@ export default function PrivacyPolicy() {
           <h2 className="text-base sm:text-lg font-semibold text-white mb-3">2. Information We Collect</h2>
           <p>Torsongs minimizes data collection. We collect the following information:</p>
           <ul className="list-disc list-inside space-y-2 ml-4">
-            <li><strong>Authentication Data:</strong> Through Clerk, we collect your email address, name, and other information you provide during registration</li>
-            <li><strong>Usage Data:</strong> Listening time for enforcing free user limits (5-minute session limit)</li>
+            <li><strong>No accounts:</strong> Torsongs has no sign-up or login — we never collect names, emails, or passwords</li>
+            <li><strong>Local Data:</strong> Playlists, liked songs, downloads, and listening stats live only in your browser storage on your own device</li>
             <li>No tracking or analytics beyond essential functionality</li>
             <li>No cookies for advertising or tracking purposes</li>
             <li>Search queries are processed locally and not stored</li>
@@ -42,8 +42,8 @@ export default function PrivacyPolicy() {
         <section>
           <h2 className="text-base sm:text-lg font-semibold text-white mb-3">4. Data Storage and Retention</h2>
           <p>
-            Authentication data is stored securely by Clerk according to their privacy policy. Usage data (listening time)
-            is tracked temporarily in your browser session and is not stored on our servers.
+            All personal data — playlists, likes, downloads, stats — is stored only in your browser's local
+            storage and is never transmitted to or stored on our servers.
           </p>
         </section>
 
@@ -53,8 +53,8 @@ export default function PrivacyPolicy() {
             Torsongs uses the following third-party services:
           </p>
           <ul className="list-disc list-inside space-y-2 ml-4">
-            <li><strong>Clerk:</strong> For user authentication and account management</li>
             <li><strong>Music Streaming APIs:</strong> For music discovery and streaming</li>
+            <li><strong>LRCLIB:</strong> For fetching song lyrics</li>
           </ul>
           <p className="mt-2">
             These services have their own privacy policies which you should review. We are not responsible for the
