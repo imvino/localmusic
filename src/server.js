@@ -7,6 +7,15 @@ const axios = require('axios');
 const { exec } = require('child_process');
 const { decodeHtmlEntities, loadLibrary: loadLibraryUtil, detectComposerFromSongs, getBestImage, fetchFromMusicServiceOfficial, fetchWithFallback, generateJioSaavnAuthToken, generateJioSaavnAuthUrls } = require('./utils');
 const { PRIMARY_API, FALLBACK_API } = require('./constants');
+const { createClerkClient } = require('@clerk/backend');
+
+// Clerk client for session verification — sync endpoints require a valid
+// session token; the stream/search proxy stays open for guests (Spotify-style
+// browse-without-account, authenticated sync for your library).
+let clerkClient = null;
+if (process.env.CLERK_SECRET_KEY) {
+  clerkClient = createClerkClient({ secretKey: process.env.CLERK_SECRET_KEY });
+}
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -154,6 +163,90 @@ app.use(express.json());
 // Health check endpoint
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: Date.now() })
+});
+
+// ─── Auth + per-user library sync ───────────────────────────────────────────
+// Sessions are verified against Clerk (stateless, no cookie storage). User
+// data persists to data/users/<userId>.json — on Render's free tier that disk
+// is ephemeral across redeploys, so treat this as a best-effort cache; the
+// client keeps localStorage as the always-on copy and re-uploads on login.
+
+const USER_DATA_DIR = path.join(__dirname, '../data/users');
+
+async function requireUser(req, res, next) {
+  if (!clerkClient) return res.status(503).json({ success: false, error: 'Auth not configured' });
+  try {
+    const header = req.headers.authorization || '';
+    const token = header.startsWith('Bearer ') ? header.slice(7) : null;
+    if (!token) return res.status(401).json({ success: false, error: 'Missing session token' });
+    const payload = await clerkClient.verifyToken(token);
+    if (!payload?.sub) return res.status(401).json({ success: false, error: 'Invalid session' });
+    req.userId = payload.sub;
+    next();
+  } catch (e) {
+    return res.status(401).json({ success: false, error: 'Invalid session token' });
+  }
+}
+
+function loadUserData(userId) {
+  try {
+    const file = path.join(USER_DATA_DIR, `${userId}.json`);
+    if (!fs.existsSync(file)) return null;
+    return JSON.parse(fs.readFileSync(file, 'utf8'));
+  } catch (e) {
+    console.error('loadUserData error:', e.message);
+    return null;
+  }
+}
+
+function saveUserData(userId, data) {
+  try {
+    fs.mkdirSync(USER_DATA_DIR, { recursive: true });
+    fs.writeFileSync(path.join(USER_DATA_DIR, `${userId}.json`), JSON.stringify(data));
+  } catch (e) {
+    console.error('saveUserData error:', e.message);
+  }
+}
+
+// Pull the user's library (liked songs + playlists)
+app.get('/api/me/library', requireUser, (req, res) => {
+  const data = loadUserData(req.userId);
+  res.json({ success: true, data: data || { v: 1, ts: 0, likedSongs: [], playlists: {} } });
+});
+
+// Push the user's library — size-capped to keep the JSON store sane
+app.put('/api/me/library', requireUser, (req, res) => {
+  const { v, ts, likedSongs, playlists } = req.body || {};
+  if (!Array.isArray(likedSongs) || typeof playlists !== 'object' || playlists === null) {
+    return res.status(400).json({ success: false, error: 'Bad payload' });
+  }
+  const safePlaylists = {};
+  for (const [id, p] of Object.entries(playlists).slice(0, 200)) {
+    if (!p || typeof p !== 'object') continue;
+    safePlaylists[id] = {
+      id: p.id || id,
+      name: typeof p.name === 'string' ? p.name.slice(0, 200) : 'Untitled Playlist',
+      createdAt: Number(p.createdAt) || Date.now(),
+      songs: Array.isArray(p.songs) ? p.songs.slice(0, 2000).map(s => ({
+        id: String(s?.id || '').slice(0, 200),
+        name: String(s?.name || '').slice(0, 500),
+        artist: String(s?.artist || '').slice(0, 500),
+        album: String(s?.album || '').slice(0, 500),
+        albumId: String(s?.albumId || ''),
+        duration: Number(s?.duration) || 0,
+        image: String(s?.image || '').slice(0, 1000),
+        isLocal: !!s?.isLocal
+      })).filter(s => s.id) : []
+    };
+  }
+  const data = {
+    v: v || 1,
+    ts: Number(ts) || Date.now(),
+    likedSongs: likedSongs.map(String).filter(Boolean).slice(0, 5000),
+    playlists: safePlaylists
+  };
+  saveUserData(req.userId, data);
+  res.json({ success: true, ts: data.ts });
 });
 
 // Serve artist configuration

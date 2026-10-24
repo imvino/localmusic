@@ -24,6 +24,8 @@ import DownloadsView from './views/DownloadsView'
 import SharedPlaylistView from './views/SharedPlaylistView'
 import QueueDrawer from './components/QueueDrawer'
 import ErrorBoundary from './components/ErrorBoundary'
+import UserMenu from './components/UserMenu'
+import { useLibrarySync } from './hooks/useLibrarySync'
 import { enableEq, warmEq, setEqGains } from './audio/eq'
 import { isDownloaded, downloadUrlFor, reconcileDownloads } from './utils/downloads'
 import { getSongArtwork } from './utils'
@@ -161,6 +163,9 @@ function AppContent() {
   // Use TanStack Query for health check
   const { data: healthData, isError: healthError } = useHealthCheck(true)
   const serverStatus = healthError ? 'offline' : 'online'
+
+  // Cross-device library sync — likes + playlists follow the signed-in user
+  useLibrarySync({ likedSongs, setLikedSongs })
 
   // Function to show toast notifications
   const showToastMessage = (message, type = 'error') => {
@@ -1626,7 +1631,9 @@ function AppContent() {
                 className="w-80 bg-zinc-800/70 text-sm text-white placeholder-zinc-500 rounded-full pl-10 pr-4 py-2 outline-none border border-transparent focus:border-zinc-600 transition-colors"
               />
             </div>
-            <div className="hidden md:flex items-center gap-2 ml-auto" />
+            <div className="hidden md:flex items-center gap-2 ml-auto">
+              <UserMenu />
+            </div>
             {location.pathname === '/search' && (
               <div className="relative md:hidden flex-1">
                 <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none" />

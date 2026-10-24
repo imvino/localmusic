@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom'
 import { useState } from 'react'
 import { usePlaylistStore } from '../stores/playlistStore'
 import { EQ_PRESETS, isEqAvailable } from '../audio/eq'
+import UserMenu from '../components/UserMenu'
 
 const API_BASE = import.meta.env.VITE_API_URL
 const isProduction = import.meta.env.MODE === 'production'
@@ -376,6 +377,11 @@ export default function Sidebar({ showToast, onClose, qualityPreference, onQuali
           >
             DMCA & Disclaimer
           </Link>
+        </div>
+
+        {/* Account — sign in / user menu (bottom of sidebar, Spotify style) */}
+        <div className="mt-auto pt-4 border-t border-zinc-800/60">
+          <UserMenu />
         </div>
       </div>
 
