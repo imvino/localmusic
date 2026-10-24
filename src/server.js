@@ -340,13 +340,39 @@ app.put('/api/me/library', requireUser, (req, res) => {
   data.likedMeta = mergedMeta;
 
   // Playlists: union by id (a stale device's copy must merge, not replace),
-  // per-playlist updatedAt resolves concurrent edits, playlist tombstones
-  // propagate deletes — a tombstone newer than createdAt kills the stale copy.
+  // per-playlist updatedAt wins scalars — and song lists union with
+  // per-song removal tombstones so concurrent edits on two devices don't
+  // drop each other's changes (mirrors the client merge).
   const plTombs = new Map(data.tombstones.playlists.map(t => [t.id, t.ts]));
   const mergedPls = { ...(existingDoc.playlists || {}) };
   for (const [id, p] of Object.entries(safePlaylists)) {
     const prev = mergedPls[id];
-    if (!prev || (p.updatedAt || p.createdAt || 0) >= (prev.updatedAt || prev.createdAt || 0)) mergedPls[id] = p;
+    if (!prev) { mergedPls[id] = p; continue; }
+    const winner = (p.updatedAt || p.createdAt || 0) >= (prev.updatedAt || prev.createdAt || 0) ? p : prev;
+    const loser = winner === p ? prev : p;
+    const removed = {};
+    for (const src of [loser.removed, winner.removed]) {
+      for (const [sid, ts] of Object.entries(src || {})) {
+        removed[sid] = Math.max(removed[sid] || 0, Number(ts) || 0);
+      }
+    }
+    const seen = new Map();
+    const songs = [];
+    for (const s of [...(winner.songs || []), ...(loser.songs || [])]) {
+      if (!s?.id) continue;
+      const before = seen.get(s.id);
+      if (before) {
+        if ((s.addedAt || 0) > (before.addedAt || 0)) { songs[songs.indexOf(before)] = s; seen.set(s.id, s); }
+        continue;
+      }
+      seen.set(s.id, s);
+      songs.push(s);
+    }
+    mergedPls[id] = {
+      ...loser, ...winner,
+      songs: songs.filter(x => (removed[x.id] || 0) <= (x.addedAt || 0)).slice(0, 2000),
+      removed
+    };
   }
   data.playlists = Object.fromEntries(
     Object.entries(mergedPls).filter(([id, p]) => (plTombs.get(id) || 0) <= (p.createdAt || 0))

@@ -275,7 +275,10 @@ function AppContent() {
     if (backup?.playlists && typeof backup.playlists === 'object') {
       const now = Date.now()
       const restamped = Object.fromEntries(Object.entries(backup.playlists)
-        .map(([id, p]) => [id, { ...p, createdAt: now, updatedAt: now }]))
+        .map(([id, p]) => [id, {
+          ...p, createdAt: now, updatedAt: now,
+          songs: (p.songs || []).map(s => ({ ...s, addedAt: now })) // restore = new save, per song
+        }]))
       // setState triggers zustand-persist's own write — no manual LS needed
       usePlaylistStore.setState({ playlists: restamped })
       Object.keys(restamped).forEach(id => clearTombstone('playlists', id))
