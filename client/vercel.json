@@ -67,6 +67,18 @@
       "destination": "/index.html"
     },
     {
+      "source": "/playlists/:path*",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/liked",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/stats",
+      "destination": "/index.html"
+    },
+    {
       "source": "/terms",
       "destination": "/index.html"
     },
