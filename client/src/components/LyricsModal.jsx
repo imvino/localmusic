@@ -1,14 +1,23 @@
-import { useEffect, useRef, useMemo } from 'react'
+import { useEffect, useRef, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useQuery } from '@tanstack/react-query'
-import { X, Mic2, Music } from 'lucide-react'
+import { X, Mic2, Music, Languages, Loader2 } from 'lucide-react'
 import { decodeHtmlEntities, getImageSrc } from '../utils'
 import { parseLrc, activeLrcIndex } from '../utils/lrc'
 
 const API_BASE = import.meta.env.VITE_API_URL
 
+// Module-level translation cache — switching songs twice shouldn't re-hit
+// the proxy every time
+const translationCache = new Map() // songId -> { lines?: string[], text?: string }
+
 export default function LyricsModal({ song, onClose, currentTime, onSeek }) {
   const scrollRef = useRef(null)
+  const [translateOn, setTranslateOn] = useState(false)
+  const [translating, setTranslating] = useState(false)
+  const [translation, setTranslation] = useState(null) // { lines?: [], text?: string }
+  const [translateFailed, setTranslateFailed] = useState(false)
+
   const { data, isLoading } = useQuery({
     queryKey: ['lyrics', song?.id],
     queryFn: async () => {
@@ -25,6 +34,13 @@ export default function LyricsModal({ song, onClose, currentTime, onSeek }) {
   const karaoke = synced.length > 0 && typeof currentTime === 'number'
   const activeIdx = karaoke ? activeLrcIndex(synced, currentTime) : -1
 
+  // Reset translation state when the song changes
+  useEffect(() => {
+    setTranslateOn(false)
+    setTranslation(null)
+    setTranslateFailed(false)
+  }, [song?.id])
+
   // Keep the active line centered — auto-scroll like Apple Music lyrics.
   // Scroll ONLY the lyrics container (scrollIntoView yanks every ancestor),
   // and back off for 5s after the user scrolls manually so it doesn't fight them.
@@ -35,7 +51,6 @@ export default function LyricsModal({ song, onClose, currentTime, onSeek }) {
     const container = scrollRef.current
     const el = container.firstElementChild?.children?.[activeIdx]
     if (!el) return
-    // rect math — offsetTop is relative to the offsetParent, not the scroller
     const target = el.getBoundingClientRect().top - container.getBoundingClientRect().top
       + container.scrollTop - container.clientHeight / 2 + el.clientHeight / 2
     container.scrollTo({ top: Math.max(0, target), behavior: 'smooth' })
@@ -47,7 +62,45 @@ export default function LyricsModal({ song, onClose, currentTime, onSeek }) {
     return () => document.removeEventListener('keydown', onKey)
   }, [onClose])
 
+  const toggleTranslate = async () => {
+    if (translateOn) {
+      setTranslateOn(false)
+      return
+    }
+    if (!data) return
+    const cached = translationCache.get(song.id)
+    if (cached) {
+      setTranslation(cached)
+      setTranslateOn(true)
+      return
+    }
+    setTranslating(true)
+    setTranslateFailed(false)
+    try {
+      const payload = karaoke
+        ? { lines: synced.map(l => l.text) }
+        : { text: data.lyrics }
+      const res = await fetch(`${API_BASE}/api/translate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+      const json = await res.json()
+      const result = json?.data || null
+      if (result) translationCache.set(song.id, result)
+      setTranslation(result)
+      setTranslateOn(true)
+    } catch {
+      setTranslateFailed(true)
+    } finally {
+      setTranslating(false)
+    }
+  }
+
   if (!song) return null
+
+  const translatedLine = (i) => (translateOn && translation?.lines ? translation.lines[i] : null)
+  const showTranslatedPlain = translateOn && translation?.text
 
   return createPortal(
     <div className="fixed inset-0 bg-black/80 z-[110] flex items-center justify-center p-4" onClick={onClose}>
@@ -65,6 +118,20 @@ export default function LyricsModal({ song, onClose, currentTime, onSeek }) {
             <div className="text-sm font-semibold text-white truncate">{decodeHtmlEntities(song.name || song.title)}</div>
             <div className="text-xs text-zinc-500 truncate">{song.artist || song.artists?.primary?.[0]?.name || ''}</div>
           </div>
+          {/* Translate toggle — regional songs get English lyrics */}
+          {!isLoading && (karaoke || data?.lyrics) && (
+            <button
+              onClick={toggleTranslate}
+              disabled={translating}
+              title={translateOn ? 'Show original' : 'Translate to English'}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors touch-target ${
+                translateOn ? 'bg-[#fc3c44] text-white' : 'bg-zinc-800 text-zinc-300 hover:text-white'
+              }`}
+            >
+              {translating ? <Loader2 size={14} className="animate-spin" /> : <Languages size={14} />}
+              {translateOn ? 'Original' : 'English'}
+            </button>
+          )}
           <button onClick={onClose} className="p-1.5 text-zinc-400 hover:text-white transition-colors touch-target">
             <X size={20} />
           </button>
@@ -82,22 +149,47 @@ export default function LyricsModal({ song, onClose, currentTime, onSeek }) {
             </div>
           ) : karaoke ? (
             <div className="py-8">
-              {synced.map((line, i) => (
-                <button
-                  key={i}
-                  onClick={() => onSeek?.(line.time)}
-                  className={`block w-full text-left py-1.5 text-lg font-semibold leading-snug transition-all duration-300 ${
-                    i === activeIdx ? 'text-white scale-[1.02] origin-left' : i < activeIdx ? 'text-zinc-600' : 'text-zinc-500'
-                  }`}
-                >
-                  {line.text}
-                </button>
-              ))}
+              {synced.map((line, i) => {
+                const tLine = translatedLine(i)
+                const isActive = i === activeIdx
+                return (
+                  <div key={i} className={`py-1.5 transition-all duration-300 ${isActive ? 'scale-[1.02] origin-left' : ''}`}>
+                    <button
+                      onClick={() => onSeek?.(line.time)}
+                      className={`block w-full text-left text-lg font-semibold leading-snug transition-colors duration-300 ${
+                        isActive ? 'text-white' : i < activeIdx ? 'text-zinc-600' : 'text-zinc-500'
+                      }`}
+                    >
+                      {line.text}
+                    </button>
+                    {tLine && (
+                      <div className={`text-sm leading-snug mt-0.5 transition-colors duration-300 ${
+                        isActive ? 'text-[#fc3c44]/90' : i < activeIdx ? 'text-zinc-600/70' : 'text-zinc-500/70'
+                      }`}>
+                        {tLine}
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+              {translateOn && translateFailed && (
+                <p className="text-xs text-zinc-600 mt-4">Translation unavailable right now.</p>
+              )}
             </div>
           ) : data?.lyrics ? (
-            <pre className="text-sm text-zinc-200 leading-relaxed whitespace-pre-wrap font-sans">
-              {data.lyrics}
-            </pre>
+            <div className="py-4">
+              <pre className="text-sm text-zinc-200 leading-relaxed whitespace-pre-wrap font-sans">
+                {data.lyrics}
+              </pre>
+              {showTranslatedPlain && (
+                <pre className="text-sm text-[#fc3c44]/90 leading-relaxed whitespace-pre-wrap font-sans mt-4 pt-4 border-t border-zinc-800">
+                  {translation.text}
+                </pre>
+              )}
+              {translateOn && !showTranslatedPlain && !translateFailed && (
+                <p className="text-xs text-zinc-600 mt-4">No translation found for this song.</p>
+              )}
+            </div>
           ) : (
             <div className="flex flex-col items-center justify-center py-16 text-zinc-500 gap-3">
               <Mic2 size={32} />

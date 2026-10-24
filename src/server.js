@@ -1484,6 +1484,69 @@ app.get('/api/lyrics/:id', async (req, res) => {
   }
 });
 
+// ─── Lyrics translation (free tiers — no API key) ──────────────────────────
+// Google's gtx endpoint first (reliable, fast), MyMemory as fallback. Results
+// cached in-memory keyed by content hash so re-translation is instant.
+
+const translateCache = new Map(); // key -> { ts, text }
+const TRANSLATE_TTL = 7 * 24 * 60 * 60 * 1000; // 7 days
+
+async function translateText(text, to = 'en') {
+  if (!text || !text.trim()) return '';
+  const key = `${to}:${text.slice(0, 4000)}`;
+  const hit = translateCache.get(key);
+  if (hit && Date.now() - hit.ts < TRANSLATE_TTL) return hit.text;
+
+  // 1) Google Translate gtx (no key)
+  try {
+    const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${to}&dt=t&q=${encodeURIComponent(text.slice(0, 4500))}`;
+    const res = await axios.get(url, { timeout: 8000 });
+    const segments = res.data?.[0];
+    if (Array.isArray(segments)) {
+      const out = segments.map(s => s?.[0] || '').join('');
+      if (out.trim()) {
+        translateCache.set(key, { ts: Date.now(), text: out });
+        return out;
+      }
+    }
+  } catch (e) { /* fall through */ }
+
+  // 2) MyMemory fallback
+  try {
+    const res = await axios.get('https://api.mymemory.translated.net/get', {
+      params: { q: text.slice(0, 500), langpair: `auto|${to}` },
+      timeout: 8000
+    });
+    const out = res.data?.responseData?.translatedText;
+    if (out && out.trim()) {
+      translateCache.set(key, { ts: Date.now(), text: out });
+      return out;
+    }
+  } catch (e) { /* fall through */ }
+
+  return null;
+}
+
+// POST /api/translate — { lines: [...] } keeps karaoke line sync; { text } for
+// plain lyrics. Always 200 with data:null on failure (lyrics are optional).
+app.post('/api/translate', async (req, res) => {
+  try {
+    const { text, lines } = req.body || {};
+    const to = typeof req.query.lang === 'string' ? req.query.lang.slice(0, 8) : 'en';
+    if (Array.isArray(lines)) {
+      const chunk = lines.slice(0, 200);
+      const out = [];
+      for (const line of chunk) out.push(await translateText(String(line || ''), to));
+      return res.json({ success: true, data: { lines: out } });
+    }
+    const out = await translateText(String(text || ''), to);
+    return res.json({ success: true, data: out ? { text: out } : null });
+  } catch (e) {
+    console.error('Translate error:', e.message);
+    res.json({ success: true, data: null });
+  }
+});
+
 // Get song details with playable URL
 app.get('/api/song/:id', async (req, res) => {
   try {
