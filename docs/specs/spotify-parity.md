@@ -17,15 +17,16 @@ they ship; the `spotify-critic` agent re-evaluates at each milestone.
 
 | Area | Status | Notes |
 |------|--------|-------|
-| Playback | Done | Stream proxy w/ range support, queue state, shuffle, repeat, seek, volume, mute, media-session, keyboard shortcuts |
-| Quality | Bugged | Bitrate preference exists; adaptive-switch code is dead (see P0.5) |
-| Library | Done | 416 local albums (owner only), download-to-library manager |
-| Likes | Partial | Liked songs persisted to localStorage but **no screen shows them** |
-| Search | Partial | JioSaavn search works; no debounce/autocomplete/recent/filters |
-| Discovery | Done | Discover feed, artist/composer pages, YouTube Tamil charts |
-| Auth | Partial | Clerk UI-gates the client; no backend verification (accepted for now) |
-| PWA | Partial | Manifest + SW (API cache only, no audio offline) |
-| Library section | Stub | Sidebar "My Playlist / Recently Played / Offline Music" = "Soon" |
+| Playback | Done | Stream proxy w/ range support, queue state, shuffle, repeat, seek, volume, mute, media-session, keyboard shortcuts; starts at 160kbps on fast conns |
+| Quality | Done | Bitrate preference, adaptive switching (96→160→max), 3-band EQ, crossfade |
+| Library | Done | 407 local albums browsable (Albums/Artists grid), local album detail, local search |
+| Likes | Done | Liked Songs screen, sort control, batch download |
+| Search | Done | Debounce, recent searches, browse tiles, local-library results |
+| Discovery | Done | Discover feed (On Repeat / Repeat Rewind / Because-you-listened rails), artist/composer pages, YouTube Tamil charts |
+| Auth | Done | Clerk sign-in/out UI + server session verification; likes/playlists sync across devices (JSON store) |
+| Lyrics | Done | Karaoke sync, JioSaavn + LRCLIB sources, English translation toggle for regional songs |
+| PWA | Partial | Manifest + SW (audio cache, downloads, install prompt) |
+| Library section | Done | Sidebar Library hub + collection browser |
 
 ## Gap backlog (from spotify-critic baseline, 2026-10-24)
 
@@ -108,3 +109,22 @@ Backend auth hardening deferred unless abuse appears.
   P2 hover-only mobile controls, move-past-cursor, menu scroll-detach,
   /api/songs local-fallback + ghost filter; added DiscoverView card menus
 - [ ] `collection-loop` archive (pending interactive QA sign-off)
+- [x] `competitor-marathon` (2026-10-24, no openspec change — direct sprint)
+  - P0.1 Discover images: array image sources were rendered as `[object Object]`
+    → `getImageSrc` normalizer + ArtImage (no-referrer, 500x500 upgrade,
+    error fallback) across every view
+  - P0.2 Clerk auth wired end-to-end: ClerkProvider, Spotify-style UserMenu,
+    server session verification (`@clerk/backend`), GET/PUT `/api/me/library`
+    → likes + playlists sync across devices (union merge, debounced push)
+  - P0.3 English lyrics: `POST /api/translate` (Google gtx + MyMemory, cached);
+    LyricsModal "English" toggle — karaoke lines translate 1:1 with timing kept
+  - P1.1 Your Library browser: 407-album grid + artist index + search; local
+    album detail; fuse.js local search with "From your library" results
+  - P1.2 Batch download buttons (playlist/liked/local album), TrackMenu
+    download works for local songs, Go-to-artist added
+  - P1.3 Desktop now-playing lyrics (PlayerBar Mic2 → LyricsModal)
+  - P1.4 On Repeat + Repeat Rewind rails from play history; playable Stats rows
+  - P1.5 Search landing browse tiles (9 genres/artists), debounce already in
+  - P1.7 Playback starts at 160kbps on fast connections (was 96 floor)
+- [ ] Next backlog: sort in playlist rows, PWA stream-cache only for
+  registry'd downloads, backup/restore export, vitest for utils

@@ -1,6 +1,6 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { useQueries } from '@tanstack/react-query'
-import { Heart, Play, Shuffle, Music } from 'lucide-react'
+import { Heart, Play, Shuffle, Music, ArrowDownWideNarrow } from 'lucide-react'
 import { getImageSrc, formatDuration } from '../utils'
 import TrackMenu from '../components/TrackMenu'
 import BatchDownloadButton from '../components/BatchDownloadButton'
@@ -41,6 +41,24 @@ export default function LikedSongsView({ likedSongs, onLikeToggle, onSongClick, 
   }, [results])
 
   const songs = orderedIds.map(id => byId.get(id)).filter(Boolean)
+
+  // Spotify-style sort — custom (liked order) / title / artist / oldest
+  const [sort, setSort] = useState('recent')
+  const [sortOpen, setSortOpen] = useState(false)
+  const sortedSongs = useMemo(() => {
+    if (sort === 'recent') return songs
+    const copy = [...songs]
+    if (sort === 'title') copy.sort((a, b) => (a.name || '').localeCompare(b.name || ''))
+    if (sort === 'artist') copy.sort((a, b) => (a.artists?.primary?.[0]?.name || a.artist || '').localeCompare(b.artists?.primary?.[0]?.name || b.artist || ''))
+    if (sort === 'oldest') copy.reverse()
+    return copy
+  }, [songs, sort])
+  const SORT_OPTIONS = [
+    ['recent', 'Recently added'],
+    ['oldest', 'Oldest'],
+    ['title', 'Title'],
+    ['artist', 'Artist']
+  ]
 
   return (
     <div className="px-4 md:px-8 py-6">
@@ -83,13 +101,40 @@ export default function LikedSongsView({ likedSongs, onLikeToggle, onSongClick, 
         </div>
       ) : (
         <div>
-          {songs.map((song, i) => {
+          {/* Sort control */}
+          <div className="relative inline-block mb-3">
+            <button
+              onClick={() => setSortOpen(o => !o)}
+              className="flex items-center gap-1.5 text-xs text-zinc-400 hover:text-white bg-zinc-800/70 hover:bg-zinc-700 px-3 py-1.5 rounded-full transition-colors"
+            >
+              <ArrowDownWideNarrow size={13} />
+              {SORT_OPTIONS.find(([k]) => k === sort)?.[1]}
+            </button>
+            {sortOpen && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setSortOpen(false)} />
+                <div className="absolute left-0 top-full mt-1 z-50 bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden shadow-xl w-44">
+                  {SORT_OPTIONS.map(([key, label]) => (
+                    <button
+                      key={key}
+                      onClick={() => { setSort(key); setSortOpen(false) }}
+                      className={`w-full text-left px-3 py-2 text-xs transition-colors ${sort === key ? 'text-[#fc3c44] font-semibold' : 'text-zinc-300 hover:bg-zinc-800'}`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+
+          {sortedSongs.map((song, i) => {
             const isCurrent = currentSong?.id === song.id
             return (
               <div
                 key={song.id}
                 className="group flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-zinc-800/60 transition-colors cursor-pointer"
-                onClick={() => onSongClick(song, songs, i)}
+                onClick={() => onSongClick(song, sortedSongs, i)}
               >
                 <span className={`w-6 text-xs text-center shrink-0 ${isCurrent ? 'text-[#fc3c44] font-semibold' : 'text-zinc-600'}`}>
                   {isCurrent && isPlaying ? '▶' : i + 1}
