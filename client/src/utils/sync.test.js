@@ -43,6 +43,20 @@ describe('mergePlaylists (first-login union)', () => {
     expect(mergePlaylists(local, server).p1.name).toBe('New')
     expect(mergePlaylists(server, local).p1.name).toBe('New')
   })
+  it('per-song removal tombstones propagate deletes through the union', () => {
+    // Device A removed song X (tomb t=100); device B still has it (addedAt t=50)
+    const a = { p1: { id: 'p1', createdAt: 1, updatedAt: 100, removed: { x: 100 }, songs: [song('y', { addedAt: 10 })] } }
+    const b = { p1: { id: 'p1', createdAt: 1, updatedAt: 50, songs: [song('x', { addedAt: 50 }), song('y', { addedAt: 10 })] } }
+    const merged = mergePlaylists(b, a).p1
+    expect(merged.songs.map(s => s.id)).toEqual(['y']) // x stays removed
+    expect(merged.removed.x).toBe(100)
+  })
+  it('a re-added song survives its older removal tombstone', () => {
+    const a = { p1: { id: 'p1', createdAt: 1, updatedAt: 200, removed: {}, songs: [song('x', { addedAt: 150 })] } }
+    const b = { p1: { id: 'p1', createdAt: 1, updatedAt: 100, removed: { x: 100 }, songs: [] } }
+    const merged = mergePlaylists(b, a).p1
+    expect(merged.songs.map(s => s.id)).toEqual(['x']) // addedAt 150 > tomb 100
+  })
 })
 
 describe('mergeHistory', () => {

@@ -34,7 +34,11 @@ async function pushSnapshot(getToken, likedSongs, playlists, collections) {
         removedSongs: getTombstones(TOMB_KEYS.songs),
         removedPlaylists: getTombstones(TOMB_KEYS.playlists),
         historyClearedAt: Number(localStorage.getItem(HISTORY_CLEARED_KEY)) || 0,
-        playCounts: readLS('playCounts', {})
+        // Cap the payload — keep the 3000 most recently played ids
+        playCounts: Object.fromEntries(
+          Object.entries(readLS('playCounts', {}))
+            .sort((a, b) => (b[1]?.ts || 0) - (a[1]?.ts || 0)).slice(0, 3000)
+        )
       })
     })
     if (res.ok) {
@@ -95,6 +99,9 @@ export function useLibrarySync({ likedSongs, setLikedSongs, savedAlbums, setSave
 
       if (differentUser) {
         clearPersonalData()
+        setLastUserId(userId) // claim the device NOW — if the pull fails and the
+        // app restarts, getLastUserId must already say "this user" so their
+        // own offline work isn't wiped as a phantom user-switch.
         if (!live) return
         setLikedSongs(new Set())
         setSavedAlbums?.(new Set())
@@ -227,12 +234,15 @@ export function useLibrarySync({ likedSongs, setLikedSongs, savedAlbums, setSave
   // during a slow cold-start pull would be silently lost.
   useEffect(() => {
     if (!isSignedIn) return
+    let off = null
     const t = setTimeout(() => {
       const push = () => pushSnapshot(getToken, likedSongs, usePlaylistStore.getState().playlists,
         { savedAlbums: readLS('savedAlbums', []), followedArtists: readLS('followedArtists', []) })
       if (isPullDone()) { push(); return }
-      const off = onPullDone(() => { off(); push() })
+      // Deferred — MUST unsubscribe in cleanup or a stale-closure push can
+      // fire after a user switch and merge the PREVIOUS account's data.
+      off = onPullDone(() => { off(); off = null; push() })
     }, 2500)
-    return () => clearTimeout(t)
-  }, [likedSongs, playlists, savedAlbums, followedArtists, historyVersion, changedBump, isSignedIn]) // eslint-disable-line react-hooks/exhaustive-deps
+    return () => { clearTimeout(t); off?.() }
+  }, [likedSongs, playlists, savedAlbums, followedArtists, historyVersion, changedBump, isSignedIn, userId]) // eslint-disable-line react-hooks/exhaustive-deps
 }

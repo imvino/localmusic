@@ -45,12 +45,17 @@ export const usePlaylistStore = create(persist(
       // Strip server file path — meaningless client-side, leaks absolute
       // paths into localStorage (isLocal flag alone drives local playback)
       const { audioPath, ...safeSong } = song
-      set(state => ({
-        playlists: {
-          ...state.playlists,
-          [id]: { ...playlist, songs: [...playlist.songs, safeSong], updatedAt: Date.now() }
+      const now = Date.now()
+      set(state => {
+        const removed = { ...(playlist.removed || {}) }
+        delete removed[safeSong.id] // re-add clears the removal tombstone
+        return {
+          playlists: {
+            ...state.playlists,
+            [id]: { ...playlist, removed, songs: [...playlist.songs, { ...safeSong, addedAt: now }], updatedAt: now }
+          }
         }
-      }))
+      })
       return 'added'
     },
 
@@ -58,10 +63,17 @@ export const usePlaylistStore = create(persist(
       set(state => {
         const playlist = state.playlists[id]
         if (!playlist) return state
+        // Per-song removal tombstone — a union-merged pull can't resurrect
+        // a removed track since removed[songId] > its addedAt.
         return {
           playlists: {
             ...state.playlists,
-            [id]: { ...playlist, songs: playlist.songs.filter(s => s.id !== songId), updatedAt: Date.now() }
+            [id]: {
+              ...playlist,
+              songs: playlist.songs.filter(s => s.id !== songId),
+              removed: { ...(playlist.removed || {}), [songId]: Date.now() },
+              updatedAt: Date.now()
+            }
           }
         }
       })
@@ -69,10 +81,12 @@ export const usePlaylistStore = create(persist(
 
     importPlaylist: (name, songs) => {
       const id = `pl_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
+      const seen = new Set()
+      const deduped = (songs || []).filter(s => s?.id && !seen.has(s.id) && seen.add(s.id))
       set(state => ({
         playlists: {
           ...state.playlists,
-          [id]: { id, name: (name || '').trim() || 'Shared Playlist', songs: songs || [], createdAt: Date.now(), updatedAt: Date.now() }
+          [id]: { id, name: (name || '').trim() || 'Shared Playlist', songs: deduped, createdAt: Date.now(), updatedAt: Date.now() }
         }
       }))
       return id

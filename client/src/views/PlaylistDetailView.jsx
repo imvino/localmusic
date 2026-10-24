@@ -145,14 +145,14 @@ export default function PlaylistDetailView({ onSongClick, onShufflePlay, onPlayN
             if (q && shown.length === 0) {
               return <p className="text-sm text-zinc-500 text-center py-10">No matches for “{filter.trim()}”</p>
             }
-            return shown.map((song) => {
+            return shown.map((song, shownIdx) => {
             const i = playlist.songs.indexOf(song)
             const isCurrent = currentSong?.id === song.id
             return (
               <div
                 key={`${i}-${song.id}`}
                 className="group flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-zinc-800/60 transition-colors cursor-pointer"
-                onClick={() => onSongClick(song, playlist.songs, i)}
+                onClick={() => onSongClick(song, shown, shownIdx)} // plays the filtered subset, Spotify-style
               >
                 <span className={`w-6 text-xs text-center shrink-0 ${isCurrent ? 'text-[#fc3c44] font-semibold' : 'text-zinc-600'}`}>
                   {isCurrent && isPlaying ? '▶' : i + 1}

@@ -53,10 +53,18 @@ function ClerkAuthProvider({ children }) {
       fn()
       return
     }
-    const off = onPullDone(() => { pendingRef.current = null; fn() })
-    const safety = setTimeout(() => {
-      if (pendingRef.current === fn) { pendingRef.current = null; fn() }
-    }, 20000) // pull fetch has a 10s AbortSignal timeout — this only fires on pathological hangs
+    // Self-remove on first fire — onPullDone fires again on EVERY re-pull
+    // (reconnect → syncNonce bump), and a leaked listener would replay the
+    // pending action (e.g. un-toggling a like it just applied).
+    const fire = () => {
+      off()
+      clearTimeout(safety)
+      if (pendingRef.current !== fn) return // already consumed/replaced
+      pendingRef.current = null
+      fn()
+    }
+    const off = onPullDone(fire)
+    const safety = setTimeout(fire, 20000) // pull has a 10s timeout — this only fires on pathological hangs
     return () => { off(); clearTimeout(safety) }
   }, [isSignedIn])
 

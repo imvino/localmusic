@@ -143,3 +143,16 @@ Backend auth hardening deferred unless abuse appears.
 - A11y: aria-labels on transport + dialog roles + Escape/focus-return
 - Pinning, inline create/confirm everywhere, Stats recently-played + clear
 - 23 vitest cases covering image utils, sync merges, tombstones
+
+## Rounds 5-6 (commits 3ce5a97, 2798d61)
+
+- Tombstones extended to likes + playlists; playlist updatedAt for LWW
+- Pull is always-merge (no blind replace): unpushed offline edits survive;
+  server tombstones fold into local storage so deletes propagate both ways
+- PERSONAL_KEYS covers all tombstone/meta/count keys — cross-account wipe
+  complete on shared devices
+- playCounts synced (object shape preserved through merge)
+- Stream proxy: upstream host allowlist + per-IP rate limit; lang clamp
+- UX: desktop Now Playing expand, find-in-playlist/liked, toast actions,
+  playlist-delete Undo, backup-restore tombstone reconciliation
+- 26 vitest cases

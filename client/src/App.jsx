@@ -258,15 +258,27 @@ function AppContent() {
     }
     if (Array.isArray(backup?.savedAlbums)) {
       setSavedAlbums(new Set(backup.savedAlbums.map(a => a.id)))
+      // Fresh savedAt — a stale ts older than a server tombstone gets
+      // re-deleted on the next pull; the restore IS a new save.
+      const now = Date.now()
+      const restamped = backup.savedAlbums.map(a => ({ ...a, savedAt: now }))
       backup.savedAlbums.forEach(a => a?.id && clearTombstone('albums', a.id))
+      try { localStorage.setItem('savedAlbums', JSON.stringify(restamped)) } catch { /* quota */ }
     }
     if (Array.isArray(backup?.followedArtists)) {
       setFollowedArtists(new Set(backup.followedArtists.map(a => a.id)))
+      const now = Date.now()
+      const restamped = backup.followedArtists.map(a => ({ ...a, followedAt: now }))
       backup.followedArtists.forEach(a => a?.id && clearTombstone('artists', a.id))
+      try { localStorage.setItem('followedArtists', JSON.stringify(restamped)) } catch { /* quota */ }
     }
     if (backup?.playlists && typeof backup.playlists === 'object') {
-      usePlaylistStore.setState({ playlists: backup.playlists })
-      Object.keys(backup.playlists).forEach(id => clearTombstone('playlists', id))
+      const now = Date.now()
+      const restamped = Object.fromEntries(Object.entries(backup.playlists)
+        .map(([id, p]) => [id, { ...p, createdAt: now, updatedAt: now }]))
+      // setState triggers zustand-persist's own write — no manual LS needed
+      usePlaylistStore.setState({ playlists: restamped })
+      Object.keys(restamped).forEach(id => clearTombstone('playlists', id))
     }
   }
 

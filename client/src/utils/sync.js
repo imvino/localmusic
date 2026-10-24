@@ -15,7 +15,8 @@ export function slimSong(s) {
     albumId: s.album?.id || s.albumId || '',
     duration: Number(s.duration) || 0,
     image: getImageSrc(s.image) || s.imageUrl || '',
-    isLocal: !!s.isLocal
+    isLocal: !!s.isLocal,
+    ...(s.addedAt ? { addedAt: Number(s.addedAt) } : {})
   }
 }
 
@@ -28,6 +29,7 @@ export function slimPlaylists(playlists) {
       createdAt: p.createdAt || Date.now(),
       updatedAt: p.updatedAt || p.createdAt || Date.now(),
       pinned: !!p.pinned,
+      removed: p.removed && typeof p.removed === 'object' ? p.removed : {},
       songs: (p.songs || []).map(slimSong).filter(Boolean)
     }
   }
@@ -45,15 +47,36 @@ export function mergePlaylists(local, server) {
     if (!l) { merged[id] = s; continue }
     if (!s) { merged[id] = l; continue }
     // Scalars (name, pinned) go to the most recently edited copy; song
-    // lists union so adds from either device survive.
+    // lists union so adds from either device survive — BUT per-song removal
+    // tombstones (removed[songId] > song.addedAt) propagate deletes.
     const winner = (s.updatedAt || s.createdAt || 0) >= (l.updatedAt || l.createdAt || 0) ? s : l
     const loser = winner === s ? l : s
-    const seen = new Set((winner.songs || []).map(x => x.id))
-    const songs = [
-      ...(winner.songs || []),
-      ...(loser.songs || []).filter(x => !seen.has(x.id))
-    ]
-    merged[id] = { ...loser, ...winner, songs }
+    const removed = {}
+    for (const src of [loser.removed, winner.removed]) {
+      for (const [sid, ts] of Object.entries(src || {})) {
+        removed[sid] = Math.max(removed[sid] || 0, Number(ts) || 0)
+      }
+    }
+    const seen = new Map()
+    const songs = []
+    for (const song of [...(winner.songs || []), ...(loser.songs || [])]) {
+      if (!song?.id) continue
+      const prev = seen.get(song.id)
+      if (prev) { // keep the copy with the newer addedAt
+        if ((song.addedAt || 0) > (prev.addedAt || 0)) {
+          songs[songs.indexOf(prev)] = song
+          seen.set(song.id, song)
+        }
+        continue
+      }
+      seen.set(song.id, song)
+      songs.push(song)
+    }
+    merged[id] = {
+      ...loser, ...winner,
+      songs: songs.filter(x => (removed[x.id] || 0) <= (x.addedAt || 0)),
+      removed
+    }
   }
   return merged
 }

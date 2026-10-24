@@ -118,7 +118,12 @@ export default function PlaylistsView({ showToast }) {
                             label: 'Undo',
                             onClick: () => {
                               clearTombstone('playlists', snapshot.id)
-                              usePlaylistStore.setState(s => ({ playlists: { ...s.playlists, [snapshot.id]: snapshot } }))
+                              // Fresh timestamps — a stale createdAt would be
+                              // re-killed by the pushed server tombstone on
+                              // the next pull (tomb.ts > createdAt ⇒ deleted).
+                              const now = Date.now()
+                              const restored = { ...snapshot, createdAt: now, updatedAt: now }
+                              usePlaylistStore.setState(s => ({ playlists: { ...s.playlists, [snapshot.id]: restored } }))
                               showToast?.('Playlist restored', 'success')
                             }
                           })

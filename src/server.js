@@ -224,7 +224,8 @@ const slimLibrarySong = (s) => ({
   albumId: String(s?.albumId || ''),
   duration: Number(s?.duration) || 0,
   image: String(s?.image || '').slice(0, 1000),
-  isLocal: !!s?.isLocal
+  isLocal: !!s?.isLocal,
+  ...(s?.addedAt ? { addedAt: Number(s.addedAt) } : {})
 });
 
 // Push the user's library — size-capped to keep the JSON store sane.
@@ -244,6 +245,7 @@ app.put('/api/me/library', requireUser, (req, res) => {
       createdAt: Number(p.createdAt) || Date.now(),
       updatedAt: Number(p.updatedAt) || Number(p.createdAt) || Date.now(),
       pinned: !!p.pinned,
+      removed: p.removed && typeof p.removed === 'object' ? p.removed : {},
       songs: Array.isArray(p.songs) ? p.songs.slice(0, 2000).map(slimLibrarySong).filter(s => s.id) : []
     };
   }
