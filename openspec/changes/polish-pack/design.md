@@ -7,16 +7,21 @@
 - `<audio crossOrigin="anonymous">` is already set — Web Audio can graph it
   if the server sends CORS headers (express `cors()` does, verify prod).
 - `playHistory` in localStorage is the stats source (`{id,name,artist,
-  image,duration,playedAt}` on every `playing` event).
+  album,albumId,image,duration,ts}` — `duration`/`ts` added this change;
+  older entries contribute 0 minutes).
 
 ## Decisions
 
-- **Offline**: add a second `runtimeCaching` entry in `vite.config.js`:
-  `urlPattern: /\/api\/stream\//i`, `handler: 'CacheFirst'`,
-  `plugins: [new RangeRequestsPlugin()]`, `cacheableResponse: {statuses:[0,200,206]}`,
-  `expiration: {maxEntries: 200, maxAgeSeconds: 30d}`. Import
-  `RangeRequestsPlugin` from `workbox-range-requests` (already a transitive
-  dep of vite-plugin-pwa — add as direct devDep to be safe).
+- **Offline**: `runtimeCaching` entry: `urlPattern: /\/api\/stream\//i`,
+  `handler: 'CacheFirst'`, `rangeRequests: true`, plus an inline plugin
+  `requestWillFetch` that strips `Range` on cache-miss (206s are
+  uncacheable — Cache API rejects partial responses; the full 200 body is
+  what lands in cache, then rangeRequests serves seeks from it).
+  `cacheableResponse: {statuses:[0,200]}`, `expiration: 100 entries/30d,
+  purgeOnQuotaError`. Side effect accepted: the gapless `bytes=0-1` warmer
+  now triggers a full download of the next track — effectively prefetch,
+  good for offline. Feature exists only in the built SW (no devOptions);
+  per-bitrate URLs mean up to 2-3 cache entries per song.
 - **Sleep timer**: App state `sleepTimer: null | {type:'timer',endsAt}|{type:'eot'}`.
   Interval checks `Date.now()>=endsAt` → `audioRef.current.pause()` + toast;
   `eot` handled in `onEnded` (clear flag, don't advance). Sidebar select UI.
@@ -29,10 +34,12 @@
   destination. Never disconnect — "off" = all gains 0. Persist
   `{enabled,low,mid,high}` in localStorage. Apply on mount and whenever
   settings change. Guard `setTargetAtTime`/linearRamp vs instant `gain.value`.
-- **Crossfade**: persisted `smoothTransitions` flag. On track change/end,
-  if on: ramp `audio.volume` to 0 over ~400ms, swap src, ramp back to the
-  user's set volume over ~400ms (fade curves via rAF or
-  `setInterval`; keep `volume` state authoritative — restore after fade).
+- **Crossfade**: persisted `smoothTransitions` flag. `fadeVolume()` rAF-ramps
+  `audio.volume`; `fadingRef` guards the volume-effect write so the slider
+  can't stomp the ramp. Fade-out runs only on skips (playQueueSong while
+  playing); fade-in runs in the `playing` listener **only when
+  `audio.currentTime < 1`** — `playing` also fires on resume/rebuffer, and
+  fading there would dip mid-song. `volume` state stays authoritative.
 
 ## Risks / Trade-offs
 

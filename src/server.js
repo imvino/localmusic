@@ -1347,8 +1347,10 @@ app.get('/api/lyrics/:id', async (req, res) => {
     // 1) Official JioSaavn lyrics endpoint
     try {
       const official = await fetchFromMusicServiceOfficial('lyrics.getLyricsById', { lyrics_id: id });
-      const lyrics = official?.lyrics || official?.data?.lyrics;
+      let lyrics = official?.lyrics || official?.data?.lyrics;
       if (lyrics && typeof lyrics === 'string' && lyrics.trim()) {
+        // Official API returns <br>-delimited, entity-encoded text
+        lyrics = decodeHtmlEntities(lyrics.replace(/<br\s*\/?>/gi, '\n'));
         return res.json({ success: true, data: { lyrics, source: 'jiosaavn' } });
       }
     } catch (e) {
@@ -1358,8 +1360,9 @@ app.get('/api/lyrics/:id', async (req, res) => {
     // 2) LRCLIB fallback — needs title/artist/duration, so resolve the song
     const songResult = await fetchWithFallback('songs', { ids: id }, 'songs');
     const song = Array.isArray(songResult?.data) ? songResult.data[0] : null;
-    const trackName = song?.name || song?.title;
-    const artistName = song?.artists?.primary?.[0]?.name || song?.primaryArtists;
+    // JioSaavn metadata is entity-encoded — LRCLIB matches on clean strings
+    const trackName = decodeHtmlEntities(song?.name || song?.title || '');
+    const artistName = decodeHtmlEntities(song?.artists?.primary?.[0]?.name || song?.primaryArtists || '');
     const duration = parseInt(song?.duration) || undefined;
 
     if (trackName) {
@@ -1741,7 +1744,8 @@ app.get('/api/trending', async (req, res) => {
     const language = 'tamil';
     const limit = parseInt(req.query.limit) || 20;
 
-    // Use official API to search for songs
+    // Distinct query from /api/new-releases ('tamil' + year sort) so the two
+    // Discover rows don't surface the same album set
     const response = await axios.get('https://www.jiosaavn.com/api.php', {
       params: {
         __call: 'search.getAlbumResults',
@@ -1749,7 +1753,7 @@ app.get('/api/trending', async (req, res) => {
         _marker: 0,
         api_version: 4,
         ctx: 'web6dot0',
-        q: language,
+        q: 'tamil hits',
         p: 1,
         n: limit * 2
       },

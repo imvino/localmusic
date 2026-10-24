@@ -20,7 +20,7 @@ export default function TrackMenu({ song, likedSongs, onLikeToggle, onPlayNext, 
   useLayoutEffect(() => {
     if (!open || !triggerRef.current) return
     const rect = triggerRef.current.getBoundingClientRect()
-    const menuHeight = 320 // generous estimate incl. playlist picker
+    const menuHeight = 360 // generous estimate incl. playlist picker
     const menuWidth = 224
     const flip = rect.bottom + menuHeight > window.innerHeight
     setPos({
@@ -66,6 +66,10 @@ export default function TrackMenu({ song, likedSongs, onLikeToggle, onPlayNext, 
   const albumId = song.albumId || (typeof song.album === 'object' ? song.album?.id : null)
 
   const shareSong = async () => {
+    if (song.isLocal || song.audioPath) {
+      showToast?.('Local tracks can\'t be shared', 'warning')
+      return
+    }
     const base = window.location.origin
     const url = albumId
       ? `${base}/discover/album/${albumId}`

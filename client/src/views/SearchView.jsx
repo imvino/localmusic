@@ -154,7 +154,7 @@ export default function SearchView({ query, onSongClick, onAlbumClick, onArtistC
 
       {error && (
         <div className="p-4 bg-red-900/20 border border-red-800 rounded-lg mb-6">
-          <p className="text-red-400">{error}</p>
+          <p className="text-red-400">{error?.message || 'Search failed'}</p>
         </div>
       )}
 

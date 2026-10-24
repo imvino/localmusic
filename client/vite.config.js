@@ -48,32 +48,34 @@ export default defineConfig(({ mode }) => {
           runtimeCaching: [
             {
               // Audio streams (any origin — dev same-origin, prod Render API).
-              // CacheFirst + range plugin = heard songs replay offline incl. seeks.
-              urlPattern: /\/api\/stream\//i,
+              // The element always sends Range → server answers 206, which the
+              // Cache API CANNOT store. So on cache-miss we strip Range and fetch
+              // the full file (200, cacheable); rangeRequests then serves slices
+              // of the cached body for seeks. Cost: one full download per song.
+              // NOTE: Workbox RegExp routes must match cross-origin URLs from
+              // href index 0 — an unanchored pattern never matches :3001.
+              urlPattern: /^https?:\/\/[^/]+\/api\/stream\//,
               handler: 'CacheFirst',
               options: {
                 cacheName: 'audio-cache',
                 rangeRequests: true, // serve seeks from the cached full response
+                plugins: [
+                  {
+                    requestWillFetch: async ({ request }) => {
+                      if (!request.headers.has('range')) return request
+                      const headers = new Headers(request.headers)
+                      headers.delete('range')
+                      return new Request(request.url, { headers, mode: 'cors' })
+                    }
+                  }
+                ],
                 cacheableResponse: {
-                  statuses: [0, 200, 206]
+                  statuses: [0, 200] // 206 is uncacheable by design (Cache API)
                 },
-                expiration: {
-                  maxEntries: 200,
-                  maxAgeSeconds: 60 * 60 * 24 * 30 // 30 days
-                }
-              }
-            },
-            {
-              urlPattern: /^https:\/\/saavn\.sumit\.co\/.*/i,
-              handler: 'NetworkFirst',
-              options: {
-                cacheName: 'api-cache',
                 expiration: {
                   maxEntries: 100,
-                  maxAgeSeconds: 60 * 60 * 24 // 24 hours
-                },
-                cacheableResponse: {
-                  statuses: [0, 200]
+                  maxAgeSeconds: 60 * 60 * 24 * 30, // 30 days
+                  purgeOnQuotaError: true
                 }
               }
             }

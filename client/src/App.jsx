@@ -197,13 +197,14 @@ function AppContent() {
     try { localStorage.setItem('eq', JSON.stringify(eqSettings)) } catch { /* quota */ }
     const el = audioRef.current
     if (!el) return
-    if (!warmEq(el)) return
-    if (eqSettings.enabled) {
-      enableEq(el) // resume() is a no-op until a user gesture — real resumes happen in play paths
-      setEqGains({ low: eqSettings.low, mid: eqSettings.mid, high: eqSettings.high })
-    } else {
-      setEqGains({ low: 0, mid: 0, high: 0 })
+    if (!eqSettings.enabled) {
+      setEqGains({ low: 0, mid: 0, high: 0 }) // no-op if graph was never built
+      return // do NOT build the graph while disabled — a suspended
+      // AudioContext would reroute the element's output to silence
     }
+    if (!warmEq(el)) return
+    enableEq(el) // resume() is a no-op until a gesture — play paths also resume
+    setEqGains({ low: eqSettings.low, mid: eqSettings.mid, high: eqSettings.high })
   }, [eqSettings])
 
   useEffect(() => {
@@ -388,8 +389,9 @@ function AppContent() {
 
     // Record play history only when playback actually starts
     const handlePlaying = () => {
-      // Smooth transitions: fade in from silence (skip when muted at 0)
-      if (smoothTransitions && !muted && volume > 0) {
+      // Smooth transitions: fade in only at a track START — `playing` also
+      // fires on resume/rebuffer where a dip would be a mid-song volume drop
+      if (smoothTransitions && !muted && volume > 0 && audio.currentTime < 1) {
         fadingRef.current = true
         audio.volume = 0
         fadeVolume(volume, 500).then(() => { fadingRef.current = false })
@@ -401,7 +403,8 @@ function AppContent() {
         if (prev[0]?.id === s.id) return
         const entry = {
           id: s.id, name: s.name, artist: s.artist, album: s.album,
-          albumId: s.albumId, image: s.imageUrl || s.artworkUrl, ts: Date.now()
+          albumId: s.albumId, image: s.imageUrl || s.artworkUrl,
+          duration: Math.round(audio.duration) || 0, ts: Date.now()
         }
         localStorage.setItem('playHistory', JSON.stringify([entry, ...prev].slice(0, 200)))
       } catch { /* history is best-effort */ }
@@ -426,7 +429,8 @@ function AppContent() {
       // Ignore if user is typing in an input field or interacting with a
       // focused control (Space on a button/row activates it AND would toggle
       // playback otherwise — double-fire)
-      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' ||
+      if (!(e.target instanceof Element) ||
+          e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' ||
           e.target.closest('button, a, [role="button"], select')) {
         return
       }

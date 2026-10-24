@@ -27,9 +27,10 @@
 - **Recent searches**: `localStorage 'recentSearches'` array (max 8, dedupe,
   newest-first); append on result-bearing searches (on submit/click of a
   result); render on empty-query state with a Clear control.
-- **Autocomplete**: the header search input gets a dropdown rendering the
-  debounced search's top results (topResult + first 5 songs) — same data,
-  no new endpoint; selecting navigates/plays directly.
+- ~~**Autocomplete**: the header search input gets a dropdown rendering the
+  debounced search's top results~~ **Deferred** — not in the spec delta; the
+  debounced results page + recents cover the interaction. Revisit if the
+  family finds search-on-another-page clunky.
 - **Discover rows**: `useCharts`, `useTrending`, `useFeaturedPlaylists`
   hooks; render HorizontalScroll rows; items route to album/playlist detail
   (charts/trending entries are song-or-album shaped — route by `type`/`id`).

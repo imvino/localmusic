@@ -2,7 +2,7 @@
 
 ## 1. Offline audio (workbox)
 
-- [x] 1.1 `vite.config.js`: add `/\/api\/stream\//i` CacheFirst runtime cache with RangeRequestsPlugin, statuses [0,200,206], 200 entries / 30d; add `workbox-range-requests` as explicit devDep if needed. Verify: `pnpm build` regenerates sw.js containing a stream route.
+- [x] 1.1 `vite.config.js`: `/^https?:\/\/[^/]+\/api\/stream\//` CacheFirst + `rangeRequests:true` + inline `requestWillFetch` Range-stripper plugin + statuses [0,200] + 100 entries / 30d / purgeOnQuotaError. (Workbox RegExp routes must match cross-origin hrefs from index 0 — an unanchored `/api/stream/` pattern never intercepts `:3001`/`onrender.com` requests.) Verified live on the built bundle: full `200` in `audio-cache`, replay + seek while backend unreachable.
 
 ## 2. Sleep timer
 

@@ -109,14 +109,6 @@ export function useTrending() {
   })
 }
 
-export function useFeaturedPlaylists() {
-  return useQuery({
-    queryKey: ['featured-playlists'],
-    queryFn: () => fetchAPI('/featured-playlists'),
-    select: (data) => (Array.isArray(data?.data) ? data.data : []),
-  })
-}
-
 export function useNewReleaseAlbums() {
   return useQuery({
     queryKey: ['new-release-albums'],

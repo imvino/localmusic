@@ -207,7 +207,8 @@ async function fetchFromMusicServiceOfficial(__call, params = {}) {
     };
     const response = await axios.get('https://www.jiosaavn.com/api.php', {
       params: allParams,
-      headers: { 'User-Agent': 'Mozilla/5.0' }
+      headers: { 'User-Agent': 'Mozilla/5.0' },
+      timeout: 8000
     });
     return response.data;
   } catch (error) {
@@ -254,17 +255,19 @@ async function fetchWithFallback(endpoint, params, type = 'songs') {
     console.log(`Trying primary API for ${type}`);
     const response = await axios.get(`${PRIMARY_API}/${endpoint}`, {
       params,
-      headers: { 'User-Agent': 'Mozilla/5.0' }
+      headers: { 'User-Agent': 'Mozilla/5.0' },
+      timeout: 8000
     });
     return response.data;
   } catch (primaryError) {
     console.log(`Primary API failed for ${type}, trying fallback API`);
-    
+
     // Try fallback API
     try {
       const response = await axios.get(`${FALLBACK_API}/${endpoint}`, {
         params,
-        headers: { 'User-Agent': 'Mozilla/5.0' }
+        headers: { 'User-Agent': 'Mozilla/5.0' },
+        timeout: 8000
       });
       return response.data;
     } catch (fallbackError) {

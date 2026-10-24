@@ -27,14 +27,26 @@ source is never detached.
 - **WHEN** the user picks a preset
 - **THEN** the three bands set to the preset's gains immediately
 
+#### Scenario: Persisted enable across reload
+- **WHEN** the user reloads with EQ left enabled and presses play
+- **THEN** the suspended AudioContext resumes inside the play gesture and
+  audio is audible with the saved gains — persisted-on must never produce
+  silence
+
 ### Requirement: Smooth transitions (volume ramp)
 
-A persisted toggle SHALL fade the current track's volume to 0 over ~500ms
-on track end/change and fade the next track in.
+A persisted toggle SHALL fade audio through track changes: on a user skip
+(or auto-advance), the outgoing track ramps toward 0 (~400ms) and the
+incoming track fades in from 0. On natural track end the next track simply
+fades in — nothing exists to fade out.
 
-#### Scenario: Track change with transitions on
-- **WHEN** a track ends or the user skips with the toggle on
+#### Scenario: Skip with transitions on
+- **WHEN** the user skips or the queue advances with the toggle on
 - **THEN** volume ramps down, the next track starts, and volume ramps back up
+
+#### Scenario: Fade-in only at track start
+- **WHEN** playback resumes from pause or recovers from a buffer stall
+- **THEN** no fade occurs (fade-in applies only when `currentTime` is near 0)
 
 #### Scenario: Toggle off
 - **WHEN** the toggle is off
