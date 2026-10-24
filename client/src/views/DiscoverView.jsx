@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react'
-import { Disc, ListMusic, Loader2, Download, Play } from 'lucide-react'
+import { Disc, ListMusic, Loader2, Download, Play, History } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import MetaTags from '../components/MetaTags'
 import HorizontalScroll from '../components/HorizontalScroll'
+import TrackMenu from '../components/TrackMenu'
 import { decodeHtmlEntities } from '../utils'
 import { useJioFeaturedPlaylists, useJioNewReleases } from '../hooks/useApi'
 import { useArtistConfig } from '../artist-config'
@@ -22,10 +23,19 @@ function formatPlayCount(count) {
   return num.toString()
 }
 
-export default function DiscoverView({ onSongClick }) {
+export default function DiscoverView({ onSongClick, showToast, likedSongs, onLikeToggle, onPlayNext, onAddToQueue, onGoToAlbum }) {
   const navigate = useNavigate()
   const [downloadProgress, setDownloadProgress] = useState({})
   const appUrl = import.meta.env.VITE_APP_URL
+
+  // Recently played from local play history (unique songs, newest first)
+  const [recentlyPlayed] = useState(() => {
+    try {
+      const history = JSON.parse(localStorage.getItem('playHistory') || '[]')
+      const seen = new Set()
+      return history.filter(s => !seen.has(s.id) && seen.add(s.id)).slice(0, 15)
+    } catch { return [] }
+  })
 
   // Fetch artist config and JioSaavn data
   const { config: artistConfig, loading: configLoading } = useArtistConfig()
@@ -103,6 +113,19 @@ export default function DiscoverView({ onSongClick }) {
       />
       <h1 className="text-2xl font-bold text-white mb-8">Discover Music</h1>
 
+      {/* Recently Played */}
+      {recentlyPlayed.length > 0 && (
+        <HorizontalScroll
+          title="Recently Played"
+          icon={History}
+          items={recentlyPlayed}
+          renderItem={(song) => (
+            <SongCard song={song} onSongClick={onSongClick} downloadProgress={downloadProgress} likedSongs={likedSongs} onLikeToggle={onLikeToggle} onPlayNext={onPlayNext} onAddToQueue={onAddToQueue} onGoToAlbum={onGoToAlbum} showToast={showToast} />
+          )}
+          emptyMessage=""
+        />
+      )}
+
       {/* Top Artists */}
       <HorizontalScroll
         title="Top Artists"
@@ -118,7 +141,7 @@ export default function DiscoverView({ onSongClick }) {
         title="Top Songs"
         items={newSongs}
         renderItem={(song, index) => (
-          <SongCard song={song} onSongClick={onSongClick} downloadProgress={downloadProgress} />
+          <SongCard song={song} onSongClick={onSongClick} downloadProgress={downloadProgress} likedSongs={likedSongs} onLikeToggle={onLikeToggle} onPlayNext={onPlayNext} onAddToQueue={onAddToQueue} onGoToAlbum={onGoToAlbum} showToast={showToast} />
         )}
         emptyMessage="No top songs found"
       />
@@ -162,46 +185,19 @@ function ArtistCard({ artist, onArtistClick }) {
   )
 }
 
-function SongCard({ song, onSongClick, downloadProgress }) {
+function SongCard({ song, onSongClick, downloadProgress, likedSongs, onLikeToggle, onPlayNext, onAddToQueue, onGoToAlbum, showToast }) {
   const imageUrl = song.image || ''
   const progress = downloadProgress?.[song.id]
 
-  const handlePlay = async () => {
-    try {
-      // Fetch the song details to get the playable stream URL
-      // Pass albumId to use album data first (avoids separate API call and handles 404 cases)
-      const albumId = song.album?.id || song.albumId
-      const url = albumId 
-        ? `${API_BASE}/api/song/${song.id}?albumId=${albumId}`
-        : `${API_BASE}/api/song/${song.id}`
-      const res = await fetch(url)
-      const result = await res.json()
-      
-      if (result.success && result.data) {
-        if (result.data.streamUrl) {
-          // Create a song object with the stream URL
-          const songWithStream = {
-            id: song.id,
-            name: song.name,
-            artist: song.artist,
-            album: song.album,
-            albumId: result.data.albumId || song.albumId,
-            streamUrl: result.data.streamUrl,
-            downloadUrl: result.data.downloadUrl,
-            imageUrl: imageUrl,
-            isStream: true
-          }
-          // Call the parent's onSongClick directly with the song object
-          // This bypasses the DiscoverView's handleSongClick wrapper
-          if (onSongClick) {
-            onSongClick(songWithStream)
-          }
-        } else {
-          console.log('No stream URL available for song:', song.id)
-        }
-      }
-    } catch (err) {
-      console.error('Failed to fetch song stream URL:', err)
+  const handlePlay = () => {
+    // Deterministic stream URL is built in handleSongSelect — no blocking fetch
+    if (onSongClick) {
+      onSongClick({
+        ...song,
+        albumId: song.album?.id || song.albumId,
+        imageUrl,
+        isStream: true
+      })
     }
   }
 
@@ -287,6 +283,15 @@ function SongCard({ song, onSongClick, downloadProgress }) {
             {progress?.status === 'downloading' ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
           </button>
           )}
+          <TrackMenu
+            song={song}
+            likedSongs={likedSongs}
+            onLikeToggle={onLikeToggle}
+            onPlayNext={onPlayNext}
+            onAddToQueue={onAddToQueue}
+            onGoToAlbum={onGoToAlbum}
+            showToast={showToast}
+          />
         </div>
       </div>
       <h3 className="text-xs font-medium text-white truncate">{decodeHtmlEntities(song.name)}</h3>

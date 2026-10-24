@@ -16,6 +16,10 @@ import DiscoverDetailView from './views/DiscoverDetailView'
 import PlayerBar from './views/PlayerBar'
 import FullScreenPlayer from './views/FullScreenPlayer'
 import DownloadManager from './views/DownloadManager'
+import PlaylistsView from './views/PlaylistsView'
+import PlaylistDetailView from './views/PlaylistDetailView'
+import LikedSongsView from './views/LikedSongsView'
+import QueueDrawer from './components/QueueDrawer'
 import TermsOfService from './pages/TermsOfService'
 import PrivacyPolicy from './pages/PrivacyPolicy'
 import DMCA from './pages/DMCA'
@@ -31,6 +35,26 @@ const scrollPositionStorage = new Map()
 
 // Clerk publishable key (will be set via environment variable)
 const clerkPublishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY || ''
+
+// Deterministic stream URLs: local files ignore bitrate server-side,
+// remote songs route through the proxy so bitrate switching is real
+const isLocalSong = (s) => !!(s?.isLocal || s?.audioPath)
+const streamUrlFor = (song, bitrate = 96) =>
+  `${API_BASE}/api/stream/${song.id}${isLocalSong(song) ? '' : `?bitrate=${bitrate}`}`
+
+// Fisher-Yates permutation of queue indices, anchor first (or none when <0)
+function buildShuffleOrder(queueLength, anchorIndex = -1) {
+  const indices = Array.from({ length: queueLength }, (_, i) => i)
+  for (let i = indices.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[indices[i], indices[j]] = [indices[j], indices[i]]
+  }
+  if (anchorIndex < 0) return indices
+  const rest = indices.filter(i => i !== anchorIndex)
+  return [anchorIndex, ...rest]
+}
+
+const repeatCycle = (r) => (r === 'off' ? 'all' : r === 'all' ? 'one' : 'off')
 
 // Configure QueryClient with 5-minute cache
 export const queryClient = new QueryClient({
@@ -64,14 +88,20 @@ function AppContent() {
   const [volume, setVolume] = useState(0.75)
   const [muted, setMuted] = useState(false)
   const [shuffle, setShuffle] = useState(false)
-  const [repeat, setRepeat] = useState(false)
+  const [shuffleOrder, setShuffleOrder] = useState([])
+  const [shufflePos, setShufflePos] = useState(0)
+  const [repeat, setRepeat] = useState('off') // 'off' | 'all' | 'one'
   const [queue, setQueue] = useState([])
   const [queueIndex, setQueueIndex] = useState(-1)
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(0)
   const [likedSongs, setLikedSongs] = useState(() => {
-    const saved = localStorage.getItem('likedSongs')
-    return saved ? new Set(JSON.parse(saved)) : new Set()
+    try {
+      const saved = localStorage.getItem('likedSongs')
+      return saved ? new Set(JSON.parse(saved)) : new Set()
+    } catch {
+      return new Set()
+    }
   })
   const [showToast, setShowToast] = useState(false)
   const [toastMessage, setToastMessage] = useState('')
@@ -86,8 +116,12 @@ function AppContent() {
   const [currentBitrate, setCurrentBitrate] = useState(96)
   const audioRef = useRef(null)
   const scrollContainerRef = useRef(null)
-  const previousBitrateRef = useRef(96)
+  const previousBitrateRef = useRef(96) // last-APPLIED bitrate (updated only inside the switch effect)
   const bitrateSwitchTimeoutRef = useRef(null)
+  const warmedNextRef = useRef(null) // song id whose stream endpoint was already warmed
+  const pendingSeekRef = useRef(null) // position to restore after loadedmetadata (resume)
+  const [resumeSession, setResumeSession] = useState(null)
+  const [queueOpen, setQueueOpen] = useState(false)
 
   // Use TanStack Query for health check
   const { data: healthData, isError: healthError } = useHealthCheck(true)
@@ -165,7 +199,7 @@ function AppContent() {
         navigator.mediaSession.setActionHandler('previoustrack', handlePrev)
         navigator.mediaSession.setActionHandler('nexttrack', handleNext)
         navigator.mediaSession.setActionHandler('seekto', (details) => {
-          if (details.seekTime && audioRef.current) {
+          if (details.seekTime != null && audioRef.current) {
             audioRef.current.currentTime = details.seekTime
             setCurrentTime(details.seekTime)
           }
@@ -190,7 +224,8 @@ function AppContent() {
       setCurrentTime(audio.currentTime)
       
       // Adaptive bitrate: upgrade based on buffer health (less aggressive)
-      if (currentSong && currentSong.maxBitrate && currentBitrate < currentSong.maxBitrate) {
+      // (skipped for local songs — the endpoint ignores bitrate for them)
+      if (currentSong && currentSong.maxBitrate && !isLocalSong(currentSong) && currentBitrate < currentSong.maxBitrate) {
         const buffered = audio.buffered
         if (buffered.length > 0) {
           const bufferEnd = buffered.end(buffered.length - 1)
@@ -204,7 +239,6 @@ function AppContent() {
             }
             // Debounce the switch to prevent rapid changes
             bitrateSwitchTimeoutRef.current = setTimeout(() => {
-              previousBitrateRef.current = 160
               setCurrentBitrate(160)
             }, 2000)
           }
@@ -214,7 +248,6 @@ function AppContent() {
               clearTimeout(bitrateSwitchTimeoutRef.current)
             }
             bitrateSwitchTimeoutRef.current = setTimeout(() => {
-              previousBitrateRef.current = currentSong.maxBitrate
               setCurrentBitrate(currentSong.maxBitrate)
             }, 2000)
           }
@@ -222,40 +255,74 @@ function AppContent() {
       }
       
       // Downgrade if buffer is critically low (was 3, now 1.5)
-      if (audio.buffered.length > 0) {
+      if (audio.buffered.length > 0 && !isLocalSong(currentSong)) {
         const bufferEnd = audio.buffered.end(audio.buffered.length - 1)
         const bufferAhead = bufferEnd - audio.currentTime
         if (bufferAhead < 1.5 && currentBitrate > 96) {
           if (bitrateSwitchTimeoutRef.current) {
             clearTimeout(bitrateSwitchTimeoutRef.current)
           }
-          previousBitrateRef.current = 96
           setCurrentBitrate(96)
+        }
+      }
+
+      // Warm the next track's stream endpoint near song end (gapless handoff)
+      if (currentSong && audio.duration > 0 && audio.duration - audio.currentTime < 15) {
+        const nextIdx = getNextQueueIndex()
+        if (nextIdx !== null && warmedNextRef.current !== queue[nextIdx]?.id) {
+          const nextSong = queue[nextIdx]
+          warmedNextRef.current = nextSong.id
+          fetch(streamUrlFor(nextSong, currentBitrate), { headers: { Range: 'bytes=0-1' } })
+            .catch(() => {}) // warming is best-effort
         }
       }
     }
 
-    // Add loadedmetadata event listener for duration
+    // Add loadedmetadata event listener for duration (+ pending resume seek)
     const handleLoadedMetadata = () => {
       setDuration(audio.duration)
+      if (pendingSeekRef.current !== null) {
+        audio.currentTime = pendingSeekRef.current
+        pendingSeekRef.current = null
+      }
+    }
+
+    // Record play history only when playback actually starts
+    const handlePlaying = () => {
+      const s = currentSong
+      if (!s) return
+      try {
+        const prev = JSON.parse(localStorage.getItem('playHistory') || '[]')
+        if (prev[0]?.id === s.id) return
+        const entry = {
+          id: s.id, name: s.name, artist: s.artist, album: s.album,
+          albumId: s.albumId, image: s.imageUrl || s.artworkUrl, ts: Date.now()
+        }
+        localStorage.setItem('playHistory', JSON.stringify([entry, ...prev].slice(0, 200)))
+      } catch { /* history is best-effort */ }
     }
 
     audio.addEventListener('error', handleError)
     audio.addEventListener('timeupdate', handleTimeUpdate)
     audio.addEventListener('loadedmetadata', handleLoadedMetadata)
+    audio.addEventListener('playing', handlePlaying)
 
     return () => {
       audio.removeEventListener('error', handleError)
       audio.removeEventListener('timeupdate', handleTimeUpdate)
       audio.removeEventListener('loadedmetadata', handleLoadedMetadata)
+      audio.removeEventListener('playing', handlePlaying)
     }
-  }, [currentSong, isPlaying, volume, muted, currentBitrate])
+  }, [currentSong, isPlaying, volume, muted, currentBitrate, queue, queueIndex, shuffle, shuffleOrder, shufflePos, repeat])
 
   // Handle shortcuts
   useEffect(() => {
     const handleKeyDown = (e) => {
-      // Ignore if user is typing in an input field
-      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+      // Ignore if user is typing in an input field or interacting with a
+      // focused control (Space on a button/row activates it AND would toggle
+      // playback otherwise — double-fire)
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' ||
+          e.target.closest('button, a, [role="button"], select')) {
         return
       }
 
@@ -286,11 +353,11 @@ function AppContent() {
           break
         case 'KeyS':
           e.preventDefault()
-          setShuffle(s => !s)
+          handleShuffleToggle()
           break
         case 'KeyR':
           e.preventDefault()
-          setRepeat(r => !r)
+          setRepeat(r => repeatCycle(r))
           break
         case 'KeyL':
           e.preventDefault()
@@ -329,14 +396,14 @@ function AppContent() {
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [currentSong, duration, queue, queueIndex, shuffle, repeat])
+  }, [currentSong, duration, queue, queueIndex, shuffle, shuffleOrder, shufflePos, repeat])
 
   // Handle song end / repeat
   useEffect(() => {
     if (!audioRef.current) return
     const el = audioRef.current
     const onEnded = () => {
-      if (repeat && currentSong) {
+      if (repeat === 'one' && currentSong) {
         el.currentTime = 0
         el.play().catch(e => console.error('Repeat play error:', e))
       } else {
@@ -345,7 +412,7 @@ function AppContent() {
     }
     el.addEventListener('ended', onEnded)
     return () => el.removeEventListener('ended', onEnded)
-  }, [repeat, currentSong, queue, queueIndex, shuffle])
+  }, [repeat, currentSong, queue, queueIndex, shuffle, shuffleOrder, shufflePos])
 
   // Handle visibility change - resume playback when app returns from background (iOS/Android)
   useEffect(() => {
@@ -378,6 +445,95 @@ function AppContent() {
   useEffect(() => {
     localStorage.setItem('qualityPreference', qualityPreference)
   }, [qualityPreference])
+
+  // Persist playback session (throttled while playing + on unload)
+  useEffect(() => {
+    const writeSession = () => {
+      if (!currentSong) return
+      localStorage.setItem('playerSession', JSON.stringify({
+        queue, queueIndex, currentSong,
+        currentTime: audioRef.current?.currentTime ?? currentTime,
+        repeat, shuffle, ts: Date.now()
+      }))
+    }
+    const interval = setInterval(() => {
+      if (isPlaying) writeSession()
+    }, 5000)
+    window.addEventListener('beforeunload', writeSession)
+    return () => {
+      clearInterval(interval)
+      window.removeEventListener('beforeunload', writeSession)
+    }
+  }, [isPlaying, currentSong, queue, queueIndex, repeat, shuffle])
+
+  // Offer to resume a session saved within the last 24h (once, on mount)
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('playerSession')
+      if (!raw) return
+      const session = JSON.parse(raw)
+      if (session?.currentSong?.id && Date.now() - session.ts < 24 * 60 * 60 * 1000) {
+        setResumeSession(session)
+      } else {
+        localStorage.removeItem('playerSession')
+      }
+    } catch {
+      localStorage.removeItem('playerSession')
+    }
+  }, [])
+
+  const handleResumeSession = async () => {
+    const session = resumeSession
+    setResumeSession(null)
+    if (!session?.currentSong) return
+
+    setQueue(session.queue || [])
+    setQueueIndex(session.queueIndex ?? 0)
+    setRepeat(session.repeat || 'off')
+    const restoredShuffle = !!session.shuffle
+    setShuffle(restoredShuffle)
+    if (restoredShuffle && session.queue?.length) {
+      setShuffleOrder(buildShuffleOrder(session.queue.length, session.queueIndex ?? 0))
+      setShufflePos(0)
+    }
+
+    // Rebuild the stream URL deterministically — never trust persisted URLs
+    const song = session.currentSong
+    const maxBitrate = getMaxBitrate(getConnectionType(), qualityPreference)
+    pendingSeekRef.current = session.currentTime || 0
+    previousBitrateRef.current = 96
+    warmedNextRef.current = null
+    setCurrentBitrate(96)
+    setCurrentSong({
+      ...song,
+      streamUrl: streamUrlFor(song, 96),
+      maxBitrate,
+      isStream: true
+    })
+    setIsPlaying(true)
+    setCurrentTime(session.currentTime || 0)
+    localStorage.removeItem('playerSession')
+
+    // Same non-blocking enrichment as handleSongSelect
+    if (!song.downloadUrl && song.id) {
+      const albumId = song.album?.id || song.albumId
+      const url = albumId
+        ? `${API_BASE}/api/song/${song.id}?albumId=${albumId}`
+        : `${API_BASE}/api/song/${song.id}`
+      fetch(url)
+        .then(res => res.json())
+        .then(result => {
+          if (result.success && result.data) {
+            setCurrentSong(prev => prev?.id === song.id ? {
+              ...prev,
+              downloadUrl: result.data.downloadUrl,
+              albumId: result.data.albumId || prev.albumId
+            } : prev)
+          }
+        })
+        .catch(() => {})
+    }
+  }
 
   // Save scroll position on scroll (debounced)
   useEffect(() => {
@@ -422,37 +578,34 @@ function AppContent() {
     }
   }, [location.pathname])
 
-  // Handle bitrate switching - reload stream with new bitrate from current position
+  // Handle bitrate switching - swap audio.src directly, restore position
+  // (local songs skip: the endpoint ignores bitrate for local files)
   useEffect(() => {
-    if (!audioRef.current || !currentSong || !currentSong.id) return
-    
+    if (!audioRef.current || !currentSong?.id || !currentSong.isStream) return
+    if (isLocalSong(currentSong)) return
+    if (currentBitrate === previousBitrateRef.current) return
+
     const audio = audioRef.current
-    const currentTime = audio.currentTime
-    
-    // Only switch if bitrate actually changed from previous value
-    if (currentSong.isStream && currentSong.id && currentBitrate !== previousBitrateRef.current) {
-      const fetchNewStreamUrl = async () => {
-        try {
-          const res = await fetch(`${API_BASE}/api/stream/${currentSong.id}?bitrate=${currentBitrate}`)
-          if (res.ok) {
-            const newStreamUrl = res.url
-            if (audio.src !== newStreamUrl) {
-              const wasPlaying = !audio.paused
-              audio.src = newStreamUrl
-              audio.currentTime = currentTime
-              audio.load()
-              if (wasPlaying) {
-                audio.play().catch(e => console.error('Play error after bitrate switch:', e))
-              }
-            }
-          }
-        } catch (error) {
-          console.error('Failed to switch bitrate:', error)
-        }
+    const pos = audio.currentTime
+    const wasPlaying = !audio.paused
+    const target = streamUrlFor(currentSong, currentBitrate)
+
+    if (audio.src !== target) {
+      const onMeta = () => {
+        audio.currentTime = pos
+        audio.removeEventListener('loadedmetadata', onMeta)
       }
-      
-      fetchNewStreamUrl()
+      audio.addEventListener('loadedmetadata', onMeta)
+      audio.src = target
+      audio.load()
+      if (wasPlaying) {
+        audio.play().catch(e => console.error('Play error after bitrate switch:', e))
+      }
+      // Keep streamUrl in sync with what's loaded so the playback effect
+      // doesn't snap src back to the stale bitrate URL on its next run
+      setCurrentSong(prev => prev?.id === currentSong.id ? { ...prev, streamUrl: target } : prev)
     }
+    previousBitrateRef.current = currentBitrate
   }, [currentBitrate, currentSong?.id])
 
   // Cleanup timeout on unmount
@@ -476,64 +629,256 @@ function AppContent() {
     }
   }
 
-  const handleSongSelect = async (song, songQueue = null, songIndex = null) => {
-    let songWithStream = { ...song }
+  // The queue index that would actually play next under current shuffle/repeat
+  // (no side effects — used by next-track warming; handleNext has its own path)
+  const getNextQueueIndex = () => {
+    if (queue.length === 0) return null
+    if (repeat === 'one') return null // replays itself — nothing to warm
+    if (shuffle && shuffleOrder.length > 0) {
+      const nextPos = shufflePos + 1
+      if (nextPos < shuffleOrder.length) return shuffleOrder[nextPos]
+      return repeat === 'all' ? shuffleOrder[0] : null
+    }
+    if (queueIndex < queue.length - 1) return queueIndex + 1
+    return repeat === 'all' ? 0 : null
+  }
 
+  const handleShuffleToggle = () => {
+    if (!shuffle) {
+      // Enable: build permutation anchored on the current song
+      setShuffleOrder(queue.length > 0 ? buildShuffleOrder(queue.length, Math.max(queueIndex, 0)) : [])
+      setShufflePos(0)
+      setShuffle(true)
+    } else {
+      setShuffle(false)
+      setShuffleOrder([])
+      setShufflePos(0)
+    }
+  }
+
+  // ─── Queue manipulation (index-remap model) ───
+  // shuffleOrder holds raw queue indices — NEVER insert into `queue` mid-list
+  // while a permutation exists (indices ≥ insertion point shift silently).
+  // Inserts append to `queue` end; position is expressed via shuffleOrder.
+
+  const handlePlayNext = (song) => {
+    if (queueIndex === -1 || queue.length === 0) {
+      handleSongSelect(song)
+      showToastMessage('Playing now', 'success')
+      return
+    }
+    if (shuffle && shuffleOrder.length > 0) {
+      const newQueue = [...queue, song]
+      const newIdx = newQueue.length - 1
+      const newOrder = [...shuffleOrder]
+      newOrder.splice(shufflePos + 1, 0, newIdx)
+      setQueue(newQueue)
+      setShuffleOrder(newOrder)
+    } else {
+      const newQueue = [...queue]
+      newQueue.splice(queueIndex + 1, 0, song)
+      setQueue(newQueue)
+    }
+    showToastMessage('Will play next', 'success')
+  }
+
+  const handleAddToQueue = (song) => {
+    if (queueIndex === -1 || queue.length === 0) {
+      handleSongSelect(song)
+      showToastMessage('Playing now', 'success')
+      return
+    }
+    setQueue(prev => [...prev, song])
+    if (shuffle && shuffleOrder.length > 0) {
+      setShuffleOrder(prev => [...prev, queue.length])
+    }
+    showToastMessage('Added to queue', 'success')
+  }
+
+  const handleQueuePlayAt = (displayPos) => {
+    const order = shuffle && shuffleOrder.length > 0 ? shuffleOrder : queue.map((_, i) => i)
+    const queueIdx = order[displayPos]
+    if (queueIdx === undefined) return
+    if (shuffle) setShufflePos(displayPos)
+    setQueueIndex(queueIdx)
+    playQueueSong(queueIdx)
+  }
+
+  const handleQueueRemoveAt = (queueIdx) => {
+    const removedOrderPos = shuffleOrder.indexOf(queueIdx) // position in play order (-1 if absent)
+    const remap = (idx) => idx > queueIdx ? idx - 1 : idx
+
+    if (queueIdx === queueIndex) {
+      // Removing current song → advance to next in play order
+      const nextIdx = getNextQueueIndex()
+      const remaining = queue.filter((_, i) => i !== queueIdx)
+      const newOrder = shuffleOrder.filter(i => i !== queueIdx).map(remap)
+      setQueue(remaining)
+      if (shuffle) setShuffleOrder(newOrder)
+      if (remaining.length === 0 || nextIdx === null || nextIdx === undefined) {
+        setQueueIndex(-1)
+        setCurrentSong(null)
+        setIsPlaying(false)
+        return
+      }
+      const remapped = remap(nextIdx)
+      setQueueIndex(remapped)
+      if (shuffle) {
+        // The dropped entry sat at shufflePos; the next item shifts into that
+        // slot — unless it wrapped around (repeat-all), where it's position 0
+        setShufflePos(shufflePos < newOrder.length ? shufflePos : 0)
+      }
+      playQueueSong(remapped, remaining) // queue state is stale here — pass the new array
+      return
+    }
+    const newQueue = queue.filter((_, i) => i !== queueIdx)
+    setQueue(newQueue)
+    setQueueIndex(remap(queueIndex))
+    if (shuffle) {
+      setShuffleOrder(shuffleOrder.filter(i => i !== queueIdx).map(remap))
+      // If the removed entry preceded the current one in play order,
+      // the current song's position shifts down
+      if (removedOrderPos !== -1 && removedOrderPos < shufflePos) {
+        setShufflePos(prev => prev - 1)
+      }
+    }
+  }
+
+  const handleQueueMove = (displayPos, dir) => {
+    const to = displayPos + dir
+    if (shuffle && shuffleOrder.length > 0) {
+      if (to < 0 || to >= shuffleOrder.length) return
+      // Moving an unplayed song to/before the cursor drops it into the
+      // played prefix — never reached again. Clamp at the boundary.
+      if (displayPos > shufflePos && to <= shufflePos) return
+      const newOrder = [...shuffleOrder]
+      ;[newOrder[displayPos], newOrder[to]] = [newOrder[to], newOrder[displayPos]]
+      setShuffleOrder(newOrder)
+      // If we swapped the current position, track it
+      if (shufflePos === displayPos) setShufflePos(to)
+      else if (shufflePos === to) setShufflePos(displayPos)
+    } else {
+      if (to < 0 || to >= queue.length) return
+      if (displayPos > queueIndex && to <= queueIndex) return
+      const newQueue = [...queue]
+      ;[newQueue[displayPos], newQueue[to]] = [newQueue[to], newQueue[displayPos]]
+      setQueue(newQueue)
+      if (queueIndex === displayPos) setQueueIndex(to)
+      else if (queueIndex === to) setQueueIndex(displayPos)
+    }
+  }
+
+  const handleQueueClear = () => {
+    if (!currentSong) {
+      setQueue([])
+      setQueueIndex(-1)
+      setShuffleOrder([])
+      setShufflePos(0)
+      return
+    }
+    // Spotify clears upcoming only — current song keeps playing
+    setQueue([currentSong])
+    setQueueIndex(0)
+    if (shuffle) {
+      setShuffleOrder([0])
+      setShufflePos(0)
+    }
+    showToastMessage('Queue cleared', 'success')
+  }
+
+  const handleShufflePlay = (songs) => {
+    if (!songs || songs.length === 0) return
+    const startIdx = Math.floor(Math.random() * songs.length)
+    setShuffle(true)
+    handleSongSelect(songs[startIdx], songs, startIdx, true)
+  }
+
+  const handleGoToAlbum = (song) => {
+    const albumId = song.albumId || (typeof song.album === 'object' ? song.album?.id : null)
+    const albumName = typeof song.album === 'object' ? song.album?.name : song.album
+    if (albumId) navigateToView('album', { id: albumId, name: albumName })
+  }
+
+  const handleSongSelect = async (song, songQueue = null, songIndex = null, forceShuffle = false) => {
     // Determine appropriate bitrate based on connection and preference
     const connType = getConnectionType()
     const maxBitrate = getMaxBitrate(connType, qualityPreference)
-    
-    // Reset bitrate tracking for new song
+
+    // Reset bitrate tracking for new song; start at 96 for fast start
     previousBitrateRef.current = 96
+    warmedNextRef.current = null
     if (bitrateSwitchTimeoutRef.current) {
       clearTimeout(bitrateSwitchTimeoutRef.current)
     }
-    
-    // Start with 96kbps for fast start, will upgrade later
     setCurrentBitrate(96)
 
-    // Fetch stream URL if not already present
-    if (!song.streamUrl && song.id) {
-      try {
-        // Pass albumId to use album data first (avoids separate API call and handles 404 cases)
-        const albumId = song.album?.id || song.albumId
-        const url = albumId 
-          ? `${API_BASE}/api/song/${song.id}?albumId=${albumId}`
-          : `${API_BASE}/api/song/${song.id}`
-        const res = await fetch(url)
-        const result = await res.json()
-        if (result.success && result.data && result.data.streamUrl) {
-          songWithStream = {
-            ...song,
-            streamUrl: result.data.streamUrl,
-            downloadUrl: result.data.downloadUrl,
-            albumId: result.data.albumId || song.albumId,
-            maxBitrate: maxBitrate
-          }
-        }
-      } catch (error) {
-        console.error('Failed to fetch stream URL:', error)
-      }
-    }
-
+    const local = isLocalSong(song)
     setCurrentSong({
-      ...songWithStream,
-      album: typeof songWithStream.album === 'object' ? songWithStream.album.name : songWithStream.album,
-      artist: songWithStream.artist || songWithStream.artists?.primary?.[0]?.name,
-      albumId: songWithStream.album?.id || songWithStream.albumId,
+      ...song,
+      album: typeof song.album === 'object' ? song.album.name : song.album,
+      artist: song.artist || song.artists?.primary?.[0]?.name,
+      albumId: song.album?.id || song.albumId,
+      streamUrl: streamUrlFor(song, 96),
+      maxBitrate,
+      isLocal: local,
       isStream: true
     })
+
     if (songQueue && songIndex !== null) {
       setQueue(songQueue)
       setQueueIndex(songIndex)
+      if (shuffle || forceShuffle) {
+        setShuffleOrder(buildShuffleOrder(songQueue.length, songIndex))
+        setShufflePos(0)
+      }
+    } else {
+      // Selected without a queue — don't let Next teleport into a stale one
+      setQueue([song])
+      setQueueIndex(0)
+      if (shuffle || forceShuffle) {
+        setShuffleOrder([0])
+        setShufflePos(0)
+      }
     }
     setIsPlaying(true)
     setCurrentTime(0)
+
+    // Enrich with downloadUrl/albumId/imageUrl without blocking playback
+    if (!song.downloadUrl && song.id) {
+      const albumId = song.album?.id || song.albumId
+      const url = albumId
+        ? `${API_BASE}/api/song/${song.id}?albumId=${albumId}`
+        : `${API_BASE}/api/song/${song.id}`
+      fetch(url)
+        .then(res => res.json())
+        .then(result => {
+          if (result.success && result.data) {
+            setCurrentSong(prev => prev?.id === song.id ? {
+              ...prev,
+              downloadUrl: result.data.downloadUrl,
+              albumId: result.data.albumId || prev.albumId
+            } : prev)
+          }
+        })
+        .catch(() => {}) // enrichment is best-effort
+    }
   }
 
   const handlePrev = async () => {
     if (audioRef.current && audioRef.current.currentTime > 3) {
       audioRef.current.currentTime = 0
+      return
+    }
+    if (shuffle && shuffleOrder.length > 0) {
+      if (shufflePos > 0) {
+        const newPos = shufflePos - 1
+        const newIndex = shuffleOrder[newPos]
+        setShufflePos(newPos)
+        setQueueIndex(newIndex)
+        await playQueueSong(newIndex)
+      } else {
+        audioRef.current.currentTime = 0
+      }
       return
     }
     if (queue.length > 0 && queueIndex > 0) {
@@ -551,27 +896,45 @@ function AppContent() {
       return
     }
 
-    let newIndex
-    if (shuffle) {
-      newIndex = Math.floor(Math.random() * queue.length)
-      // Don't play the same song twice in a row
-      if (newIndex === queueIndex && queue.length > 1) {
-        newIndex = (newIndex + 1) % queue.length
+    if (shuffle && shuffleOrder.length > 0) {
+      let nextPos = shufflePos + 1
+      let order = shuffleOrder
+      if (nextPos >= order.length) {
+        if (repeat === 'off') {
+          setIsPlaying(false)
+          return
+        }
+        // repeat 'all' (or manual nav under 'one'): reshuffle, avoid immediate repeat
+        order = buildShuffleOrder(queue.length)
+        if (order[0] === queueIndex && order.length > 1) {
+          ;[order[0], order[1]] = [order[1], order[0]]
+        }
+        setShuffleOrder(order)
+        nextPos = 0
       }
-    } else {
-      // If at end of queue and repeat is off, stop playback
-      if (queueIndex === queue.length - 1 && !repeat) {
-        setIsPlaying(false)
-        return
-      }
-      newIndex = (queueIndex + 1) % queue.length
+      const newIndex = order[nextPos]
+      setShufflePos(nextPos)
+      setQueueIndex(newIndex)
+      await playQueueSong(newIndex)
+      return
     }
 
+    // If at end of queue and repeat is off, stop playback
+    if (queueIndex === queue.length - 1 && repeat === 'off') {
+      setIsPlaying(false)
+      return
+    }
+    const newIndex = (queueIndex + 1) % queue.length
     setQueueIndex(newIndex)
     await playQueueSong(newIndex)
   }
 
   const handleTogglePlay = () => {
+    // Restart from the beginning when resuming after playback stopped at the end
+    if (!isPlaying && audioRef.current && duration > 0 &&
+        audioRef.current.currentTime >= duration - 0.5) {
+      audioRef.current.currentTime = 0
+    }
     setIsPlaying(p => !p)
   }
 
@@ -586,50 +949,55 @@ function AppContent() {
     setMuted(m => !m)
   }
 
-  const playQueueSong = async (index) => {
-    const song = queue[index]
+  const playQueueSong = async (index, list = queue) => {
+    const song = list[index]
     if (!song) return
 
-    try {
-      // Fetch stream URL if not already present
-      if (!song.streamUrl) {
-        // Pass albumId to use album data first (avoids separate API call and handles 404 cases)
-        const albumId = song.album?.id || song.albumId
-        const url = albumId 
-          ? `${API_BASE}/api/song/${song.id}?albumId=${albumId}`
-          : `${API_BASE}/api/song/${song.id}`
-        const res = await fetch(url)
-        const result = await res.json()
-        if (result.success && result.data && result.data.streamUrl) {
-          setCurrentSong({
-            ...song,
-            album: result.data.album || song.album,
-            streamUrl: result.data.streamUrl,
-            downloadUrl: result.data.downloadUrl,
-            albumId: result.data.albumId || song.albumId,
-            imageUrl: result.data.imageUrl || song.imageUrl || song.image?.find(img => img.quality === '500x500')?.url ||
-                      song.image?.find(img => img.quality === '150x150')?.url,
-            artist: song.artist || song.artists?.primary?.[0]?.name,
-            isStream: true
-          })
-        } else {
-          showToastMessage('Failed to load song stream', 'error')
-          return
-        }
-      } else {
-        setCurrentSong({
-          ...song,
-          album: typeof song.album === 'object' ? song.album.name : song.album,
-          imageUrl: song.imageUrl || song.image?.find(img => img.quality === '500x500')?.url ||
-                    song.image?.find(img => img.quality === '150x150')?.url,
-          artist: song.artist || song.artists?.primary?.[0]?.name,
-          isStream: true
+    const connType = getConnectionType()
+    const maxBitrate = getMaxBitrate(connType, qualityPreference)
+
+    previousBitrateRef.current = 96
+    warmedNextRef.current = null
+    if (bitrateSwitchTimeoutRef.current) {
+      clearTimeout(bitrateSwitchTimeoutRef.current)
+    }
+    setCurrentBitrate(96)
+
+    const local = isLocalSong(song)
+    setCurrentSong({
+      ...song,
+      album: typeof song.album === 'object' ? song.album.name : song.album,
+      streamUrl: streamUrlFor(song, 96),
+      downloadUrl: song.downloadUrl,
+      albumId: song.album?.id || song.albumId,
+      imageUrl: song.imageUrl || song.image?.find(img => img.quality === '500x500')?.url ||
+                song.image?.find(img => img.quality === '150x150')?.url,
+      artist: song.artist || song.artists?.primary?.[0]?.name,
+      maxBitrate,
+      isLocal: local,
+      isStream: true
+    })
+    setIsPlaying(true)
+    setCurrentTime(0)
+
+    // Enrich with downloadUrl non-blocking (dev download feature)
+    if (!song.downloadUrl && song.id) {
+      const albumId = song.album?.id || song.albumId
+      const url = albumId
+        ? `${API_BASE}/api/song/${song.id}?albumId=${albumId}`
+        : `${API_BASE}/api/song/${song.id}`
+      fetch(url)
+        .then(res => res.json())
+        .then(result => {
+          if (result.success && result.data) {
+            setCurrentSong(prev => prev?.id === song.id ? {
+              ...prev,
+              downloadUrl: result.data.downloadUrl,
+              albumId: result.data.albumId || prev.albumId
+            } : prev)
+          }
         })
-      }
-      setCurrentTime(0)
-    } catch (err) {
-      console.error('Failed to play queue song:', err)
-      showToastMessage('Failed to play song', 'error')
+        .catch(() => {})
     }
   }
 
@@ -875,11 +1243,14 @@ function AppContent() {
         {/* Main Content - Add bottom padding on mobile for player and nav */}
         <div ref={scrollContainerRef} className="flex-1 overflow-y-auto bg-zinc-950 pb-32 md:pb-0">
           <Routes>
-            <Route path="/discover" element={<DiscoverView onSongClick={handleSongSelect} showToast={showToastMessage} />} />
-            <Route path="/discover/album/:id/:slug?" element={<DiscoverDetailView onSongClick={handleSongSelect} showToast={showToastMessage} currentSong={currentSong} isPlaying={isPlaying} sidebarOpen={sidebarOpen} />} />
-            <Route path="/discover/playlist/:id" element={<DiscoverDetailView onSongClick={handleSongSelect} showToast={showToastMessage} currentSong={currentSong} isPlaying={isPlaying} sidebarOpen={sidebarOpen} />} />
-            <Route path="/discover/artist/:id" element={<DiscoverDetailView onSongClick={handleSongSelect} showToast={showToastMessage} currentSong={currentSong} isPlaying={isPlaying} sidebarOpen={sidebarOpen} />} />
-            <Route path="/search" element={<SearchView query={searchQuery} onSongClick={handleSongSelect} onAlbumClick={a => navigateToView('album', a)} onArtistClick={a => navigateToView('artist', a)} showToast={showToastMessage} />} />
+            <Route path="/discover" element={<DiscoverView onSongClick={handleSongSelect} showToast={showToastMessage} likedSongs={likedSongs} onLikeToggle={handleLikeToggle} onPlayNext={handlePlayNext} onAddToQueue={handleAddToQueue} onGoToAlbum={handleGoToAlbum} />} />
+            <Route path="/discover/album/:id/:slug?" element={<DiscoverDetailView onSongClick={handleSongSelect} showToast={showToastMessage} currentSong={currentSong} isPlaying={isPlaying} sidebarOpen={sidebarOpen} likedSongs={likedSongs} onLikeToggle={handleLikeToggle} onPlayNext={handlePlayNext} onAddToQueue={handleAddToQueue} onGoToAlbum={handleGoToAlbum} onShufflePlay={handleShufflePlay} />} />
+            <Route path="/discover/playlist/:id" element={<DiscoverDetailView onSongClick={handleSongSelect} showToast={showToastMessage} currentSong={currentSong} isPlaying={isPlaying} sidebarOpen={sidebarOpen} likedSongs={likedSongs} onLikeToggle={handleLikeToggle} onPlayNext={handlePlayNext} onAddToQueue={handleAddToQueue} onGoToAlbum={handleGoToAlbum} onShufflePlay={handleShufflePlay} />} />
+            <Route path="/discover/artist/:id" element={<DiscoverDetailView onSongClick={handleSongSelect} showToast={showToastMessage} currentSong={currentSong} isPlaying={isPlaying} sidebarOpen={sidebarOpen} likedSongs={likedSongs} onLikeToggle={handleLikeToggle} onPlayNext={handlePlayNext} onAddToQueue={handleAddToQueue} onGoToAlbum={handleGoToAlbum} onShufflePlay={handleShufflePlay} />} />
+            <Route path="/search" element={<SearchView query={searchQuery} onSongClick={handleSongSelect} onAlbumClick={a => navigateToView('album', a)} onArtistClick={a => navigateToView('artist', a)} showToast={showToastMessage} likedSongs={likedSongs} onLikeToggle={handleLikeToggle} onPlayNext={handlePlayNext} onAddToQueue={handleAddToQueue} onGoToAlbum={handleGoToAlbum} />} />
+            <Route path="/playlists" element={<PlaylistsView showToast={showToastMessage} />} />
+            <Route path="/playlists/:id" element={<PlaylistDetailView onSongClick={handleSongSelect} onShufflePlay={handleShufflePlay} onPlayNext={handlePlayNext} onAddToQueue={handleAddToQueue} onGoToAlbum={handleGoToAlbum} likedSongs={likedSongs} onLikeToggle={handleLikeToggle} currentSong={currentSong} isPlaying={isPlaying} showToast={showToastMessage} />} />
+            <Route path="/liked" element={<LikedSongsView likedSongs={likedSongs} onLikeToggle={handleLikeToggle} onSongClick={handleSongSelect} onShufflePlay={handleShufflePlay} onPlayNext={handlePlayNext} onAddToQueue={handleAddToQueue} onGoToAlbum={handleGoToAlbum} currentSong={currentSong} isPlaying={isPlaying} showToast={showToastMessage} />} />
             <Route path="/terms" element={<TermsOfService />} />
             <Route path="/privacy" element={<PrivacyPolicy />} />
             <Route path="/dmca" element={<DMCA />} />
@@ -899,15 +1270,16 @@ function AppContent() {
             muted={muted}
             onMuteToggle={handleMuteToggle}
             shuffle={shuffle}
-            onShuffleToggle={() => setShuffle(s => !s)}
+            onShuffleToggle={handleShuffleToggle}
             repeat={repeat}
-            onRepeatToggle={() => setRepeat(r => !r)}
+            onRepeatToggle={() => setRepeat(r => repeatCycle(r))}
             liked={currentSong ? likedSongs.has(currentSong.id) : false}
             onLikeToggle={() => currentSong && handleLikeToggle(currentSong.id)}
             currentTime={currentTime}
             duration={duration}
             onSeek={handleSeek}
             onArtworkClick={handleArtworkClick}
+            onQueueToggle={() => setQueueOpen(o => !o)}
             isSearchingAlbum={isSearchingAlbum}
           />
         </div>
@@ -927,9 +1299,9 @@ function AppContent() {
             muted={muted}
             onMuteToggle={handleMuteToggle}
             shuffle={shuffle}
-            onShuffleToggle={() => setShuffle(s => !s)}
+            onShuffleToggle={handleShuffleToggle}
             repeat={repeat}
-            onRepeatToggle={() => setRepeat(r => !r)}
+            onRepeatToggle={() => setRepeat(r => repeatCycle(r))}
             liked={currentSong ? likedSongs.has(currentSong.id) : false}
             onLikeToggle={() => currentSong && handleLikeToggle(currentSong.id)}
             currentTime={currentTime}
@@ -988,22 +1360,60 @@ function AppContent() {
           onPrev={handlePrev}
           onNext={handleNext}
           shuffle={shuffle}
-          onShuffleToggle={() => setShuffle(s => !s)}
+          onShuffleToggle={handleShuffleToggle}
           repeat={repeat}
-          onRepeatToggle={() => setRepeat(r => !r)}
+          onRepeatToggle={() => setRepeat(r => repeatCycle(r))}
           liked={currentSong ? likedSongs.has(currentSong.id) : false}
           onLikeToggle={() => currentSong && handleLikeToggle(currentSong.id)}
           currentTime={currentTime}
           duration={duration}
           onSeek={handleSeek}
           onClose={() => setShowFullScreenPlayer(false)}
+          onQueueToggle={() => setQueueOpen(o => !o)}
           isSearchingAlbum={isSearchingAlbum}
         />
       )}
       
+      {/* Queue Drawer */}
+      <QueueDrawer
+        open={queueOpen}
+        onClose={() => setQueueOpen(false)}
+        queue={queue}
+        queueIndex={queueIndex}
+        shuffle={shuffle}
+        shuffleOrder={shuffleOrder}
+        isPlaying={isPlaying}
+        onPlayAt={handleQueuePlayAt}
+        onRemoveAt={handleQueueRemoveAt}
+        onMove={handleQueueMove}
+        onClear={handleQueueClear}
+      />
+
       {/* Download Manager - Only in development */}
       {!isProduction && <DownloadManager />}
       
+      {/* Resume session banner */}
+      {resumeSession && (
+        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[9998] bg-zinc-900 border border-zinc-700 rounded-lg shadow-xl px-4 py-3 flex items-center gap-3">
+          <span className="text-sm text-zinc-300">
+            Resume <span className="text-white font-medium">{resumeSession.currentSong?.name}</span>?
+          </span>
+          <button
+            onClick={handleResumeSession}
+            className="px-3 py-1 bg-[#fc3c44] hover:bg-[#e6353d] text-white text-sm rounded-full transition-colors"
+          >
+            Resume
+          </button>
+          <button
+            onClick={() => { setResumeSession(null); localStorage.removeItem('playerSession') }}
+            className="text-zinc-500 hover:text-white transition-colors"
+            title="Dismiss"
+          >
+            <X size={16} />
+          </button>
+        </div>
+      )}
+
       {/* Toast Notification - Responsive positioning */}
       {showToast && (
         <div className="fixed top-4 left-4 right-4 md:left-auto md:right-4 z-[9999] animate-fade-in">

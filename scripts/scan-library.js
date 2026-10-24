@@ -1,8 +1,9 @@
 const fs = require('fs');
 const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '../.env') });
 const { loadLibrary, saveLibrary } = require('../src/utils');
 
-const MUSIC_DIR = '/Volumes/samsung/Music';
+const MUSIC_DIR = process.env.MUSIC_DIR || '/Volumes/media/music';
 const LIBRARY_FILE = path.join(__dirname, '../data/music-library.json');
 
 // Validate existing library - remove entries where files don't exist

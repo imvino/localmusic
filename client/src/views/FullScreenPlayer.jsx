@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { Play, Pause, SkipBack, SkipForward, Shuffle, Repeat, Heart, Music, Loader2, ChevronDown } from 'lucide-react'
+import { Play, Pause, SkipBack, SkipForward, Shuffle, Repeat, Repeat1, Heart, Music, Loader2, ChevronDown, ListVideo } from 'lucide-react'
 import { formatTime, decodeHtmlEntities } from '../utils'
 import { Range, getTrackBackground } from 'react-range'
 
@@ -19,6 +19,7 @@ export default function FullScreenPlayer({
   duration, 
   onSeek, 
   onClose,
+  onQueueToggle,
   isSearchingAlbum 
 }) {
   const playerRef = useRef(null)
@@ -150,10 +151,17 @@ export default function FullScreenPlayer({
             </button>
             <button 
               onClick={onRepeatToggle} 
-              className={`transition-colors ${repeat ? 'text-[#fc3c44]' : 'text-zinc-400 hover:text-white'}`}
-              title="Repeat"
+              className={`transition-colors ${repeat !== 'off' ? 'text-[#fc3c44]' : 'text-zinc-400 hover:text-white'}`}
+              title={`Repeat: ${repeat}`}
             >
-              <Repeat size={20} />
+              {repeat === 'one' ? <Repeat1 size={20} /> : <Repeat size={20} />}
+            </button>
+            <button
+              onClick={onQueueToggle}
+              className="text-zinc-400 hover:text-white transition-colors"
+              title="Queue"
+            >
+              <ListVideo size={20} />
             </button>
           </div>
 

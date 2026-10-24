@@ -11,7 +11,7 @@ const { PRIMARY_API, FALLBACK_API } = require('./constants');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
-const MUSIC_DIR = process.env.MUSIC_DIR || '/Volumes/samsung/Music';
+const MUSIC_DIR = process.env.MUSIC_DIR || '/Volumes/media/music';
 const LIBRARY_FILE = path.join(__dirname, '../data/music-library.json');
 
 // Check if we're in production mode
@@ -1253,6 +1253,52 @@ app.get('/api/album/:id', async (req, res) => {
         retryable: true
       });
     }
+  }
+});
+
+// Batch song lookup by ids (for liked-songs / playlist resolution)
+// Prod-safe: proxies the external fallback chain, decorates isLocal
+app.get('/api/songs', async (req, res) => {
+  try {
+    const ids = (req.query.ids || '')
+      .split(',')
+      .map(s => s.trim())
+      .filter(Boolean)
+      .slice(0, 50);
+    if (ids.length === 0) {
+      return res.json({ success: true, data: [] });
+    }
+
+    const result = await fetchWithFallback('songs', { ids: ids.join(',') }, 'songs');
+    // Normalize the three return shapes: {success,data} | {data} | null
+    const rawSongs = Array.isArray(result?.data) ? result.data
+      : Array.isArray(result) ? result
+      : [];
+
+    const validSongs = rawSongs.filter(s => s && s.id);
+    const resolvedIds = new Set(validSongs.map(s => s.id));
+    const songs = validSongs.map(song => ({
+      ...song,
+      isLocal: isSongLocal(song.id)
+    }));
+
+    // Ids the upstream couldn't resolve (e.g. local-only tracks) — fall back
+    // to the local library so they don't silently vanish from collections
+    const missing = ids.filter(id => !resolvedIds.has(id));
+    if (missing.length > 0 && isMusicDirAvailable()) {
+      if (!songIdIndex || !albumIdIndex) buildIndexes();
+      for (const id of missing) {
+        const indexed = songIdIndex.get(id);
+        if (indexed?.song && indexed.song.audioPath && fs.existsSync(indexed.song.audioPath)) {
+          songs.push({ ...indexed.song, isLocal: true });
+        }
+      }
+    }
+
+    res.json({ success: true, data: songs });
+  } catch (error) {
+    console.error('Batch songs error:', error.message);
+    res.status(500).json({ success: false, error: 'Failed to fetch songs' });
   }
 });
 

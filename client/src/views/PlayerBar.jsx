@@ -1,7 +1,7 @@
-import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, Shuffle, Repeat, Heart, Music, Loader2 } from 'lucide-react'
+import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, Shuffle, Repeat, Repeat1, Heart, Music, Loader2, ListVideo } from 'lucide-react'
 import { formatTime, decodeHtmlEntities } from '../utils'
 
-export default function PlayerBar({ currentSong, isPlaying, onTogglePlay, onPrev, onNext, volume, onVolumeChange, muted, onMuteToggle, shuffle, onShuffleToggle, repeat, onRepeatToggle, liked, onLikeToggle, currentTime, duration, onSeek, onArtworkClick, isSearchingAlbum, isMobileMiniplayer = false, onOpenFullScreen = null }) {
+export default function PlayerBar({ currentSong, isPlaying, onTogglePlay, onPrev, onNext, volume, onVolumeChange, muted, onMuteToggle, shuffle, onShuffleToggle, repeat, onRepeatToggle, liked, onLikeToggle, currentTime, duration, onSeek, onArtworkClick, onQueueToggle, isSearchingAlbum, isMobileMiniplayer = false, onOpenFullScreen = null }) {
   if (!currentSong) {
     return null
   }
@@ -127,8 +127,8 @@ export default function PlayerBar({ currentSong, isPlaying, onTogglePlay, onPrev
           <button onClick={onNext} className="hover:text-white transition-colors">
             <SkipForward size={20} className="fill-zinc-400 hover:fill-white" />
           </button>
-          <button onClick={onRepeatToggle} className={`transition-colors ${repeat ? 'text-[#fc3c44]' : 'hover:text-white'}`}>
-            <Repeat size={15} />
+          <button onClick={onRepeatToggle} className={`transition-colors ${repeat !== 'off' ? 'text-[#fc3c44]' : 'hover:text-white'}`} title={`Repeat: ${repeat}`}>
+            {repeat === 'one' ? <Repeat1 size={15} /> : <Repeat size={15} />}
           </button>
         </div>
         <div className="w-full flex items-center gap-2 text-xs text-zinc-600">
@@ -152,6 +152,9 @@ export default function PlayerBar({ currentSong, isPlaying, onTogglePlay, onPrev
 
       {/* Volume */}
       <div className="w-1/3 flex items-center justify-end gap-2 text-zinc-500">
+        <button onClick={onQueueToggle} className="hover:text-white cursor-pointer transition-colors" title="Queue">
+          <ListVideo size={16} />
+        </button>
         <button onClick={onMuteToggle} className="hover:text-white cursor-pointer transition-colors">
           {muted ? <VolumeX size={15} /> : <Volume2 size={15} />}
         </button>

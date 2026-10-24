@@ -22,6 +22,7 @@
     "node-id3": "^0.2.9"
   },
   "devDependencies": {
+    "@fission-ai/openspec": "^1.15.0",
     "concurrently": "^10.0.4"
   }
 }

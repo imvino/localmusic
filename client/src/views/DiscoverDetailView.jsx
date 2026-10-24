@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { useParams, useNavigate, useLocation } from 'react-router-dom'
-import { ArrowLeft, Disc, Download, Loader2, ChevronDown } from 'lucide-react'
+import { ArrowLeft, Disc, Download, Loader2, ChevronDown, Play, Shuffle } from 'lucide-react'
+import TrackMenu from '../components/TrackMenu'
 import { useDownloadStore } from '../stores/downloadStore'
 import MetaTags from '../components/MetaTags'
 import { decodeHtmlEntities, getArtistImageUrl } from '../utils'
@@ -11,7 +12,7 @@ import { useArtistConfig, hasCustomAlbums, getAlbumsTabLabel } from '../artist-c
 const API_BASE = import.meta.env.VITE_API_URL
 const isProduction = import.meta.env.MODE === 'production'
 
-export default function DiscoverDetailView({ onSongClick, showToast, currentSong, isPlaying, sidebarOpen }) {
+export default function DiscoverDetailView({ onSongClick, showToast, currentSong, isPlaying, sidebarOpen, likedSongs, onLikeToggle, onPlayNext, onAddToQueue, onGoToAlbum, onShufflePlay }) {
   const { id, slug } = useParams()
   const navigate = useNavigate()
   const location = useLocation()
@@ -316,59 +317,38 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
     }
   }
 
-  const handlePlay = async (song, index) => {
-    try {
-      console.log('Fetching song details for:', song.id)
-      // Fetch the song details to get the playable stream URL
-      // Pass albumId to use album data first (avoids separate API call and handles 404 cases)
-      const albumId = song.album?.id || (isAlbum ? id : null)
-      const url = albumId 
-        ? `${API_BASE}/api/song/${song.id}?albumId=${albumId}`
-        : `${API_BASE}/api/song/${song.id}`
-      const res = await fetch(url)
-      const result = await res.json()
-      
-      console.log('Song API response:', result)
-      
-      if (result.success && result.data) {
-        // Try to use the stream URL if available
-        if (result.data.streamUrl) {
-          console.log('Playing with stream URL:', result.data.streamUrl)
-          // Use the displayed songs order (songs) instead of sorted order for the queue
-          const displayIndex = index !== undefined ? index : songs.findIndex(s => s.id === song.id)
-          onSongClick({
-            id: song.id,
-            name: song.name,
-            album: song.album?.name || meta?.name,
-            albumId: result.data.albumId || song.album?.id || (isAlbum ? id : null),
-            artist: song.artists?.primary?.[0]?.name,
-            streamUrl: result.data.streamUrl,
-            downloadUrl: result.data.downloadUrl,
-            imageUrl: song.image?.find(img => img.quality === (isMobile ? '150x150' : '500x500'))?.url,
-            isStream: true
-          }, songs, displayIndex)
-        } else if (result.data.previewUrl) {
-          console.log('Opening preview URL:', result.data.previewUrl)
-          // Fallback: open preview page in new tab
-          window.open(result.data.previewUrl, '_blank')
-        } else {
-          console.log('No stream URL or preview URL available')
-          if (showToast) {
-            showToast('Audio streaming not available. Please use the download button instead.', 'warning')
-          }
-        }
-      } else {
-        console.log('API returned error:', result)
-        if (showToast) {
-          showToast('Failed to load song. API rate limit exceeded.', 'error')
-        }
-      }
-    } catch (err) {
-      console.error('Failed to fetch song stream URL:', err)
-      if (showToast) {
-        showToast('Failed to load song. Please try again.', 'error')
-      }
-    }
+  const handlePlay = (song, index, list = songs) => {
+    // Deterministic stream URL is built in handleSongSelect — no blocking fetch
+    // (keeps isLocal/audioPath intact so local songs skip bitrate switching)
+    const displayIndex = index !== undefined ? index : list.findIndex(s => s.id === song.id)
+    onSongClick({
+      ...song,
+      album: song.album?.name || meta?.name,
+      albumId: song.album?.id || (isAlbum ? id : null),
+      artist: song.artists?.primary?.[0]?.name || song.artist,
+      imageUrl: song.image?.find(img => img.quality === (isMobile ? '150x150' : '500x500'))?.url || song.imageUrl,
+      isStream: true
+    }, list, displayIndex)
+  }
+
+  // Play/shuffle the displayed (filtered+sorted) list, not the raw one
+  // (evaluated at call time — sortedSongs is declared further down this render)
+  const handlePlayAll = () => {
+    const displayedSongs = isArtist ? sortedSongs : songs
+    if (displayedSongs.length === 0) return
+    handlePlay(displayedSongs[0], 0, displayedSongs)
+  }
+  const handleShuffleAll = () => {
+    const displayedSongs = isArtist ? sortedSongs : songs
+    if (displayedSongs.length === 0 || !onShufflePlay) return
+    onShufflePlay(displayedSongs.map(song => ({
+      ...song,
+      album: song.album?.name || meta?.name,
+      albumId: song.album?.id || (isAlbum ? id : null),
+      artist: song.artists?.primary?.[0]?.name || song.artist,
+      imageUrl: song.image?.find(img => img.quality === (isMobile ? '150x150' : '500x500'))?.url || song.imageUrl,
+      isStream: true
+    })))
   }
 
   // Sorting functions
@@ -520,6 +500,22 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
             
           </div>
           <p className="text-zinc-400 mb-2">{isAlbum ? 'Album' : isArtist ? 'Artist' : 'Playlist'}</p>
+
+          {/* Play / Shuffle */}
+          <div className="flex items-center justify-center md:justify-start gap-3 mb-4">
+            <button
+              onClick={handlePlayAll}
+              className="flex items-center gap-2 px-5 py-2.5 bg-[#fc3c44] hover:bg-[#e03239] text-white text-sm font-semibold rounded-full transition-colors touch-target"
+            >
+              <Play size={16} className="fill-white" /> Play
+            </button>
+            <button
+              onClick={handleShuffleAll}
+              className="flex items-center gap-2 px-5 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-white text-sm font-semibold rounded-full transition-colors touch-target"
+            >
+              <Shuffle size={16} /> Shuffle
+            </button>
+          </div>
           
           {isAlbum && (
             <>
@@ -686,7 +682,7 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
                 {sortedSongs.map((song, index) => (
                   <div
                     key={song.id}
-                    onClick={() => handlePlay(song, index)}
+                    onClick={() => handlePlay(song, index, sortedSongs)}
                     className={`flex items-center gap-4 p-3 rounded-lg transition-colors cursor-pointer group ${
                       currentSong?.id === song.id && isPlaying
                         ? 'bg-zinc-800/80 border border-[#fc3c44]/30'
@@ -765,6 +761,17 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
                       )}
                     </button>
                     )}
+                    <div onClick={e => e.stopPropagation()}>
+                      <TrackMenu
+                        song={song}
+                        likedSongs={likedSongs}
+                        onLikeToggle={onLikeToggle}
+                        onPlayNext={onPlayNext}
+                        onAddToQueue={onAddToQueue}
+                        onGoToAlbum={onGoToAlbum}
+                        showToast={showToast}
+                      />
+                    </div>
                   </div>
                 ))}
               </div>
@@ -1030,6 +1037,17 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
                 )}
               </button>
               )}
+              <div onClick={e => e.stopPropagation()}>
+                <TrackMenu
+                  song={song}
+                  likedSongs={likedSongs}
+                  onLikeToggle={onLikeToggle}
+                  onPlayNext={onPlayNext}
+                  onAddToQueue={onAddToQueue}
+                  onGoToAlbum={onGoToAlbum}
+                  showToast={showToast}
+                />
+              </div>
             </div>
           ))}
         </div>

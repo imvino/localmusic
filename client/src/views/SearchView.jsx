@@ -2,10 +2,11 @@ import { Search, Mic2, Disc3, Music, ListMusic, ChevronDown } from 'lucide-react
 import { useNavigate } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import MetaTags from '../components/MetaTags'
+import TrackMenu from '../components/TrackMenu'
 import { useSearch } from '../hooks/useApi'
 import { decodeHtmlEntities, getBestImageUrl, getArtistImageUrl, formatDuration } from '../utils'
 
-export default function SearchView({ query, onSongClick, onAlbumClick, onArtistClick }) {
+export default function SearchView({ query, onSongClick, onAlbumClick, onArtistClick, showToast, likedSongs, onLikeToggle, onPlayNext, onAddToQueue, onGoToAlbum }) {
   const navigate = useNavigate()
   const appUrl = import.meta.env.VITE_APP_URL
   const [visibleSongs, setVisibleSongs] = useState(5)
@@ -162,12 +163,20 @@ export default function SearchView({ query, onSongClick, onAlbumClick, onArtistC
               </h2>
               <div className="flex flex-col gap-0.5">
                 {onlineResults.songs.slice(0, visibleSongs).map((song, index) => (
-                  <button
+                  <div
                     key={song.id}
+                    role="button"
+                    tabIndex={0}
                     onClick={() => onSongClick({
                       ...song
                     }, onlineResults.songs, index)}
-                    className="flex items-center gap-2 md:gap-3 px-2 md:px-3 py-2 md:py-2.5 rounded-xl hover:bg-zinc-800/60 transition-colors text-left w-full group"
+                    onKeyDown={e => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault()
+                        onSongClick({ ...song }, onlineResults.songs, index)
+                      }
+                    }}
+                    className="flex items-center gap-2 md:gap-3 px-2 md:px-3 py-2 md:py-2.5 rounded-xl hover:bg-zinc-800/60 transition-colors text-left w-full group cursor-pointer"
                   >
                     {getBestImageUrl(song.image) ? (
                       <img
@@ -187,7 +196,18 @@ export default function SearchView({ query, onSongClick, onAlbumClick, onArtistC
                       </p>
                     </div>
                     <span className="text-xs text-zinc-500 flex-shrink-0">{formatDuration(song.duration)}</span>
-                  </button>
+                    <div onClick={e => e.stopPropagation()}>
+                      <TrackMenu
+                        song={song}
+                        likedSongs={likedSongs}
+                        onLikeToggle={onLikeToggle}
+                        onPlayNext={onPlayNext}
+                        onAddToQueue={onAddToQueue}
+                        onGoToAlbum={onGoToAlbum}
+                        showToast={showToast}
+                      />
+                    </div>
+                  </div>
                 ))}
               </div>
               {onlineResults.songs.length > visibleSongs && (

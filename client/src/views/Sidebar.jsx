@@ -1,7 +1,7 @@
-import { Compass, RefreshCw, Keyboard, X, Trash2, Download, ListMusic, Clock, Settings } from 'lucide-react'
+import { Compass, RefreshCw, Keyboard, X, Trash2, ListMusic, Settings, Heart, Music } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 import { useState, useRef } from 'react'
-import { useAuth } from '@clerk/react'
+import { usePlaylistStore } from '../stores/playlistStore'
 
 const API_BASE = import.meta.env.VITE_API_URL
 const isProduction = import.meta.env.MODE === 'production'
@@ -13,7 +13,7 @@ const NAV_ITEMS = [
 export default function Sidebar({ searchQuery, onSearch, showToast, onClose, qualityPreference, onQualityChange }) {
   const location = useLocation()
   const currentPath = location.pathname
-  const { isSignedIn } = useAuth()
+  const playlists = usePlaylistStore(s => s.playlists)
   const [isScanning, setIsScanning] = useState(false)
   const [showShortcuts, setShowShortcuts] = useState(false)
   const [showQualitySettings, setShowQualitySettings] = useState(false)
@@ -193,45 +193,53 @@ export default function Sidebar({ searchQuery, onSearch, showToast, onClose, qua
           </button>
         </div>
 
-        {/* Registered User Features - Only visible when signed in */}
-        {isSignedIn && (
-          <div className="flex flex-col gap-0.5">
-            <div className="text-[10px] font-semibold text-zinc-600 uppercase tracking-widest mb-2 px-2">Library</div>
+        {/* Library - local collections, no sign-in needed */}
+        <div className="flex flex-col gap-0.5">
+          <div className="text-[10px] font-semibold text-zinc-600 uppercase tracking-widest mb-2 px-2">Library</div>
 
-            {/* Offline Music - Coming Soon */}
-            <button
-              className="flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-left w-full text-zinc-400 hover:text-white hover:bg-zinc-800/40"
-            >
-              <div className="flex items-center gap-3">
-                <Download size={17} />
-                Offline Music
-              </div>
-              <span className="text-[10px] text-zinc-500 bg-zinc-800 px-1.5 py-0.5 rounded">Soon</span>
-            </button>
+          <Link
+            to="/liked"
+            onClick={onClose}
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-left w-full
+              ${currentPath === '/liked'
+                ? 'bg-zinc-800 text-white'
+                : 'text-zinc-400 hover:text-white hover:bg-zinc-800/40'}`}
+          >
+            <Heart size={17} />
+            Liked Songs
+          </Link>
 
-            {/* My Playlist - Coming Soon */}
-            <button
-              className="flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-left w-full text-zinc-400 hover:text-white hover:bg-zinc-800/40"
-            >
-              <div className="flex items-center gap-3">
-                <ListMusic size={17} />
-                My Playlist
-              </div>
-              <span className="text-[10px] text-zinc-500 bg-zinc-800 px-1.5 py-0.5 rounded">Soon</span>
-            </button>
+          <Link
+            to="/playlists"
+            onClick={onClose}
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-left w-full
+              ${currentPath.startsWith('/playlists')
+                ? 'bg-zinc-800 text-white'
+                : 'text-zinc-400 hover:text-white hover:bg-zinc-800/40'}`}
+          >
+            <ListMusic size={17} />
+            Playlists
+          </Link>
 
-            {/* Recently Played - Coming Soon */}
-            <button
-              className="flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-left w-full text-zinc-400 hover:text-white hover:bg-zinc-800/40"
-            >
-              <div className="flex items-center gap-3">
-                <Clock size={17} />
-                Recently Played
-              </div>
-              <span className="text-[10px] text-zinc-500 bg-zinc-800 px-1.5 py-0.5 rounded">Soon</span>
-            </button>
-          </div>
-        )}
+          {/* Recent playlists inline */}
+          {Object.values(playlists)
+            .sort((a, b) => b.createdAt - a.createdAt)
+            .slice(0, 5)
+            .map(p => (
+              <Link
+                key={p.id}
+                to={`/playlists/${p.id}`}
+                onClick={onClose}
+                className={`flex items-center gap-3 pl-6 pr-3 py-2 rounded-xl text-xs font-medium transition-all text-left w-full truncate
+                  ${currentPath === `/playlists/${p.id}`
+                    ? 'bg-zinc-800 text-white'
+                    : 'text-zinc-500 hover:text-white hover:bg-zinc-800/40'}`}
+              >
+                <Music size={14} className="shrink-0" />
+                <span className="truncate">{p.name}</span>
+              </Link>
+            ))}
+        </div>
 
         {/* Legal links */}
         <div className="flex flex-col gap-0.5">
