@@ -1,11 +1,10 @@
 import { useState, useEffect, useRef } from 'react'
 import { BrowserRouter, Routes, Route, useParams, useNavigate, useSearchParams, useLocation } from 'react-router-dom'
-import { Compass, Search, Menu, X, ArrowLeft, User } from 'lucide-react'
+import { Compass, Search, Menu, X, ArrowLeft, Library } from 'lucide-react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { persistQueryClient } from '@tanstack/query-persist-client-core'
 import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister'
-import { ClerkProvider, UserButton, useAuth, SignInButton } from '@clerk/react'
-import { dark } from '@clerk/themes'
+
 import { Analytics } from '@vercel/analytics/react'
 import { useHealthCheck } from './hooks/useApi'
 import { getConnectionType, getMaxBitrate } from './utils'
@@ -20,8 +19,12 @@ import PlaylistsView from './views/PlaylistsView'
 import PlaylistDetailView from './views/PlaylistDetailView'
 import LikedSongsView from './views/LikedSongsView'
 import StatsView from './views/StatsView'
+import LibraryView from './views/LibraryView'
+import DownloadsView from './views/DownloadsView'
 import QueueDrawer from './components/QueueDrawer'
+import ErrorBoundary from './components/ErrorBoundary'
 import { enableEq, warmEq, setEqGains } from './audio/eq'
+import { isDownloaded, downloadUrlFor } from './utils/downloads'
 import TermsOfService from './pages/TermsOfService'
 import PrivacyPolicy from './pages/PrivacyPolicy'
 import DMCA from './pages/DMCA'
@@ -35,14 +38,16 @@ const isProduction = import.meta.env.MODE === 'production'
 // Module-level scroll position storage (persists across component unmounts)
 const scrollPositionStorage = new Map()
 
-// Clerk publishable key (will be set via environment variable)
-const clerkPublishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY || ''
+
 
 // Deterministic stream URLs: local files ignore bitrate server-side,
-// remote songs route through the proxy so bitrate switching is real
+// remote songs route through the proxy so bitrate switching is real.
+// Downloaded songs always play their cached 96k copy — works fully offline.
 const isLocalSong = (s) => !!(s?.isLocal || s?.audioPath)
 const streamUrlFor = (song, bitrate = 96) =>
-  `${API_BASE}/api/stream/${song.id}${isLocalSong(song) ? '' : `?bitrate=${bitrate}`}`
+  isDownloaded(song.id)
+    ? downloadUrlFor(song.id)
+    : `${API_BASE}/api/stream/${song.id}${isLocalSong(song) ? '' : `?bitrate=${bitrate}`}`
 
 // Fisher-Yates permutation of queue indices, anchor first (or none when <0)
 function buildShuffleOrder(queueLength, anchorIndex = -1) {
@@ -84,7 +89,7 @@ function AppContent() {
   const navigate = useNavigate()
   const location = useLocation()
   const [searchParams, setSearchParams] = useSearchParams()
-  const { isSignedIn } = useAuth()
+
   const [currentSong, setCurrentSong] = useState(null)
   const [isPlaying, setIsPlaying] = useState(false)
   const [volume, setVolume] = useState(0.75)
@@ -120,6 +125,7 @@ function AppContent() {
   const scrollContainerRef = useRef(null)
   const previousBitrateRef = useRef(96) // last-APPLIED bitrate (updated only inside the switch effect)
   const bitrateSwitchTimeoutRef = useRef(null)
+  const lastSwitchAtRef = useRef(0) // downgrade cooldown anchor
   const warmedNextRef = useRef(null) // song id whose stream endpoint was already warmed
   const pendingSeekRef = useRef(null) // position to restore after loadedmetadata (resume)
   const [resumeSession, setResumeSession] = useState(null)
@@ -216,17 +222,29 @@ function AppContent() {
   const fadeVolume = (to, ms) => new Promise(resolve => {
     const audio = audioRef.current
     if (!audio) return resolve()
-    if (fadeRafRef.current) cancelAnimationFrame(fadeRafRef.current)
+    // Resolve the superseded fade too — a stranded promise would leave
+    // fadingRef stuck true and permanently freeze the volume control
+    if (fadeRafRef.current) {
+      cancelAnimationFrame(fadeRafRef.current.raf)
+      fadeRafRef.current.resolve()
+    }
     const from = audio.volume
     const start = performance.now()
     const tick = now => {
       const t = Math.min(1, (now - start) / ms)
       audio.volume = Math.max(0, Math.min(1, from + (to - from) * t))
-      if (t < 1) fadeRafRef.current = requestAnimationFrame(tick)
+      if (t < 1) fadeRafRef.current.raf = requestAnimationFrame(tick)
       else { fadeRafRef.current = null; resolve() }
     }
-    fadeRafRef.current = requestAnimationFrame(tick)
+    fadeRafRef.current = { raf: requestAnimationFrame(tick), resolve }
   })
+
+  // Snap volume back to user setting, cancelling any in-flight ramp
+  const settleVolume = () => {
+    if (fadeRafRef.current) { cancelAnimationFrame(fadeRafRef.current.raf); fadeRafRef.current.resolve(); fadeRafRef.current = null }
+    fadingRef.current = false
+    if (audioRef.current) audioRef.current.volume = muted ? 0 : volume
+  }
 
   // Redirect to discover if on root
   useEffect(() => {
@@ -274,6 +292,7 @@ function AppContent() {
         })
       } else {
         audio.pause()
+        settleVolume() // pause mid-fade: snap back to the user's volume
       }
 
       // Set Media Session API metadata for lock screen/controls
@@ -316,9 +335,12 @@ function AppContent() {
     const handleTimeUpdate = () => {
       setCurrentTime(audio.currentTime)
       
-      // Adaptive bitrate: upgrade based on buffer health (less aggressive)
-      // (skipped for local songs — the endpoint ignores bitrate for them)
-      if (currentSong && currentSong.maxBitrate && !isLocalSong(currentSong) && currentBitrate < currentSong.maxBitrate) {
+      // Adaptive bitrate: upgrade based on buffer health (less aggressive).
+      // Skipped for local songs (endpoint ignores bitrate), downloaded songs
+      // (they always stream the cached 96k copy), and when offline (the
+      // upgraded URL is a cache miss — swapping src would kill playback).
+      const offlineOrPinned = navigator.onLine === false || isDownloaded(currentSong?.id)
+      if (currentSong && currentSong.maxBitrate && !isLocalSong(currentSong) && !offlineOrPinned && currentBitrate < currentSong.maxBitrate) {
         const buffered = audio.buffered
         if (buffered.length > 0) {
           const bufferEnd = buffered.end(buffered.length - 1)
@@ -347,20 +369,27 @@ function AppContent() {
         }
       }
       
-      // Downgrade if buffer is critically low (was 3, now 1.5)
+      // Downgrade if buffer is critically low — with a 10s post-switch
+      // cooldown so a just-upgraded stream isn't downgraded while it
+      // rebuffers (which would loop 96↔160 on marginal connections)
       if (audio.buffered.length > 0 && !isLocalSong(currentSong)) {
         const bufferEnd = audio.buffered.end(audio.buffered.length - 1)
         const bufferAhead = bufferEnd - audio.currentTime
-        if (bufferAhead < 1.5 && currentBitrate > 96) {
+        if (bufferAhead < 1.5 && currentBitrate > 96 && Date.now() - (lastSwitchAtRef.current || 0) > 10000) {
           if (bitrateSwitchTimeoutRef.current) {
             clearTimeout(bitrateSwitchTimeoutRef.current)
           }
+          lastSwitchAtRef.current = Date.now()
           setCurrentBitrate(96)
         }
       }
 
-      // Warm the next track's stream endpoint near song end (gapless handoff)
-      if (currentSong && audio.duration > 0 && audio.duration - audio.currentTime < 15) {
+      // Warm the next track's stream endpoint near song end (gapless handoff).
+      // Skipped on metered/slow connections — the SW turns this Range probe
+      // into a full-file download, which wastes mobile data.
+      const conn = navigator.connection
+      const metered = conn?.saveData || conn?.effectiveType === '2g' || conn?.effectiveType === '3g'
+      if (currentSong && audio.duration > 0 && audio.duration - audio.currentTime < 15 && !metered) {
         const nextIdx = getNextQueueIndex()
         if (nextIdx !== null && warmedNextRef.current !== queue[nextIdx]?.id) {
           const nextSong = queue[nextIdx]
@@ -394,7 +423,12 @@ function AppContent() {
       if (smoothTransitions && !muted && volume > 0 && audio.currentTime < 1) {
         fadingRef.current = true
         audio.volume = 0
-        fadeVolume(volume, 500).then(() => { fadingRef.current = false })
+        fadeVolume(volume, 500).then(() => {
+          fadingRef.current = false
+          // Mute/volume changes during the ramp are skipped while fading —
+          // re-apply the live setting when it lands
+          audio.volume = muted ? 0 : volume
+        })
       }
       const s = currentSong
       if (!s) return
@@ -421,7 +455,7 @@ function AppContent() {
       audio.removeEventListener('loadedmetadata', handleLoadedMetadata)
       audio.removeEventListener('playing', handlePlaying)
     }
-  }, [currentSong, isPlaying, volume, muted, currentBitrate, queue, queueIndex, shuffle, shuffleOrder, shufflePos, repeat, autoplayEnabled])
+  }, [currentSong, isPlaying, volume, muted, currentBitrate, queue, queueIndex, shuffle, shuffleOrder, shufflePos, repeat, autoplayEnabled, smoothTransitions])
 
   // Handle shortcuts
   useEffect(() => {
@@ -564,18 +598,20 @@ function AppContent() {
   // Persist playback session (throttled while playing + on unload)
   useEffect(() => {
     const writeSession = () => {
-      if (!currentSong) return
-      // Persist a window around the cursor — autoplay can grow the queue
-      // unboundedly and we share ~5MB with the TanStack query persister
-      const start = Math.max(0, queueIndex - 10)
-      const windowedQueue = queue.slice(start, queueIndex + 50)
-      localStorage.setItem('playerSession', JSON.stringify({
-        queue: windowedQueue,
-        queueIndex: queueIndex - start,
-        currentSong,
-        currentTime: audioRef.current?.currentTime ?? currentTime,
-        repeat, shuffle, ts: Date.now()
-      }))
+      try {
+        if (!currentSong) return
+        // Persist a window around the cursor — autoplay can grow the queue
+        // unboundedly and we share ~5MB with the TanStack query persister
+        const start = Math.max(0, queueIndex - 10)
+        const windowedQueue = queue.slice(start, queueIndex + 50)
+        localStorage.setItem('playerSession', JSON.stringify({
+          queue: windowedQueue,
+          queueIndex: queueIndex - start,
+          currentSong,
+          currentTime: audioRef.current?.currentTime ?? currentTime,
+          repeat, shuffle, ts: Date.now()
+        }))
+      } catch { /* quota — session resume is best-effort */ }
     }
     const interval = setInterval(() => {
       if (isPlaying) writeSession()
@@ -607,6 +643,8 @@ function AppContent() {
     const session = resumeSession
     setResumeSession(null)
     if (!session?.currentSong) return
+    // Resume inside a click gesture — wake the EQ context or playback is silent
+    if (eqSettings.enabled) enableEq(audioRef.current)
 
     // Replace of the whole queue — abort any in-flight autoplay/radio fetch
     queueEpochRef.current++
@@ -733,6 +771,7 @@ function AppContent() {
       setCurrentSong(prev => prev?.id === currentSong.id ? { ...prev, streamUrl: target } : prev)
     }
     previousBitrateRef.current = currentBitrate
+    lastSwitchAtRef.current = Date.now()
   }, [currentBitrate, currentSong?.id])
 
   // Cleanup timeout on unmount
@@ -846,7 +885,25 @@ function AppContent() {
       const newOrder = shuffleOrder.filter(i => i !== queueIdx).map(remap)
       setQueue(remaining)
       if (shuffle) setShuffleOrder(newOrder)
-      if (remaining.length === 0 || nextIdx === null || nextIdx === undefined) {
+      if (remaining.length === 0) {
+        setQueueIndex(-1)
+        setCurrentSong(null)
+        setIsPlaying(false)
+        return
+      }
+      if (nextIdx === null || nextIdx === undefined) {
+        // Removed the last song — mirror handleNext: autoplay can still
+        // extend from the removed song before we give up and stop
+        if (repeat !== 'one' && autoplayEnabled && currentSong) {
+          extendQueue(currentSong)
+          return
+        }
+        if (repeat === 'one' && remaining.length > 0) {
+          const replay = remap(Math.min(queueIndex, remaining.length - 1))
+          setQueueIndex(replay)
+          playQueueSong(replay, remaining)
+          return
+        }
         setQueueIndex(-1)
         setCurrentSong(null)
         setIsPlaying(false)
@@ -1157,9 +1214,14 @@ function AppContent() {
       let order = shuffleOrder
       if (nextPos >= order.length) {
         if (repeat === 'off') {
-          // Autoplay: extend the queue with similar songs instead of stopping
+          // Autoplay: extend the queue with similar songs instead of stopping.
+          // Drop isPlaying during the fetch so the UI doesn't claim a song is
+          // playing while nothing is audible
           const epoch = queueEpochRef.current
-          if (autoplayEnabled && currentSong && await extendQueue(currentSong)) return
+          if (autoplayEnabled && currentSong) {
+            setIsPlaying(false)
+            if (await extendQueue(currentSong)) return
+          }
           if (queueEpochRef.current !== epoch) return // user took over mid-fetch
           setIsPlaying(false)
           return
@@ -1182,7 +1244,10 @@ function AppContent() {
     // If at end of queue and repeat is off, try autoplay before stopping
     if (queueIndex === queue.length - 1 && repeat === 'off') {
       const epoch = queueEpochRef.current
-      if (autoplayEnabled && currentSong && await extendQueue(currentSong)) return
+      if (autoplayEnabled && currentSong) {
+        setIsPlaying(false) // nothing is audible during the suggestion fetch
+        if (await extendQueue(currentSong)) return
+      }
       if (queueEpochRef.current !== epoch) return // user took over mid-fetch
       setIsPlaying(false)
       return
@@ -1482,25 +1547,16 @@ function AppContent() {
                   const currentValue = localSearchQuery
                   const next = currentValue.slice(0, selectionStart) + pastedText + currentValue.slice(selectionEnd)
                   setLocalSearchQuery(next)
-                  if (next && location.pathname !== '/search') {
+                  if (location.pathname === '/search') {
+                    setSearchParams({ q: next }, { replace: true })
+                  } else if (next) {
                     navigate(`/search?q=${encodeURIComponent(next)}`)
                   }
                 }}
                 className="w-80 bg-zinc-800/70 text-sm text-white placeholder-zinc-500 rounded-full pl-10 pr-4 py-2 outline-none border border-transparent focus:border-zinc-600 transition-colors"
               />
             </div>
-            {/* Clerk Authentication - Desktop - Far right corner */}
-            <div className="hidden md:flex items-center gap-2 ml-auto">
-              {isSignedIn ? (
-                <UserButton afterSignOutUrl="/" />
-              ) : (
-                <SignInButton mode="modal">
-                  <button className="flex items-center justify-center p-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-full transition-colors">
-                    <User size={20} />
-                  </button>
-                </SignInButton>
-              )}
-            </div>
+            <div className="hidden md:flex items-center gap-2 ml-auto" />
             {location.pathname === '/search' && (
               <div className="relative md:hidden flex-1">
                 <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none" />
@@ -1527,7 +1583,9 @@ function AppContent() {
                     const currentValue = localSearchQuery
                     const next = currentValue.slice(0, selectionStart) + pastedText + currentValue.slice(selectionEnd)
                     setLocalSearchQuery(next)
-                    if (next && location.pathname !== '/search') {
+                    if (location.pathname === '/search') {
+                      setSearchParams({ q: next }, { replace: true })
+                    } else if (next) {
                       navigate(`/search?q=${encodeURIComponent(next)}`)
                     }
                   }}
@@ -1540,6 +1598,7 @@ function AppContent() {
         
         {/* Main Content - Add bottom padding on mobile for player and nav */}
         <div ref={scrollContainerRef} className="flex-1 overflow-y-auto bg-zinc-950 pb-32 md:pb-0">
+          <ErrorBoundary resetKey={location.pathname}>
           <Routes>
             <Route path="/discover" element={<DiscoverView onSongClick={handleSongSelect} showToast={showToastMessage} likedSongs={likedSongs} onLikeToggle={handleLikeToggle} onPlayNext={handlePlayNext} onAddToQueue={handleAddToQueue} onGoToAlbum={handleGoToAlbum} onSongRadio={handleSongRadio} />} />
             <Route path="/discover/album/:id/:slug?" element={<DiscoverDetailView onSongClick={handleSongSelect} showToast={showToastMessage} currentSong={currentSong} isPlaying={isPlaying} sidebarOpen={sidebarOpen} likedSongs={likedSongs} onLikeToggle={handleLikeToggle} onPlayNext={handlePlayNext} onAddToQueue={handleAddToQueue} onGoToAlbum={handleGoToAlbum} onSongRadio={handleSongRadio} onShufflePlay={handleShufflePlay} onArtistRadio={handleArtistRadio} />} />
@@ -1550,10 +1609,13 @@ function AppContent() {
             <Route path="/playlists/:id" element={<PlaylistDetailView onSongClick={handleSongSelect} onShufflePlay={handleShufflePlay} onPlayNext={handlePlayNext} onAddToQueue={handleAddToQueue} onGoToAlbum={handleGoToAlbum} onSongRadio={handleSongRadio} likedSongs={likedSongs} onLikeToggle={handleLikeToggle} currentSong={currentSong} isPlaying={isPlaying} showToast={showToastMessage} />} />
             <Route path="/liked" element={<LikedSongsView likedSongs={likedSongs} onLikeToggle={handleLikeToggle} onSongClick={handleSongSelect} onShufflePlay={handleShufflePlay} onPlayNext={handlePlayNext} onAddToQueue={handleAddToQueue} onGoToAlbum={handleGoToAlbum} onSongRadio={handleSongRadio} currentSong={currentSong} isPlaying={isPlaying} showToast={showToastMessage} />} />
             <Route path="/stats" element={<StatsView likedSongs={likedSongs} />} />
+            <Route path="/library" element={<LibraryView likedSongs={likedSongs} />} />
+            <Route path="/downloads" element={<DownloadsView onSongClick={handleSongSelect} showToast={showToastMessage} />} />
             <Route path="/terms" element={<TermsOfService />} />
             <Route path="/privacy" element={<PrivacyPolicy />} />
             <Route path="/dmca" element={<DMCA />} />
           </Routes>
+          </ErrorBoundary>
         </div>
         
         {/* Desktop Player - Hidden on mobile */}
@@ -1636,18 +1698,16 @@ function AppContent() {
           <Search size={24} />
           <span className="text-xs mt-1">Search</span>
         </button>
-        {isSignedIn ? (
-          <div className="flex flex-col items-center justify-center flex-1 h-full">
-            <UserButton afterSignOutUrl="/" />
-          </div>
-        ) : (
-          <SignInButton mode="modal">
-            <button className="flex flex-col items-center justify-center flex-1 h-full text-zinc-400 hover:text-white active:scale-95 active:opacity-70 transition-colors">
-              <User size={24} />
-              <span className="text-xs mt-1">Sign In</span>
-            </button>
-          </SignInButton>
-        )}
+        <button
+          onClick={() => navigate('/library')}
+          className={`flex flex-col items-center justify-center flex-1 h-full touch-target transition-colors active:scale-95 active:opacity-70 ${
+            ['/library', '/liked', '/playlists', '/downloads', '/stats'].some(p => location.pathname.startsWith(p)) ? 'text-[#fc3c44]' : 'text-zinc-400 hover:text-white'
+          }`}
+          title="Library"
+        >
+          <Library size={24} />
+          <span className="text-xs mt-1">Library</span>
+        </button>
       </div>
       
       {/* Full Screen Player - Mobile Only */}
@@ -1670,6 +1730,10 @@ function AppContent() {
           onClose={() => setShowFullScreenPlayer(false)}
           onQueueToggle={() => setQueueOpen(o => !o)}
           isSearchingAlbum={isSearchingAlbum}
+          volume={volume}
+          onVolumeChange={setVolume}
+          muted={muted}
+          onMuteToggle={handleMuteToggle}
         />
       )}
       
@@ -1681,6 +1745,7 @@ function AppContent() {
         queueIndex={queueIndex}
         shuffle={shuffle}
         shuffleOrder={shuffleOrder}
+        shufflePos={shufflePos}
         isPlaying={isPlaying}
         onPlayAt={handleQueuePlayAt}
         onRemoveAt={handleQueueRemoveAt}
@@ -1748,27 +1813,12 @@ function AppContent() {
 
 function App() {
   return (
-    <ClerkProvider 
-      publishableKey={clerkPublishableKey} 
-      appearance={{
-        baseTheme: dark,
-        variables: {
-          colorPrimary: '#fc3c44',
-          colorBackground: '#18181b',
-          colorInputBackground: '#27272a',
-          colorText: '#ffffff',
-          colorTextSecondary: '#a1a1aa',
-          borderRadius: '0.5rem'
-        }
-      }}
-    >
-      <QueryClientProvider client={queryClient}>
-        <BrowserRouter>
-          <AppContent />
-          <Analytics />
-        </BrowserRouter>
-      </QueryClientProvider>
-    </ClerkProvider>
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+        <AppContent />
+        <Analytics />
+      </BrowserRouter>
+    </QueryClientProvider>
   )
 }
 

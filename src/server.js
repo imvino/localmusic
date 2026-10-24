@@ -1375,9 +1375,13 @@ app.get('/api/lyrics/:id', async (req, res) => {
           headers: { 'User-Agent': 'Torsongs/1.0 (https://torsongs.vercel.app)' },
           timeout: 8000
         });
-        const lyrics = lrclib.data?.plainLyrics || lrclib.data?.syncedLyrics;
+        const syncedLyrics = lrclib.data?.syncedLyrics || null;
+        // Strip [mm:ss.xx] tags when only synced lyrics exist, so `lyrics`
+        // is always clean plain text for non-karaoke renderers
+        const lyrics = lrclib.data?.plainLyrics
+          || syncedLyrics?.split('\n').map(l => l.replace(/\[[^\]]*\]/g, '').trim()).filter(Boolean).join('\n');
         if (lyrics && lyrics.trim()) {
-          return res.json({ success: true, data: { lyrics, source: 'lrclib' } });
+          return res.json({ success: true, data: { lyrics, syncedLyrics, source: 'lrclib' } });
         }
       } catch (e) {
         console.log('LRCLIB failed:', e.message);

@@ -1,12 +1,14 @@
-import { useEffect } from 'react'
+import { useEffect, useRef, useMemo } from 'react'
 import { createPortal } from 'react-dom'
 import { useQuery } from '@tanstack/react-query'
 import { X, Mic2, Music } from 'lucide-react'
 import { decodeHtmlEntities, getBestImageUrl } from '../utils'
+import { parseLrc, activeLrcIndex } from '../utils/lrc'
 
 const API_BASE = import.meta.env.VITE_API_URL
 
-export default function LyricsModal({ song, onClose }) {
+export default function LyricsModal({ song, onClose, currentTime, onSeek }) {
+  const scrollRef = useRef(null)
   const { data, isLoading } = useQuery({
     queryKey: ['lyrics', song?.id],
     queryFn: async () => {
@@ -18,6 +20,17 @@ export default function LyricsModal({ song, onClose }) {
     staleTime: 10 * 60 * 1000,
     retry: 1
   })
+
+  const synced = useMemo(() => parseLrc(data?.syncedLyrics), [data?.syncedLyrics])
+  const karaoke = synced.length > 0 && typeof currentTime === 'number'
+  const activeIdx = karaoke ? activeLrcIndex(synced, currentTime) : -1
+
+  // Keep the active line centered — auto-scroll like Apple Music lyrics
+  useEffect(() => {
+    if (!karaoke || activeIdx < 0 || !scrollRef.current) return
+    const el = scrollRef.current.children[activeIdx]
+    if (el) el.scrollIntoView({ block: 'center', behavior: 'smooth' })
+  }, [karaoke, activeIdx])
 
   useEffect(() => {
     const onKey = (e) => { if (e.key === 'Escape') onClose() }
@@ -48,10 +61,24 @@ export default function LyricsModal({ song, onClose }) {
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto px-5 py-4">
+        <div ref={scrollRef} className="flex-1 overflow-y-auto px-5 py-4">
           {isLoading ? (
             <div className="flex items-center justify-center py-16">
               <div className="w-8 h-8 border-2 border-zinc-700 border-t-[#fc3c44] rounded-full animate-spin" />
+            </div>
+          ) : karaoke ? (
+            <div className="py-8">
+              {synced.map((line, i) => (
+                <button
+                  key={i}
+                  onClick={() => onSeek?.(line.time)}
+                  className={`block w-full text-left py-1.5 text-lg font-semibold leading-snug transition-all duration-300 ${
+                    i === activeIdx ? 'text-white scale-[1.02] origin-left' : i < activeIdx ? 'text-zinc-600' : 'text-zinc-500'
+                  }`}
+                >
+                  {line.text}
+                </button>
+              ))}
             </div>
           ) : data?.lyrics ? (
             <pre className="text-sm text-zinc-200 leading-relaxed whitespace-pre-wrap font-sans">

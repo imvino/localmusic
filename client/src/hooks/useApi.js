@@ -117,6 +117,18 @@ export function useNewReleaseAlbums() {
   })
 }
 
+// Suggestions for a seed song — powers "Because you listened" on Discover
+export function useSongSuggestions(seedId) {
+  return useQuery({
+    queryKey: ['suggestions', seedId],
+    queryFn: () => fetchAPI(`/songs/${seedId}/suggestions`),
+    select: (data) => (Array.isArray(data?.data) ? data.data : []),
+    enabled: !!seedId,
+    staleTime: 5 * 60 * 1000,
+    retry: 1,
+  })
+}
+
 // Health check endpoint
 export function useHealthCheck(enabled = true) {
   return useQuery({

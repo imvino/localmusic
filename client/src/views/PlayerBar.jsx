@@ -1,7 +1,10 @@
+import { useRef } from 'react'
 import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, Shuffle, Repeat, Repeat1, Heart, Music, Loader2, ListVideo } from 'lucide-react'
 import { formatTime, decodeHtmlEntities } from '../utils'
 
 export default function PlayerBar({ currentSong, isPlaying, onTogglePlay, onPrev, onNext, volume, onVolumeChange, muted, onMuteToggle, shuffle, onShuffleToggle, repeat, onRepeatToggle, liked, onLikeToggle, currentTime, duration, onSeek, onArtworkClick, onQueueToggle, isSearchingAlbum, isMobileMiniplayer = false, onOpenFullScreen = null }) {
+  const touch = useRef(null)
+
   if (!currentSong) {
     return null
   }
@@ -9,8 +12,25 @@ export default function PlayerBar({ currentSong, isPlaying, onTogglePlay, onPrev
   const artwork = currentSong.artworkUrl || currentSong.moviePosterUrl || currentSong.imageUrl
 
   if (isMobileMiniplayer) {
+    // Swipe up on the mini player opens the full player (native feel)
+    const onTouchStart = (e) => { touch.current = e.touches[0].clientY }
+    const onTouchEnd = (e) => {
+      if (touch.current != null && touch.current - e.changedTouches[0].clientY > 40) onOpenFullScreen?.()
+      touch.current = null
+    }
     return (
-      <div className="h-16 bg-zinc-900 flex items-center px-3 gap-2">
+      <div
+        className="h-16 bg-zinc-900 flex items-center px-3 gap-2 relative"
+        onTouchStart={onTouchStart}
+        onTouchEnd={onTouchEnd}
+      >
+        {/* Hairline progress across the top — like Spotify's mini player */}
+        <div className="absolute top-0 left-0 right-0 h-0.5 bg-zinc-800">
+          <div
+            className="h-full bg-[#fc3c44]"
+            style={{ width: duration > 0 ? `${(currentTime / duration) * 100}%` : '0%' }}
+          />
+        </div>
         {/* Now Playing - Compact */}
         <div className="flex items-center gap-2 flex-1 min-w-0">
           {artwork ? (

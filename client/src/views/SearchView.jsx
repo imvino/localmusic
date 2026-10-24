@@ -179,6 +179,10 @@ export default function SearchView({ query, onSongClick, onAlbumClick, onArtistC
                     })
                   } else if (onlineResults.topResult.type === 'album') {
                     onAlbumClick(onlineResults.topResult)
+                  } else if (onlineResults.topResult.type === 'artist') {
+                    onArtistClick?.(onlineResults.topResult)
+                  } else if (onlineResults.topResult.type === 'playlist') {
+                    navigate(`/discover/playlist/${onlineResults.topResult.id}`, { state: { playlist: onlineResults.topResult } })
                   }
                 }}
               >

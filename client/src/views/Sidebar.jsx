@@ -1,4 +1,4 @@
-import { Compass, RefreshCw, Keyboard, X, Trash2, ListMusic, Settings, Heart, Music, Radio, Timer, SlidersHorizontal, BarChart3, Waves } from 'lucide-react'
+import { Compass, RefreshCw, Keyboard, X, Trash2, ListMusic, Settings, Heart, Music, Radio, Timer, SlidersHorizontal, BarChart3, Waves, Download } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 import { useState } from 'react'
 import { usePlaylistStore } from '../stores/playlistStore'
@@ -300,6 +300,18 @@ export default function Sidebar({ showToast, onClose, qualityPreference, onQuali
           >
             <ListMusic size={17} />
             Playlists
+          </Link>
+
+          <Link
+            to="/downloads"
+            onClick={onClose}
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-left w-full
+              ${currentPath === '/downloads'
+                ? 'bg-zinc-800 text-white'
+                : 'text-zinc-400 hover:text-white hover:bg-zinc-800/40'}`}
+          >
+            <Download size={17} />
+            Downloads
           </Link>
 
           {/* Recent playlists inline */}

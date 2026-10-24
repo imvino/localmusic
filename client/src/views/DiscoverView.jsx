@@ -5,7 +5,7 @@ import MetaTags from '../components/MetaTags'
 import HorizontalScroll from '../components/HorizontalScroll'
 import TrackMenu from '../components/TrackMenu'
 import { decodeHtmlEntities, getBestImageUrl } from '../utils'
-import { useJioFeaturedPlaylists, useJioNewReleases, useCharts, useTrending, useNewReleaseAlbums } from '../hooks/useApi'
+import { useJioFeaturedPlaylists, useJioNewReleases, useCharts, useTrending, useNewReleaseAlbums, useSongSuggestions } from '../hooks/useApi'
 import { useArtistConfig } from '../artist-config'
 
 const API_BASE = import.meta.env.VITE_API_URL
@@ -44,6 +44,10 @@ export default function DiscoverView({ onSongClick, showToast, likedSongs, onLik
   const { data: charts } = useCharts()
   const { data: trending } = useTrending()
   const { data: newAlbums } = useNewReleaseAlbums()
+
+  // "Because you listened to X" — suggestions seeded by the most recent play
+  const seedSong = recentlyPlayed[0]
+  const { data: becauseYouListened } = useSongSuggestions(seedSong?.id)
 
   const loading = configLoading || playlistsLoading || songsLoading
 
@@ -133,7 +137,20 @@ export default function DiscoverView({ onSongClick, showToast, likedSongs, onLik
           icon={History}
           items={recentlyPlayed}
           renderItem={(song) => (
-            <SongCard song={song} onSongClick={onSongClick} downloadProgress={downloadProgress} likedSongs={likedSongs} onLikeToggle={onLikeToggle} onPlayNext={onPlayNext} onAddToQueue={onAddToQueue} onGoToAlbum={onGoToAlbum} onSongRadio={onSongRadio} showToast={showToast} />
+            <SongCard song={song} onSongClick={onSongClick} downloadProgress={downloadProgress} setDownloadProgress={setDownloadProgress} likedSongs={likedSongs} onLikeToggle={onLikeToggle} onPlayNext={onPlayNext} onAddToQueue={onAddToQueue} onGoToAlbum={onGoToAlbum} onSongRadio={onSongRadio} showToast={showToast} />
+          )}
+          emptyMessage=""
+        />
+      )}
+
+      {/* Because you listened — personalized suggestions from play history */}
+      {becauseYouListened?.length > 0 && seedSong && (
+        <HorizontalScroll
+          title={`Because you listened to ${decodeHtmlEntities(seedSong.name || '')}`}
+          icon={History}
+          items={becauseYouListened.slice(0, 15)}
+          renderItem={(song) => (
+            <SongCard song={{ ...song, name: decodeHtmlEntities(song.name || song.title || ''), artist: decodeHtmlEntities(song.artists?.primary?.[0]?.name || song.artist || ''), image: song.image }} onSongClick={onSongClick} downloadProgress={downloadProgress} setDownloadProgress={setDownloadProgress} likedSongs={likedSongs} onLikeToggle={onLikeToggle} onPlayNext={onPlayNext} onAddToQueue={onAddToQueue} onGoToAlbum={onGoToAlbum} onSongRadio={onSongRadio} showToast={showToast} />
           )}
           emptyMessage=""
         />
@@ -154,7 +171,7 @@ export default function DiscoverView({ onSongClick, showToast, likedSongs, onLik
         title="Top Songs"
         items={newSongs}
         renderItem={(song, index) => (
-          <SongCard song={song} onSongClick={onSongClick} downloadProgress={downloadProgress} likedSongs={likedSongs} onLikeToggle={onLikeToggle} onPlayNext={onPlayNext} onAddToQueue={onAddToQueue} onGoToAlbum={onGoToAlbum} onSongRadio={onSongRadio} showToast={showToast} />
+          <SongCard song={song} onSongClick={onSongClick} downloadProgress={downloadProgress} setDownloadProgress={setDownloadProgress} likedSongs={likedSongs} onLikeToggle={onLikeToggle} onPlayNext={onPlayNext} onAddToQueue={onAddToQueue} onGoToAlbum={onGoToAlbum} onSongRadio={onSongRadio} showToast={showToast} />
         )}
         emptyMessage="No top songs found"
       />
@@ -254,7 +271,7 @@ function ArtistCard({ artist, onArtistClick }) {
   )
 }
 
-function SongCard({ song, onSongClick, downloadProgress, likedSongs, onLikeToggle, onPlayNext, onAddToQueue, onGoToAlbum, onSongRadio, showToast }) {
+function SongCard({ song, onSongClick, downloadProgress, setDownloadProgress, likedSongs, onLikeToggle, onPlayNext, onAddToQueue, onGoToAlbum, onSongRadio, showToast }) {
   const imageUrl = song.image || ''
   const progress = downloadProgress?.[song.id]
 

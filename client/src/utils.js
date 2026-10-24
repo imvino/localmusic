@@ -9,7 +9,7 @@ export function decodeHtmlEntities(text) {
 // Helper to get best image URL from image array
 export function getBestImageUrl(imageArray) {
   if (!imageArray || !Array.isArray(imageArray) || imageArray.length === 0) return null
-  const sorted = imageArray.sort((a, b) => {
+  const sorted = [...imageArray].sort((a, b) => {
     const qualityMap = { '50x50': 1, '150x150': 2, '500x500': 3 }
     return (qualityMap[b.quality] || 0) - (qualityMap[a.quality] || 0)
   })
@@ -26,7 +26,7 @@ export function getBestImageUrl(imageArray) {
 // Helper to get artist image URL (prefers 150x150 for better resolution in small containers)
 export function getArtistImageUrl(imageArray) {
   if (!imageArray || !Array.isArray(imageArray) || imageArray.length === 0) return null
-  const sorted = imageArray.sort((a, b) => {
+  const sorted = [...imageArray].sort((a, b) => {
     const qualityMap = { '150x150': 3, '500x500': 2, '50x50': 1 }
     return (qualityMap[b.quality] || 0) - (qualityMap[a.quality] || 0)
   })

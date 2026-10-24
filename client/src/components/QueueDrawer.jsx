@@ -1,6 +1,6 @@
 import { X, ArrowUp, ArrowDown, Trash2, ListX, Music } from 'lucide-react'
 
-export default function QueueDrawer({ open, onClose, queue, queueIndex, shuffle, shuffleOrder, isPlaying, onPlayAt, onRemoveAt, onMove, onClear }) {
+export default function QueueDrawer({ open, onClose, queue, queueIndex, shuffle, shuffleOrder, shufflePos = -1, isPlaying, onPlayAt, onRemoveAt, onMove, onClear }) {
   if (!open) return null
 
   // Display order: shuffleOrder when shuffling, else raw queue indices
@@ -68,7 +68,9 @@ export default function QueueDrawer({ open, onClose, queue, queueIndex, shuffle,
                 <div className="flex items-center gap-0.5 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity shrink-0">
                   <button
                     onClick={() => onMove(displayPos, -1)}
-                    disabled={displayPos === 0}
+                    // Under shuffle the play cursor is shufflePos — moving a
+                    // song to/above it is refused server-side, so don't offer it
+                    disabled={displayPos === 0 || (shuffle && displayPos <= shufflePos + 1)}
                     className="p-1.5 text-zinc-500 hover:text-white disabled:opacity-30 transition-colors"
                     title="Move up"
                   >

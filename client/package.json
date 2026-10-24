@@ -10,8 +10,6 @@
     "preview": "vite preview --mode production"
   },
   "dependencies": {
-    "@clerk/react": "^6.12.5",
-    "@clerk/themes": "^2.4.57",
     "@tanstack/query-persist-client-core": "^5.101.2",
     "@tanstack/query-sync-storage-persister": "^5.101.2",
     "@tanstack/react-query": "^5.101.2",

@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
-import { Play, Pause, SkipBack, SkipForward, Shuffle, Repeat, Repeat1, Heart, Music, Loader2, ChevronDown, ListVideo, Mic2 } from 'lucide-react'
+import { Play, Pause, SkipBack, SkipForward, Shuffle, Repeat, Repeat1, Heart, Music, Loader2, ChevronDown, ListVideo, Mic2, Volume2, VolumeX } from 'lucide-react'
 import { formatTime, decodeHtmlEntities } from '../utils'
+import { getDominantColor } from '../utils/color'
 import { Range, getTrackBackground } from 'react-range'
 import LyricsModal from '../components/LyricsModal'
 
@@ -21,24 +22,63 @@ export default function FullScreenPlayer({
   onSeek, 
   onClose,
   onQueueToggle,
-  isSearchingAlbum 
+  isSearchingAlbum,
+  volume = 1,
+  onVolumeChange,
+  muted = false,
+  onMuteToggle
 }) {
   const playerRef = useRef(null)
   const [lyricsOpen, setLyricsOpen] = useState(false)
+  const [dragY, setDragY] = useState(0)
+  const [tint, setTint] = useState(null)
+  const touch = useRef(null)
 
-  if (!currentSong) {
-    return null
+  const artwork = currentSong?.artworkUrl || currentSong?.moviePosterUrl || currentSong?.imageUrl
+
+  // Artwork-adaptive backdrop (Apple Music style tinting)
+  useEffect(() => {
+    let live = true
+    setTint(null)
+    if (artwork) getDominantColor(artwork).then(c => { if (live) setTint(c) })
+    return () => { live = false }
+  }, [artwork])
+
+  if (!currentSong) return null
+
+  // Swipe-down to dismiss — finger-follows, releases past threshold close
+  const onTouchStart = (e) => { touch.current = { y: e.touches[0].clientY, id: e.touches[0].identifier } }
+  const onTouchMove = (e) => {
+    if (!touch.current) return
+    const dy = e.touches[0].clientY - touch.current.y
+    if (dy > 0) setDragY(dy)
+  }
+  const onTouchEnd = () => {
+    if (dragY > 140) onClose()
+    setDragY(0)
+    touch.current = null
   }
 
-  const artwork = currentSong.artworkUrl || currentSong.moviePosterUrl || currentSong.imageUrl
+  const bg = tint
+    ? `linear-gradient(to bottom, rgb(${tint[0]},${tint[1]},${tint[2]}) 0%, rgb(${tint[0]/3|0},${tint[1]/3|0},${tint[2]/3|0}) 55%, #000 100%)`
+    : 'linear-gradient(to bottom, #2a1a1a, #000)'
 
   return (
     <div
       ref={playerRef}
-      className="fixed inset-0 bg-gradient-to-b from-[#2a1a1a] to-black z-50 flex flex-col md:hidden"
+      onTouchStart={onTouchStart}
+      onTouchMove={onTouchMove}
+      onTouchEnd={onTouchEnd}
+      className="fixed inset-0 z-50 flex flex-col md:hidden"
+      style={{
+        background: bg,
+        transform: `translateY(${dragY}px)`,
+        opacity: Math.max(0.4, 1 - dragY / 600),
+        transition: touch.current ? 'none' : 'transform .3s ease-out, opacity .3s ease-out'
+      }}
     >
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-4">
+      <div className="flex items-center justify-between px-4 py-4 pt-[max(1rem,env(safe-area-inset-top))]">
         <button
           onClick={onClose}
           className="text-white hover:text-zinc-300 transition-colors"
@@ -62,6 +102,7 @@ export default function FullScreenPlayer({
                 src={artwork}
                 alt={currentSong.album}
                 className="w-72 h-72 rounded-lg object-cover shadow-2xl"
+                style={{ transform: `scale(${1 - dragY / 1200})` }}
                 onError={e => { e.target.style.display = 'none' }}
               />
               {isSearchingAlbum && (
@@ -88,7 +129,7 @@ export default function FullScreenPlayer({
         </div>
 
         {/* Progress Bar */}
-        <div className="w-full mb-4 flex-shrink-0">
+        <div className="w-full mb-4 flex-shrink-0" onTouchStart={e => e.stopPropagation()} onTouchMove={e => e.stopPropagation()} onTouchEnd={e => e.stopPropagation()}>
           <div className="relative mb-2 h-2">
             <Range
               step={0.1}
@@ -96,9 +137,6 @@ export default function FullScreenPlayer({
               max={duration || 100}
               values={[currentTime]}
               onChange={(values) => onSeek(values[0])}
-              onTouchStart={(e) => e.stopPropagation()}
-              onTouchMove={(e) => e.stopPropagation()}
-              onTouchEnd={(e) => e.stopPropagation()}
               renderTrack={({ props, children }) => (
                 <div
                   {...props}
@@ -134,7 +172,7 @@ export default function FullScreenPlayer({
         </div>
 
         {/* Controls */}
-        <div className="flex flex-col items-center gap-4 flex-shrink-0">
+        <div className="flex flex-col items-center gap-4 flex-shrink-0 pb-[env(safe-area-inset-bottom)]">
           {/* Top Controls Row */}
           <div className="flex items-center justify-between w-full px-6">
             <button 
@@ -201,9 +239,35 @@ export default function FullScreenPlayer({
               <SkipForward size={32} className="fill-current" />
             </button>
           </div>
+
+          {/* Volume — phones need an in-app control too */}
+          <div
+            className="flex items-center gap-3 w-full px-6"
+            onTouchStart={e => e.stopPropagation()}
+            onTouchMove={e => e.stopPropagation()}
+            onTouchEnd={e => e.stopPropagation()}
+          >
+            <button onClick={onMuteToggle} className="text-zinc-400 hover:text-white transition-colors shrink-0" title={muted ? 'Unmute' : 'Mute'}>
+              {muted ? <VolumeX size={18} /> : <Volume2 size={18} />}
+            </button>
+            <input
+              type="range"
+              min={0}
+              max={1}
+              step={0.01}
+              value={muted ? 0 : volume}
+              onChange={e => {
+                const v = parseFloat(e.target.value)
+                onVolumeChange?.(v)
+                if (muted && v > 0) onMuteToggle?.()
+              }}
+              className="flex-1 h-1 accent-white cursor-pointer appearance-none bg-zinc-700 rounded-full"
+              style={{ accentColor: '#fff' }}
+            />
+          </div>
         </div>
       </div>
-      {lyricsOpen && <LyricsModal song={currentSong} onClose={() => setLyricsOpen(false)} />}
+      {lyricsOpen && <LyricsModal song={currentSong} currentTime={currentTime} onSeek={onSeek} onClose={() => setLyricsOpen(false)} />}
     </div>
   )
 }
