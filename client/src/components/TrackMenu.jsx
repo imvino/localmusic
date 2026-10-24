@@ -6,6 +6,7 @@ import { usePlaylistStore } from '../stores/playlistStore'
 import { downloadSong, removeDownload, isDownloaded } from '../utils/downloads'
 import { haptic } from '../utils'
 import LyricsModal from './LyricsModal'
+import { useAppAuth } from './AuthGate'
 
 export default function TrackMenu({ song, likedSongs, onLikeToggle, onPlayNext, onAddToQueue, onGoToAlbum, onSongRadio, showToast }) {
   const navigate = useNavigate()
@@ -20,6 +21,9 @@ export default function TrackMenu({ song, likedSongs, onLikeToggle, onPlayNext, 
   const playlists = usePlaylistStore(s => s.playlists)
   const createPlaylist = usePlaylistStore(s => s.createPlaylist)
   const addSong = usePlaylistStore(s => s.addSong)
+  const { requireAuth } = useAppAuth()
+  // Guests can play/queue/browse — likes, playlists & downloads are member-only
+  const gate = (fn, msg) => () => requireAuth(fn, () => { setOpen(false); showToast?.(msg) })
 
   const liked = likedSongs?.has(song.id)
 
@@ -162,7 +166,7 @@ export default function TrackMenu({ song, likedSongs, onLikeToggle, onPlayNext, 
               <button className={itemCls} onClick={() => act(() => onAddToQueue?.(song))}>
                 <ListPlus size={16} /> Add to queue
               </button>
-              <button className={itemCls} onClick={() => setShowPlaylistPicker(true)}>
+              <button className={itemCls} onClick={gate(() => setShowPlaylistPicker(true), 'Sign in to use playlists')}>
                 <ListMusic size={16} /> Add to playlist
               </button>
               <button className={itemCls} onClick={() => act(() => onSongRadio?.(song))}>
@@ -187,7 +191,7 @@ export default function TrackMenu({ song, likedSongs, onLikeToggle, onPlayNext, 
                 <UserRound size={16} /> Go to artist
               </button>
               <div className="border-t border-zinc-800 my-1" />
-              <button className={itemCls} disabled={downloading} onClick={() => act(toggleDownload)}>
+              <button className={itemCls} disabled={downloading} onClick={gate(toggleDownload, 'Sign in to download for offline')}>
                 {downloading
                   ? <div className="w-4 h-4 border-2 border-zinc-600 border-t-white rounded-full animate-spin shrink-0" />
                   : downloaded ? <Check size={16} className="text-emerald-400" /> : <Download size={16} />}

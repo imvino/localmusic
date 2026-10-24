@@ -1,11 +1,13 @@
 import { useRef, useState } from 'react'
 import { Download, Upload, Check } from 'lucide-react'
 import { usePlaylistStore } from '../stores/playlistStore'
+import { useAppAuth } from './AuthGate'
 
 // Backup & restore — one JSON file carries the whole library (liked songs,
 // playlists, play history, prefs). For family who never sign in, this is the
 // safety net that localStorage wipes can't take.
 export default function BackupControls({ onImportLibrary, showToast }) {
+  const { requireAuth } = useAppAuth()
   const fileRef = useRef(null)
   const [exported, setExported] = useState(false)
 
@@ -68,7 +70,7 @@ export default function BackupControls({ onImportLibrary, showToast }) {
   return (
     <div className="flex items-center gap-2 px-3 py-1">
       <button
-        onClick={handleExport}
+        onClick={() => requireAuth(handleExport, () => showToast?.('Sign in to back up your library'))}
         className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium bg-zinc-800/70 hover:bg-zinc-700 text-zinc-200 transition-colors flex-1 justify-center"
         title="Download a JSON backup of your library"
       >
@@ -76,7 +78,7 @@ export default function BackupControls({ onImportLibrary, showToast }) {
         Backup
       </button>
       <button
-        onClick={() => fileRef.current?.click()}
+        onClick={() => requireAuth(() => fileRef.current?.click(), () => showToast?.('Sign in to restore a backup'))}
         className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium bg-zinc-800/70 hover:bg-zinc-700 text-zinc-200 transition-colors flex-1 justify-center"
         title="Restore from a Torsongs backup file"
       >

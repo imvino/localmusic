@@ -27,6 +27,7 @@ import QueueDrawer from './components/QueueDrawer'
 import ErrorBoundary from './components/ErrorBoundary'
 import UserMenu from './components/UserMenu'
 import LyricsModal from './components/LyricsModal'
+import { ProtectedRoute, useAppAuth } from './components/AuthGate'
 import { useLibrarySync } from './hooks/useLibrarySync'
 import { usePlaylistStore } from './stores/playlistStore'
 import { enableEq, warmEq, setEqGains } from './audio/eq'
@@ -179,6 +180,9 @@ function AppContent() {
 
   // Cross-device library sync — likes + playlists follow the signed-in user
   useLibrarySync({ likedSongs, setLikedSongs })
+
+  // Freemium gate — guests get search + play; personal features require sign-in
+  const { requireAuth } = useAppAuth()
 
   // Backup restore — refresh React state from an imported backup file
   const handleImportLibrary = (backup) => {
@@ -1444,16 +1448,18 @@ function AppContent() {
   }
 
   const handleLikeToggle = (songId) => {
-    setLikedSongs(prev => {
-      const newSet = new Set(prev)
-      if (newSet.has(songId)) {
-        newSet.delete(songId)
-      } else {
-        newSet.add(songId)
-      }
-      localStorage.setItem('likedSongs', JSON.stringify([...newSet]))
-      return newSet
-    })
+    requireAuth(() => {
+      setLikedSongs(prev => {
+        const newSet = new Set(prev)
+        if (newSet.has(songId)) {
+          newSet.delete(songId)
+        } else {
+          newSet.add(songId)
+        }
+        localStorage.setItem('likedSongs', JSON.stringify([...newSet]))
+        return newSet
+      })
+    }, () => showToastMessage('Sign in to save songs to your library'))
   }
 
   const handleArtworkClick = async () => {
@@ -1708,13 +1714,13 @@ function AppContent() {
             <Route path="/discover/playlist/:id" element={<DiscoverDetailView onSongClick={handleSongSelect} showToast={showToastMessage} currentSong={currentSong} isPlaying={isPlaying} sidebarOpen={sidebarOpen} likedSongs={likedSongs} onLikeToggle={handleLikeToggle} onPlayNext={handlePlayNext} onAddToQueue={handleAddToQueue} onGoToAlbum={handleGoToAlbum} onSongRadio={handleSongRadio} onShufflePlay={handleShufflePlay} onArtistRadio={handleArtistRadio} />} />
             <Route path="/discover/artist/:id" element={<DiscoverDetailView onSongClick={handleSongSelect} showToast={showToastMessage} currentSong={currentSong} isPlaying={isPlaying} sidebarOpen={sidebarOpen} likedSongs={likedSongs} onLikeToggle={handleLikeToggle} onPlayNext={handlePlayNext} onAddToQueue={handleAddToQueue} onGoToAlbum={handleGoToAlbum} onSongRadio={handleSongRadio} onShufflePlay={handleShufflePlay} onArtistRadio={handleArtistRadio} />} />
             <Route path="/search" element={<SearchView query={searchQuery} onSongClick={handleSongSelect} onAlbumClick={a => navigateToView('album', a)} onArtistClick={a => navigateToView('artist', a)} showToast={showToastMessage} likedSongs={likedSongs} onLikeToggle={handleLikeToggle} onPlayNext={handlePlayNext} onAddToQueue={handleAddToQueue} onGoToAlbum={handleGoToAlbum} onSongRadio={handleSongRadio} />} />
-            <Route path="/playlists" element={<PlaylistsView showToast={showToastMessage} />} />
-            <Route path="/playlists/:id" element={<PlaylistDetailView onSongClick={handleSongSelect} onShufflePlay={handleShufflePlay} onPlayNext={handlePlayNext} onAddToQueue={handleAddToQueue} onGoToAlbum={handleGoToAlbum} onSongRadio={handleSongRadio} likedSongs={likedSongs} onLikeToggle={handleLikeToggle} currentSong={currentSong} isPlaying={isPlaying} showToast={showToastMessage} />} />
-            <Route path="/liked" element={<LikedSongsView likedSongs={likedSongs} onLikeToggle={handleLikeToggle} onSongClick={handleSongSelect} onShufflePlay={handleShufflePlay} onPlayNext={handlePlayNext} onAddToQueue={handleAddToQueue} onGoToAlbum={handleGoToAlbum} onSongRadio={handleSongRadio} currentSong={currentSong} isPlaying={isPlaying} showToast={showToastMessage} />} />
-            <Route path="/stats" element={<StatsView likedSongs={likedSongs} onSongClick={handleSongSelect} />} />
-            <Route path="/library" element={<LibraryView likedSongs={likedSongs} />} />
-            <Route path="/library/album/:id" element={<LocalAlbumView onSongClick={handleSongSelect} onShufflePlay={handleShufflePlay} onPlayNext={handlePlayNext} onAddToQueue={handleAddToQueue} onGoToAlbum={handleGoToAlbum} onSongRadio={handleSongRadio} likedSongs={likedSongs} onLikeToggle={handleLikeToggle} currentSong={currentSong} isPlaying={isPlaying} showToast={showToastMessage} />} />
-            <Route path="/downloads" element={<DownloadsView onSongClick={handleSongSelect} showToast={showToastMessage} />} />
+            <Route path="/playlists" element={<ProtectedRoute title="Your playlists"><PlaylistsView showToast={showToastMessage} /></ProtectedRoute>} />
+            <Route path="/playlists/:id" element={<ProtectedRoute title="Your playlists"><PlaylistDetailView onSongClick={handleSongSelect} onShufflePlay={handleShufflePlay} onPlayNext={handlePlayNext} onAddToQueue={handleAddToQueue} onGoToAlbum={handleGoToAlbum} onSongRadio={handleSongRadio} likedSongs={likedSongs} onLikeToggle={handleLikeToggle} currentSong={currentSong} isPlaying={isPlaying} showToast={showToastMessage} /></ProtectedRoute>} />
+            <Route path="/liked" element={<ProtectedRoute title="Liked songs"><LikedSongsView likedSongs={likedSongs} onLikeToggle={handleLikeToggle} onSongClick={handleSongSelect} onShufflePlay={handleShufflePlay} onPlayNext={handlePlayNext} onAddToQueue={handleAddToQueue} onGoToAlbum={handleGoToAlbum} onSongRadio={handleSongRadio} currentSong={currentSong} isPlaying={isPlaying} showToast={showToastMessage} /></ProtectedRoute>} />
+            <Route path="/stats" element={<ProtectedRoute title="Your listening stats"><StatsView likedSongs={likedSongs} onSongClick={handleSongSelect} /></ProtectedRoute>} />
+            <Route path="/library" element={<ProtectedRoute title="Your library"><LibraryView likedSongs={likedSongs} /></ProtectedRoute>} />
+            <Route path="/library/album/:id" element={<ProtectedRoute title="Your library"><LocalAlbumView onSongClick={handleSongSelect} onShufflePlay={handleShufflePlay} onPlayNext={handlePlayNext} onAddToQueue={handleAddToQueue} onGoToAlbum={handleGoToAlbum} onSongRadio={handleSongRadio} likedSongs={likedSongs} onLikeToggle={handleLikeToggle} currentSong={currentSong} isPlaying={isPlaying} showToast={showToastMessage} /></ProtectedRoute>} />
+            <Route path="/downloads" element={<ProtectedRoute title="Downloads"><DownloadsView onSongClick={handleSongSelect} showToast={showToastMessage} /></ProtectedRoute>} />
             <Route path="/shared/:data" element={<SharedPlaylistView onSongClick={handleSongSelect} showToast={showToastMessage} />} />
             <Route path="/terms" element={<TermsOfService />} />
             <Route path="/privacy" element={<PrivacyPolicy />} />

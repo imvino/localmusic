@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react'
 import { Play, ListPlus, Music, ArrowLeft } from 'lucide-react'
 import { decodePlaylistShare, getImageSrc, formatDuration } from '../utils'
 import { usePlaylistStore } from '../stores/playlistStore'
+import { useAppAuth } from '../components/AuthGate'
 
 // /shared/:data — a whole playlist encoded in the URL. Preview it, play it,
 // or save it into your own local playlists (importPlaylist → persisted).
@@ -10,6 +11,7 @@ export default function SharedPlaylistView({ onSongClick, showToast }) {
   const { data } = useParams()
   const navigate = useNavigate()
   const importPlaylist = usePlaylistStore(s => s.importPlaylist)
+  const { requireAuth } = useAppAuth()
   const [saved, setSaved] = useState(false)
 
   const decoded = useMemo(() => decodePlaylistShare(data), [data])
@@ -30,9 +32,11 @@ export default function SharedPlaylistView({ onSongClick, showToast }) {
   const art = songs.map(s => getImageSrc(s.image)).find(Boolean)
 
   const handleSave = () => {
-    importPlaylist(name, songs)
-    setSaved(true)
-    showToast?.('Playlist saved to your library', 'success')
+    requireAuth(() => {
+      importPlaylist(name, songs)
+      setSaved(true)
+      showToast?.('Playlist saved to your library', 'success')
+    }, () => showToast?.('Sign in to save playlists'))
   }
 
   return (

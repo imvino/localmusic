@@ -1,10 +1,12 @@
 import { useState } from 'react'
 import { Download, Loader2, Check } from 'lucide-react'
 import { downloadSongs, getDownloads } from '../utils/downloads'
+import { useAppAuth } from './AuthGate'
 
 // Header "Download" button for albums/playlists/liked songs — batch-downloads
 // the whole collection for offline (Spotify's one-tap download parity).
 export default function BatchDownloadButton({ songs, label = 'Download', compact = false, onDone }) {
+  const { requireAuth } = useAppAuth()
   const [busy, setBusy] = useState(false)
   const [progress, setProgress] = useState(null) // 0-100 while running
   const [allDone, setAllDone] = useState(() => {
@@ -47,7 +49,7 @@ export default function BatchDownloadButton({ songs, label = 'Download', compact
 
   return (
     <button
-      onClick={run}
+      onClick={() => requireAuth(run)}
       disabled={busy}
       className={`flex items-center gap-2 rounded-full bg-zinc-800 hover:bg-zinc-700 text-white font-semibold transition-colors touch-target disabled:opacity-70 ${
         compact ? 'px-4 py-2 text-sm' : 'px-6 py-3'
