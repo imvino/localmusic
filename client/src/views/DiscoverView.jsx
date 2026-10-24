@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import MetaTags from '../components/MetaTags'
 import HorizontalScroll from '../components/HorizontalScroll'
 import TrackMenu from '../components/TrackMenu'
-import { decodeHtmlEntities, getBestImageUrl } from '../utils'
+import { decodeHtmlEntities, getBestImageUrl, getImageSrc } from '../utils'
 import { useJioFeaturedPlaylists, useJioNewReleases, useCharts, useTrending, useNewReleaseAlbums, useSongSuggestions } from '../hooks/useApi'
 import { useArtistConfig } from '../artist-config'
 
@@ -77,7 +77,7 @@ export default function DiscoverView({ onSongClick, showToast, likedSongs, onLik
     name: decodeHtmlEntities(song.title),
     artist: decodeHtmlEntities(song.subtitle || ''),
     album: decodeHtmlEntities(song.more_info?.album || ''),
-    image: song.image || '',
+    image: getImageSrc(song.image),
     playCount: song.play_count || 0,
     type: song.type
   }))
@@ -228,12 +228,13 @@ export default function DiscoverView({ onSongClick, showToast, likedSongs, onLik
 }
 
 function EntityCard({ item, onClick, subtitle }) {
-  const imageUrl = getBestImageUrl(item.image) || ''
+  const imageUrl = getImageSrc(item.image)
+  const [failed, setFailed] = useState(false)
   return (
     <div onClick={onClick} className="w-32 md:w-40 flex-shrink-0 bg-zinc-900/50 rounded-lg p-3 hover:bg-zinc-800/50 transition-colors cursor-pointer">
       <div className="aspect-square rounded-md overflow-hidden mb-3 bg-zinc-800">
-        {imageUrl ? (
-          <img src={imageUrl} alt={item.name} className="w-full h-full object-cover" loading="lazy" />
+        {imageUrl && !failed ? (
+          <img src={imageUrl} alt={item.name} className="w-full h-full object-cover" loading="lazy" referrerPolicy="no-referrer" onError={() => setFailed(true)} />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-zinc-600">
             <Disc size={32} />
@@ -253,11 +254,14 @@ function ArtistCard({ artist, onArtistClick }) {
     }
   }
 
+  const imageUrl = getImageSrc(artist.image)
+  const [failed, setFailed] = useState(false)
+
   return (
     <div onClick={handleClick} className="flex flex-col items-center gap-3 w-20 md:w-24 cursor-pointer group">
       <div className="w-20 md:w-24 h-20 md:h-24 rounded-full overflow-hidden bg-zinc-800 flex-shrink-0 shadow-lg">
-        {artist.image ? (
-          <img src={artist.image} alt={artist.name} className={`w-full h-full group-hover:scale-105 transition-transform ${artist.image.includes('logo_512x512') ? 'object-contain p-4' : 'object-cover'}`} />
+        {imageUrl && !failed ? (
+          <img src={imageUrl} alt={artist.name} className={`w-full h-full group-hover:scale-105 transition-transform ${imageUrl.includes('logo_512x512') ? 'object-contain p-4' : 'object-cover'}`} referrerPolicy="no-referrer" onError={() => setFailed(true)} />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-zinc-600">
             <Disc size={32} />
@@ -272,7 +276,8 @@ function ArtistCard({ artist, onArtistClick }) {
 }
 
 function SongCard({ song, onSongClick, downloadProgress, setDownloadProgress, likedSongs, onLikeToggle, onPlayNext, onAddToQueue, onGoToAlbum, onSongRadio, showToast }) {
-  const imageUrl = song.image || ''
+  const imageUrl = getImageSrc(song.image) || getImageSrc(song.imageUrl)
+  const [failed, setFailed] = useState(false)
   const progress = downloadProgress?.[song.id]
 
   const handlePlay = () => {
@@ -332,8 +337,8 @@ function SongCard({ song, onSongClick, downloadProgress, setDownloadProgress, li
   return (
     <div className="w-32 md:w-40 flex-shrink-0 bg-zinc-900/50 rounded-lg p-3 hover:bg-zinc-800/50 transition-colors">
       <div className="aspect-square rounded-md overflow-hidden mb-3 bg-zinc-800 relative group">
-        {imageUrl ? (
-          <img src={imageUrl} alt={song.name} className="w-full h-full object-cover" />
+        {imageUrl && !failed ? (
+          <img src={imageUrl} alt={song.name} className="w-full h-full object-cover" loading="lazy" referrerPolicy="no-referrer" onError={() => setFailed(true)} />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-zinc-600">
             <Disc size={32} />
@@ -388,7 +393,8 @@ function SongCard({ song, onSongClick, downloadProgress, setDownloadProgress, li
 }
 
 function PlaylistCard({ playlist, onPlaylistClick }) {
-  const imageUrl = playlist.image || ''
+  const imageUrl = getImageSrc(playlist.image)
+  const [failed, setFailed] = useState(false)
 
   const handleClick = () => {
     if (onPlaylistClick) {
@@ -399,8 +405,8 @@ function PlaylistCard({ playlist, onPlaylistClick }) {
   return (
     <div onClick={handleClick} className="w-32 md:w-40 flex-shrink-0 bg-zinc-900/50 rounded-lg p-3 hover:bg-zinc-800/50 transition-colors cursor-pointer">
       <div className="aspect-square rounded-md overflow-hidden mb-3 bg-zinc-800">
-        {imageUrl ? (
-          <img src={imageUrl} alt={playlist.name} className="w-full h-full object-cover" />
+        {imageUrl && !failed ? (
+          <img src={imageUrl} alt={playlist.name} className="w-full h-full object-cover" loading="lazy" referrerPolicy="no-referrer" onError={() => setFailed(true)} />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-zinc-600">
             <ListMusic size={32} />

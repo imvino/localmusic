@@ -1,8 +1,9 @@
 import { useMemo } from 'react'
-import { BarChart3, Music, Mic2, Clock3, Heart, TrendingUp } from 'lucide-react'
+import { BarChart3, Music, Mic2, Clock3, Heart, TrendingUp, Play } from 'lucide-react'
 import { decodeHtmlEntities } from '../utils'
+import ArtImage from '../components/ArtImage'
 
-export default function StatsView({ likedSongs }) {
+export default function StatsView({ likedSongs, onSongClick }) {
   const history = useMemo(() => {
     try {
       const raw = JSON.parse(localStorage.getItem('playHistory') || '[]')
@@ -58,15 +59,21 @@ export default function StatsView({ likedSongs }) {
               <h2 className="text-lg font-bold text-white mb-4">Top Songs</h2>
               <div className="flex flex-col gap-1">
                 {stats.topSongs.map((song, i) => (
-                  <div key={song.id} className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-zinc-800/60">
+                  <div
+                    key={song.id}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => onSongClick?.(song, stats.topSongs, i)}
+                    onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSongClick?.(song, stats.topSongs, i) } }}
+                    className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-zinc-800/60 transition-colors group cursor-pointer"
+                  >
                     <span className="text-zinc-500 text-sm w-5 text-right shrink-0">{i + 1}</span>
-                    {song.image ? (
-                      <img src={song.image} alt="" className="w-9 h-9 rounded object-cover shrink-0" />
-                    ) : (
-                      <div className="w-9 h-9 rounded bg-zinc-800 flex items-center justify-center shrink-0">
-                        <Music size={14} className="text-zinc-600" />
+                    <div className="relative shrink-0">
+                      <ArtImage image={song.image} alt="" className="w-9 h-9 rounded" iconSize={14} fallback={Music} />
+                      <div className="absolute inset-0 rounded bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                        <Play size={12} className="text-white" fill="currentColor" />
                       </div>
-                    )}
+                    </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm text-white truncate">{decodeHtmlEntities(song.name || song.title)}</p>
                       <p className="text-xs text-zinc-500 truncate">{song.artist}</p>

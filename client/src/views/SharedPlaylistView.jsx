@@ -1,7 +1,7 @@
 import { useParams, useNavigate } from 'react-router-dom'
 import { useMemo, useState } from 'react'
 import { Play, ListPlus, Music, ArrowLeft } from 'lucide-react'
-import { decodePlaylistShare, getBestImageUrl, formatDuration } from '../utils'
+import { decodePlaylistShare, getImageSrc, formatDuration } from '../utils'
 import { usePlaylistStore } from '../stores/playlistStore'
 
 // /shared/:data — a whole playlist encoded in the URL. Preview it, play it,
@@ -27,7 +27,7 @@ export default function SharedPlaylistView({ onSongClick, showToast }) {
   }
 
   const { name, songs } = decoded
-  const art = songs.map(s => getBestImageUrl(s.image)).find(Boolean)
+  const art = songs.map(s => getImageSrc(s.image)).find(Boolean)
 
   const handleSave = () => {
     importPlaylist(name, songs)
@@ -79,7 +79,7 @@ export default function SharedPlaylistView({ onSongClick, showToast }) {
           >
             <span className="w-6 text-xs text-center text-zinc-600 shrink-0">{i + 1}</span>
             <div className="w-10 h-10 rounded bg-zinc-800 overflow-hidden shrink-0">
-              {getBestImageUrl(song.image) && <img src={getBestImageUrl(song.image)} alt="" className="w-full h-full object-cover" loading="lazy" />}
+              {getImageSrc(song.image) && <img src={getImageSrc(song.image)} alt="" className="w-full h-full object-cover" loading="lazy" />}
             </div>
             <div className="flex-1 min-w-0">
               <div className="text-sm text-zinc-200 truncate">{song.name}</div>

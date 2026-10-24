@@ -3,8 +3,9 @@ import { useNavigate } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import MetaTags from '../components/MetaTags'
 import TrackMenu from '../components/TrackMenu'
+import ArtImage from '../components/ArtImage'
 import { useSearch } from '../hooks/useApi'
-import { decodeHtmlEntities, getBestImageUrl, getArtistImageUrl, formatDuration } from '../utils'
+import { decodeHtmlEntities, formatDuration, getImageSrc } from '../utils'
 
 export default function SearchView({ query, onSongClick, onAlbumClick, onArtistClick, showToast, likedSongs, onLikeToggle, onPlayNext, onAddToQueue, onGoToAlbum, onSongRadio }) {
   const navigate = useNavigate()
@@ -200,17 +201,13 @@ export default function SearchView({ query, onSongClick, onAlbumClick, onArtistC
                 }}
               >
                 <div className="w-16 h-16 md:w-20 md:h-20 rounded-lg overflow-hidden bg-zinc-800 shadow flex-shrink-0">
-                  {getBestImageUrl(onlineResults.topResult.image) ? (
-                    <img
-                      src={getBestImageUrl(onlineResults.topResult.image)}
-                      alt={onlineResults.topResult.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center">
-                      <Music size={24} className="text-zinc-600" />
-                    </div>
-                  )}
+                  <ArtImage
+                    image={onlineResults.topResult.image}
+                    alt={onlineResults.topResult.name}
+                    className="w-16 h-16 md:w-20 md:h-20"
+                    iconSize={24}
+                    fallback={Music}
+                  />
                 </div>
                 <div className="flex-1 min-w-0 text-left w-full">
                   <p className="text-base font-medium text-white truncate">
@@ -257,17 +254,13 @@ export default function SearchView({ query, onSongClick, onAlbumClick, onArtistC
                     }}
                     className="flex items-center gap-2 md:gap-3 px-2 md:px-3 py-2 md:py-2.5 rounded-xl hover:bg-zinc-800/60 transition-colors text-left w-full group cursor-pointer"
                   >
-                    {getBestImageUrl(song.image) ? (
-                      <img
-                        src={getBestImageUrl(song.image)}
-                        alt={song.name}
-                        className="w-8 md:w-10 h-8 md:h-10 rounded-lg object-cover shadow flex-shrink-0"
-                      />
-                    ) : (
-                      <div className="w-8 md:w-10 h-8 md:h-10 rounded-lg bg-zinc-800 flex items-center justify-center flex-shrink-0">
-                        <Music size={14} className="text-zinc-600" />
-                      </div>
-                    )}
+                    <ArtImage
+                      image={song.image}
+                      alt={song.name}
+                      className="w-8 md:w-10 h-8 md:h-10 rounded-lg"
+                      iconSize={14}
+                      fallback={Music}
+                    />
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-white truncate">{decodeHtmlEntities(song.name)}</p>
                       <p className="text-xs text-zinc-500 truncate">
@@ -319,17 +312,14 @@ export default function SearchView({ query, onSongClick, onAlbumClick, onArtistC
                     className="flex flex-col gap-2 group w-20 md:w-24"
                   >
                     <div className="w-20 md:w-24 h-20 md:h-24 rounded-xl overflow-hidden bg-zinc-800 shadow">
-                      {getBestImageUrl(album.image) ? (
-                        <img
-                          src={getBestImageUrl(album.image)}
-                          alt={album.name}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <Music size={24} className="text-zinc-600" />
-                        </div>
-                      )}
+                      <ArtImage
+                        image={album.image}
+                        alt={album.name}
+                        className="w-20 md:w-24 h-20 md:h-24 rounded-xl"
+                        imgClassName="group-hover:scale-105 transition-transform"
+                        iconSize={24}
+                        fallback={Music}
+                      />
                     </div>
                     <span className="text-xs text-zinc-300 group-hover:text-white transition-colors text-left w-24 truncate leading-snug">
                       {decodeHtmlEntities(album.name || album.title)}
@@ -363,17 +353,14 @@ export default function SearchView({ query, onSongClick, onAlbumClick, onArtistC
                     className="flex flex-col items-center gap-2 group w-16 md:w-20"
                   >
                     <div className="w-16 md:w-20 h-16 md:h-20 rounded-full overflow-hidden bg-zinc-800 shadow">
-                      {getArtistImageUrl(artist.image) ? (
-                        <img
-                          src={getArtistImageUrl(artist.image)}
-                          alt={artist.name}
-                          className={`w-full h-full group-hover:scale-105 transition-transform ${getArtistImageUrl(artist.image).includes('logo_512x512') ? 'object-contain p-3' : 'object-cover'}`}
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <Mic2 size={24} className="text-zinc-500" />
-                        </div>
-                      )}
+                      <ArtImage
+                        image={artist.image}
+                        alt={artist.name}
+                        className="w-16 md:w-20 h-16 md:h-20 rounded-full"
+                        imgClassName={`group-hover:scale-105 transition-transform ${getImageSrc(artist.image).includes('logo_512x512') ? 'object-contain p-3' : 'object-cover'}`}
+                        iconSize={24}
+                        fallback={Mic2}
+                      />
                     </div>
                     <span className="text-xs text-zinc-300 group-hover:text-white transition-colors text-center leading-snug w-full truncate">
                       {decodeHtmlEntities(artist.name)}
@@ -407,17 +394,14 @@ export default function SearchView({ query, onSongClick, onAlbumClick, onArtistC
                     className="flex flex-col gap-2 group w-20 md:w-24"
                   >
                     <div className="w-20 md:w-24 h-20 md:h-24 rounded-xl overflow-hidden bg-zinc-800 shadow">
-                      {getBestImageUrl(playlist.image) ? (
-                        <img
-                          src={getBestImageUrl(playlist.image)}
-                          alt={playlist.name}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <ListMusic size={24} className="text-zinc-600" />
-                        </div>
-                      )}
+                      <ArtImage
+                        image={playlist.image}
+                        alt={playlist.name}
+                        className="w-20 md:w-24 h-20 md:h-24 rounded-xl"
+                        imgClassName="group-hover:scale-105 transition-transform"
+                        iconSize={24}
+                        fallback={ListMusic}
+                      />
                     </div>
                     <span className="text-xs text-zinc-300 group-hover:text-white transition-colors text-left w-24 truncate leading-snug">
                       {decodeHtmlEntities(playlist.name)}

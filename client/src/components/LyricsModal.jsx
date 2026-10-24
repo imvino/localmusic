@@ -2,7 +2,7 @@ import { useEffect, useRef, useMemo } from 'react'
 import { createPortal } from 'react-dom'
 import { useQuery } from '@tanstack/react-query'
 import { X, Mic2, Music } from 'lucide-react'
-import { decodeHtmlEntities, getBestImageUrl } from '../utils'
+import { decodeHtmlEntities, getImageSrc } from '../utils'
 import { parseLrc, activeLrcIndex } from '../utils/lrc'
 
 const API_BASE = import.meta.env.VITE_API_URL
@@ -57,8 +57,8 @@ export default function LyricsModal({ song, onClose, currentTime, onSeek }) {
       >
         <div className="flex items-center gap-3 px-4 py-3 border-b border-zinc-800 shrink-0">
           <div className="w-10 h-10 rounded bg-zinc-800 overflow-hidden shrink-0">
-            {getBestImageUrl(song.image)
-              ? <img src={getBestImageUrl(song.image)} alt="" className="w-full h-full object-cover" />
+            {getImageSrc(song.image)
+              ? <img src={getImageSrc(song.image)} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
               : <div className="w-full h-full flex items-center justify-center"><Music size={16} className="text-zinc-600" /></div>}
           </div>
           <div className="flex-1 min-w-0">

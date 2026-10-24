@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { useQueries } from '@tanstack/react-query'
 import { Heart, Play, Shuffle, Music } from 'lucide-react'
-import { getBestImageUrl, formatDuration } from '../utils'
+import { getImageSrc, formatDuration } from '../utils'
 import TrackMenu from '../components/TrackMenu'
 
 const API_BASE = import.meta.env.VITE_API_URL
@@ -93,7 +93,7 @@ export default function LikedSongsView({ likedSongs, onLikeToggle, onSongClick, 
                   {isCurrent && isPlaying ? '▶' : i + 1}
                 </span>
                 <div className="w-10 h-10 rounded bg-zinc-800 overflow-hidden shrink-0">
-                  {getBestImageUrl(song.image) && <img src={getBestImageUrl(song.image)} alt="" className="w-full h-full object-cover" loading="lazy" />}
+                  {getImageSrc(song.image) && <img src={getImageSrc(song.image)} alt="" className="w-full h-full object-cover" loading="lazy" />}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className={`text-sm truncate ${isCurrent ? 'text-[#fc3c44] font-medium' : 'text-zinc-200'}`}>

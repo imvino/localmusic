@@ -2,7 +2,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { ArrowLeft, Play, Shuffle, Music, ArrowUp, ArrowDown, Trash2, Pencil, Share2 } from 'lucide-react'
 import { useState } from 'react'
 import { usePlaylistStore } from '../stores/playlistStore'
-import { getBestImageUrl, formatDuration, encodePlaylistShare, haptic } from '../utils'
+import { getImageSrc, formatDuration, encodePlaylistShare, haptic } from '../utils'
 import TrackMenu from '../components/TrackMenu'
 
 export default function PlaylistDetailView({ onSongClick, onShufflePlay, onPlayNext, onAddToQueue, onGoToAlbum, onSongRadio, likedSongs, onLikeToggle, currentSong, isPlaying, showToast }) {
@@ -27,7 +27,7 @@ export default function PlaylistDetailView({ onSongClick, onShufflePlay, onPlayN
     )
   }
 
-  const art = playlist.songs.map(s => getBestImageUrl(s.image)).find(Boolean)
+  const art = playlist.songs.map(s => getImageSrc(s.image)).find(Boolean)
   const commitRename = () => {
     if (name.trim()) renamePlaylist(playlist.id, name)
     setEditing(false)
@@ -123,7 +123,7 @@ export default function PlaylistDetailView({ onSongClick, onShufflePlay, onPlayN
                   {isCurrent && isPlaying ? '▶' : i + 1}
                 </span>
                 <div className="w-10 h-10 rounded bg-zinc-800 overflow-hidden shrink-0">
-                  {getBestImageUrl(song.image) && <img src={getBestImageUrl(song.image)} alt="" className="w-full h-full object-cover" loading="lazy" />}
+                  {getImageSrc(song.image) && <img src={getImageSrc(song.image)} alt="" className="w-full h-full object-cover" loading="lazy" />}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className={`text-sm truncate ${isCurrent ? 'text-[#fc3c44] font-medium' : 'text-zinc-200'}`}>

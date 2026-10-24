@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { Play, Pause, SkipBack, SkipForward, Shuffle, Repeat, Repeat1, Heart, Music, Loader2, ChevronDown, ListVideo, Mic2, Volume2, VolumeX } from 'lucide-react'
-import { formatTime, decodeHtmlEntities } from '../utils'
+import { formatTime, decodeHtmlEntities, getSongArtwork } from '../utils'
 import { getDominantColor } from '../utils/color'
 import { Range, getTrackBackground } from 'react-range'
 import LyricsModal from '../components/LyricsModal'
@@ -34,7 +34,7 @@ export default function FullScreenPlayer({
   const [tint, setTint] = useState(null)
   const touch = useRef(null)
 
-  const artwork = currentSong?.artworkUrl || currentSong?.moviePosterUrl || currentSong?.imageUrl
+  const artwork = getSongArtwork(currentSong)
 
   // Artwork-adaptive backdrop (Apple Music style tinting)
   useEffect(() => {

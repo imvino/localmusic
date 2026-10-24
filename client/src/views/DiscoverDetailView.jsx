@@ -4,7 +4,7 @@ import { ArrowLeft, Disc, Download, Loader2, ChevronDown, Play, Shuffle, Radio, 
 import TrackMenu from '../components/TrackMenu'
 import { useDownloadStore } from '../stores/downloadStore'
 import MetaTags from '../components/MetaTags'
-import { decodeHtmlEntities, getArtistImageUrl } from '../utils'
+import { decodeHtmlEntities, getArtistImageUrl, getImageSrc } from '../utils'
 import { useAlbum, useArtist, usePlaylist } from '../hooks/useApi'
 import { queryClient } from '../App'
 import { useArtistConfig, hasCustomAlbums, getAlbumsTabLabel } from '../artist-config'
@@ -58,21 +58,13 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
 
   // Helper to get album image URL based on device
   const getAlbumImageUrl = (album) => {
-    if (!album.image) return null
-    
-    // Handle string URLs (from custom albums API)
+    if (!album?.image) return null
+    const url = getImageSrc(album.image)
     // Always use 150x150 for custom metadata since 500x500 versions may not exist
     if (typeof album.image === 'string') {
-      return album.image.replace(/-500x500\.jpg/, '-150x150.jpg')
+      return url.replace(/-500x500\.jpg/, '-150x150.jpg')
     }
-    
-    // Handle array of image objects (from JioSaavn API)
-    if (Array.isArray(album.image) && album.image.length > 0) {
-      const quality = isMobile ? '150x150' : '500x500'
-      return album.image.find(img => img.quality === quality)?.url || album.image[0].url
-    }
-    
-    return null
+    return url
   }
 
   // Process songs with imageUrl
@@ -100,7 +92,7 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
   
   const songs = filteredSongs.map(song => ({
     ...song,
-    imageUrl: song.image?.find(img => img.quality === (isMobile ? '150x150' : '500x500'))?.url
+    imageUrl: getImageSrc(song.image)
   }))
   // Use custom albums for artists with overrides in albums tab, otherwise use API albums
   const rawAlbums = hasCustomAlbumsOverride && activeTab === 'albums' ? (customAlbums || []) : (data?.topAlbums || [])
@@ -326,7 +318,7 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
       album: song.album?.name || meta?.name,
       albumId: song.album?.id || (isAlbum ? id : null),
       artist: song.artists?.primary?.[0]?.name || song.artist,
-      imageUrl: song.image?.find(img => img.quality === (isMobile ? '150x150' : '500x500'))?.url || song.imageUrl,
+      imageUrl: getImageSrc(song.image) || song.imageUrl,
       isStream: true
     }, list, displayIndex)
   }
@@ -346,7 +338,7 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
       album: song.album?.name || meta?.name,
       albumId: song.album?.id || (isAlbum ? id : null),
       artist: song.artists?.primary?.[0]?.name || song.artist,
-      imageUrl: song.image?.find(img => img.quality === (isMobile ? '150x150' : '500x500'))?.url || song.imageUrl,
+      imageUrl: getImageSrc(song.image) || song.imageUrl,
       isStream: true
     })))
   }
@@ -401,10 +393,7 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
     )
   }
 
-  const imageUrl = data?.image?.find(img => img.quality === (isMobile ? '150x150' : '500x500'))?.url ||
-                   data?.image?.[0]?.url ||
-                   meta?.image?.find(img => img.quality === (isMobile ? '150x150' : '500x500'))?.url ||
-                   meta?.image?.[0]?.url
+  const imageUrl = getImageSrc(data?.image) || getImageSrc(meta?.image)
 
     const metaTitle = data?.name || meta?.name;
   const metaDescription = data?.description || `Listen to ${metaTitle} on Torsongs.`;
@@ -717,8 +706,8 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
                   >
                     <span className="text-zinc-500 w-6 text-center">{index + 1}</span>
                     <div className="w-12 h-12 rounded overflow-hidden bg-zinc-800 flex-shrink-0">
-                      {song.image?.[0]?.url ? (
-                        <img src={song.image[0].url} alt={song.name} className="w-full h-full object-cover" />
+                      {getImageSrc(song.image) ? (
+                        <img src={getImageSrc(song.image)} alt={song.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-zinc-600">
                           <Disc size={16} />
@@ -993,8 +982,8 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
             >
               <span className="text-zinc-500 w-6 text-center">{index + 1}</span>
               <div className="w-12 h-12 rounded overflow-hidden bg-zinc-800 flex-shrink-0">
-                {song.image?.[0]?.url ? (
-                  <img src={song.image[0].url} alt={song.name} className="w-full h-full object-cover" />
+                {getImageSrc(song.image) ? (
+                  <img src={getImageSrc(song.image)} alt={song.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-zinc-600">
                     <Disc size={16} />

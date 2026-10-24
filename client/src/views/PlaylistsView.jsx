@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ListMusic, Plus, Pencil, Trash2, Music } from 'lucide-react'
 import { usePlaylistStore } from '../stores/playlistStore'
-import { getBestImageUrl } from '../utils'
+import { getImageSrc } from '../utils'
 
 export default function PlaylistsView({ showToast }) {
   const navigate = useNavigate()
@@ -49,7 +49,7 @@ export default function PlaylistsView({ showToast }) {
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
           {list.map(p => {
-            const art = p.songs.map(s => getBestImageUrl(s.image)).find(Boolean)
+            const art = p.songs.map(s => getImageSrc(s.image)).find(Boolean)
             return (
               <div
                 key={p.id}

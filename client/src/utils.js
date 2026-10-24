@@ -68,6 +68,33 @@ export function getBestImageUrl(imageArray) {
   return url
 }
 
+// JioSaavn CDN ships -150x150.jpg / -50x50.jpg thumbs; bump to 500x500 when available
+export function upgradeImageUrl(url) {
+  if (typeof url !== 'string') return url
+  if (url.includes('-150x150.')) return url.replace('-150x150.', '-500x500.')
+  if (url.includes('-50x50.')) return url.replace('-50x50.', '-500x500.')
+  return url
+}
+
+// Normalize ANY image shape (string URL | array of {quality,url} | {url}) to a
+// URL string, upgrading to 500x500 for crisp Spotify-grade art. Returns '' when
+// there's nothing usable — callers fall back to their placeholder.
+export function getImageSrc(image) {
+  if (!image) return ''
+  if (typeof image === 'string') return upgradeImageUrl(image)
+  if (Array.isArray(image)) {
+    const url = getBestImageUrl(image)
+    return url ? upgradeImageUrl(url) : ''
+  }
+  if (typeof image === 'object' && typeof image.url === 'string') return upgradeImageUrl(image.url)
+  return ''
+}
+
+// Best artwork for a song/album object across every shape the app uses
+export function getSongArtwork(song) {
+  return song?.artworkUrl || song?.moviePosterUrl || song?.imageUrl || getImageSrc(song?.image)
+}
+
 // Helper to get artist image URL (prefers 150x150 for better resolution in small containers)
 export function getArtistImageUrl(imageArray) {
   if (!imageArray || !Array.isArray(imageArray) || imageArray.length === 0) return null

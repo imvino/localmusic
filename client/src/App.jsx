@@ -26,6 +26,7 @@ import QueueDrawer from './components/QueueDrawer'
 import ErrorBoundary from './components/ErrorBoundary'
 import { enableEq, warmEq, setEqGains } from './audio/eq'
 import { isDownloaded, downloadUrlFor, reconcileDownloads } from './utils/downloads'
+import { getSongArtwork } from './utils'
 import TermsOfService from './pages/TermsOfService'
 import PrivacyPolicy from './pages/PrivacyPolicy'
 import DMCA from './pages/DMCA'
@@ -353,7 +354,7 @@ function AppContent() {
 
       // Set Media Session API metadata for lock screen/controls
       if ('mediaSession' in navigator && currentSong) {
-        const artwork = currentSong.artworkUrl || currentSong.moviePosterUrl || currentSong.imageUrl
+        const artwork = getSongArtwork(currentSong)
         
         navigator.mediaSession.metadata = new MediaMetadata({
           title: currentSong.name,
@@ -1383,8 +1384,7 @@ function AppContent() {
       streamUrl: streamUrlFor(song, 96),
       downloadUrl: song.downloadUrl,
       albumId: song.album?.id || song.albumId,
-      imageUrl: song.imageUrl || song.image?.find(img => img.quality === '500x500')?.url ||
-                song.image?.find(img => img.quality === '150x150')?.url,
+      imageUrl: song.imageUrl || getSongArtwork(song),
       artist: song.artist || song.artists?.primary?.[0]?.name,
       maxBitrate,
       isLocal: local,
@@ -1678,7 +1678,7 @@ function AppContent() {
             <Route path="/playlists" element={<PlaylistsView showToast={showToastMessage} />} />
             <Route path="/playlists/:id" element={<PlaylistDetailView onSongClick={handleSongSelect} onShufflePlay={handleShufflePlay} onPlayNext={handlePlayNext} onAddToQueue={handleAddToQueue} onGoToAlbum={handleGoToAlbum} onSongRadio={handleSongRadio} likedSongs={likedSongs} onLikeToggle={handleLikeToggle} currentSong={currentSong} isPlaying={isPlaying} showToast={showToastMessage} />} />
             <Route path="/liked" element={<LikedSongsView likedSongs={likedSongs} onLikeToggle={handleLikeToggle} onSongClick={handleSongSelect} onShufflePlay={handleShufflePlay} onPlayNext={handlePlayNext} onAddToQueue={handleAddToQueue} onGoToAlbum={handleGoToAlbum} onSongRadio={handleSongRadio} currentSong={currentSong} isPlaying={isPlaying} showToast={showToastMessage} />} />
-            <Route path="/stats" element={<StatsView likedSongs={likedSongs} />} />
+            <Route path="/stats" element={<StatsView likedSongs={likedSongs} onSongClick={handleSongSelect} />} />
             <Route path="/library" element={<LibraryView likedSongs={likedSongs} />} />
             <Route path="/downloads" element={<DownloadsView onSongClick={handleSongSelect} showToast={showToastMessage} />} />
             <Route path="/shared/:data" element={<SharedPlaylistView onSongClick={handleSongSelect} showToast={showToastMessage} />} />
