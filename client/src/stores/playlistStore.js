@@ -16,6 +16,12 @@ export const usePlaylistStore = create(persist(
       return id
     },
 
+    pinPlaylist: (id, pinned) => {
+      set(state => state.playlists[id] ? {
+        playlists: { ...state.playlists, [id]: { ...state.playlists[id], pinned: pinned ?? !state.playlists[id].pinned } }
+      } : state)
+    },
+
     renamePlaylist: (id, name) => {
       set(state => state.playlists[id] ? {
         playlists: { ...state.playlists, [id]: { ...state.playlists[id], name: name.trim() || state.playlists[id].name } }

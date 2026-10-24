@@ -40,7 +40,13 @@ export default function LikedSongsView({ likedSongs, onLikeToggle, onSongClick, 
     return map
   }, [results])
 
-  const songs = orderedIds.map(id => byId.get(id)).filter(Boolean)
+  // Fallback metadata for songs the API can't resolve — local-collection
+  // tracks and delisted ids still render (they're the reason this app exists)
+  const likedMeta = useMemo(() => {
+    try { return JSON.parse(localStorage.getItem('likedMeta') || '{}') } catch { return {} }
+  }, [likedSongs])
+
+  const songs = orderedIds.map(id => byId.get(id) || likedMeta[id]).filter(Boolean)
 
   // Spotify-style sort — custom (liked order) / title / artist / oldest
   const [sort, setSort] = useState('recent')
@@ -154,7 +160,7 @@ export default function LikedSongsView({ likedSongs, onLikeToggle, onSongClick, 
                   {formatDuration(song.duration)}
                 </span>
                 <button
-                  onClick={e => { e.stopPropagation(); onLikeToggle?.(song.id) }}
+                  onClick={e => { e.stopPropagation(); onLikeToggle?.(song.id, song) }}
                   className="p-1.5 shrink-0"
                   title="Unlike"
                 >

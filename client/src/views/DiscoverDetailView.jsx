@@ -224,12 +224,12 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
           setDownloading(null)
         }
       } else {
-        alert('Failed to download: ' + (resp.error || 'Unknown error'))
+        showToast?.(`Download failed: ${resp.error || 'unknown error'}`, 'error')
         setDownloading(null)
       }
     } catch (err) {
       console.error('Download error:', err)
-      alert('Failed to download song')
+      showToast?.('Download failed', 'error')
       setDownloading(null)
     }
   }
@@ -292,7 +292,7 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
           })
         }
       } else {
-        alert('Failed to start album download: ' + (resp.error || 'Unknown error'))
+        showToast?.(`Album download failed: ${resp.error || 'unknown error'}`, 'error')
         setDownloadingAlbum(prev => {
           const newDownloading = { ...prev }
           delete newDownloading[id]
@@ -301,7 +301,7 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
       }
     } catch (err) {
       console.error('Download error:', err)
-      alert('Failed to start album download')
+      showToast?.('Album download failed', 'error')
       setDownloadingAlbum(prev => {
         const newDownloading = { ...prev }
         delete newDownloading[id]

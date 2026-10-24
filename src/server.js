@@ -160,7 +160,7 @@ const corsOptions = {
   credentials: true
 };
 app.use(cors(corsOptions));
-app.use(express.json());
+app.use(express.json({ limit: '2mb' })); // full library snapshots (playlists+history+collections) can exceed the 100KB default
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
@@ -231,7 +231,7 @@ const slimLibrarySong = (s) => ({
 // history/savedAlbums/followedArtists are optional additive fields so older
 // clients keep working.
 app.put('/api/me/library', requireUser, (req, res) => {
-  const { v, ts, likedSongs, playlists, history, savedAlbums, followedArtists } = req.body || {};
+  const { v, ts, likedSongs, playlists, history, savedAlbums, followedArtists, removedAlbums, removedArtists, historyClearedAt, likedMeta } = req.body || {};
   if (!Array.isArray(likedSongs) || typeof playlists !== 'object' || playlists === null) {
     return res.status(400).json({ success: false, error: 'Bad payload' });
   }
@@ -242,6 +242,7 @@ app.put('/api/me/library', requireUser, (req, res) => {
       id: p.id || id,
       name: typeof p.name === 'string' ? p.name.slice(0, 200) : 'Untitled Playlist',
       createdAt: Number(p.createdAt) || Date.now(),
+      pinned: !!p.pinned,
       songs: Array.isArray(p.songs) ? p.songs.slice(0, 2000).map(slimLibrarySong).filter(s => s.id) : []
     };
   }
@@ -251,17 +252,40 @@ app.put('/api/me/library', requireUser, (req, res) => {
     likedSongs: likedSongs.map(String).filter(Boolean).slice(0, 5000),
     playlists: safePlaylists
   };
+  const existingDoc = loadUserData(req.userId) || {};
+  // Tombstones — deletes propagate through the union merges below, else an
+  // un-save / clear-history silently resurrects on the next pull.
+  const unionTombstones = (existing, incoming) => {
+    const m = new Map();
+    for (const t of [...(existing || []), ...(incoming || [])]) {
+      if (!t?.id) continue;
+      const pts = m.get(t.id) || 0;
+      if ((t.ts || 0) > pts) m.set(t.id, Number(t.ts));
+    }
+    return [...m.entries()].map(([id, ts]) => ({ id, ts })).slice(-500);
+  };
+  data.tombstones = {
+    albums: unionTombstones(existingDoc.tombstones?.albums, Array.isArray(removedAlbums) ? removedAlbums : []),
+    artists: unionTombstones(existingDoc.tombstones?.artists, Array.isArray(removedArtists) ? removedArtists : [])
+  };
+  data.historyClearedAt = Math.max(
+    Number(existingDoc.historyClearedAt) || 0,
+    Number(historyClearedAt) || 0
+  );
+
   if (Array.isArray(history)) {
     // History is append-only — union by id+ts with the existing doc so two
     // devices pushing different sessions don't clobber each other, and
     // repeat plays (count stats, "On Repeat") survive the merge.
-    const existing = (loadUserData(req.userId)?.history) || [];
+    const existing = existingDoc.history || [];
     const byKey = new Map();
     for (const s of [...existing, ...history.slice(0, 200)]) {
       const slim = { ...slimLibrarySong(s), ts: Number(s?.ts) || 0 };
       if (slim.id) byKey.set(`${slim.id}:${slim.ts}`, slim);
     }
-    data.history = [...byKey.values()].sort((a, b) => b.ts - a.ts).slice(0, 200);
+    data.history = [...byKey.values()]
+      .filter(s => s.ts > data.historyClearedAt) // cleared history stays cleared
+      .sort((a, b) => b.ts - a.ts).slice(0, 200);
   }
   const slimCollection = (item, tsKey) => item && typeof item === 'object' ? {
     id: String(item.id || '').slice(0, 200),
@@ -271,25 +295,39 @@ app.put('/api/me/library', requireUser, (req, res) => {
     [tsKey]: Number(item[tsKey]) || 0
   } : null;
   // Collections are additive — union by id with the existing doc (newest
-  // per-item ts wins) so a stale device push can't silently un-save
-  // albums/artists saved on another device.
-  const existingDoc = (Array.isArray(savedAlbums) || Array.isArray(followedArtists))
-    ? (loadUserData(req.userId) || {})
-    : {};
-  const mergeCollection = (key, incoming, tsKey) => {
+  // per-item ts wins), then tombstones remove anything un-saved after
+  // their save timestamp so un-saves propagate instead of resurrecting.
+  const mergeCollection = (key, incoming, tsKey, tombs) => {
+    const tombMap = new Map((tombs || []).map(t => [t.id, t.ts]));
     const byId = new Map();
     for (const item of [...(existingDoc[key] || []), ...incoming]) {
       if (!item?.id) continue;
       const prev = byId.get(item.id);
       if (!prev || (item[tsKey] || 0) > (prev[tsKey] || 0)) byId.set(item.id, item);
     }
-    data[key] = [...byId.values()];
+    data[key] = [...byId.values()].filter(i => (tombMap.get(i.id) || 0) <= (i[tsKey] || 0));
   };
   if (Array.isArray(savedAlbums)) {
-    mergeCollection('savedAlbums', savedAlbums.slice(0, 2000).map(a => slimCollection(a, 'savedAt')).filter(Boolean), 'savedAt');
+    mergeCollection('savedAlbums', savedAlbums.slice(0, 2000).map(a => slimCollection(a, 'savedAt')).filter(Boolean), 'savedAt', data.tombstones.albums);
   }
   if (Array.isArray(followedArtists)) {
-    mergeCollection('followedArtists', followedArtists.slice(0, 2000).map(a => slimCollection(a, 'followedAt')).filter(Boolean), 'followedAt');
+    mergeCollection('followedArtists', followedArtists.slice(0, 2000).map(a => slimCollection(a, 'followedAt')).filter(Boolean), 'followedAt', data.tombstones.artists);
+  }
+  // likedMeta — display metadata keyed by song id so local-collection or
+  // delisted songs still render on other devices; union by likedAt
+  if (likedMeta && typeof likedMeta === 'object') {
+    const mergedMeta = { ...(existingDoc.likedMeta || {}) };
+    for (const [id, m] of Object.entries(likedMeta).slice(0, 5000)) {
+      if (!m || typeof m !== 'object') continue;
+      const prev = mergedMeta[id];
+      if (!prev || (m.likedAt || 0) > (prev.likedAt || 0)) {
+        mergedMeta[id] = { ...slimLibrarySong(m), likedAt: Number(m.likedAt) || 0 };
+      }
+    }
+    // Drop meta for songs no longer liked
+    const likeSet = new Set(data.likedSongs);
+    for (const id of Object.keys(mergedMeta)) if (!likeSet.has(id)) delete mergedMeta[id];
+    data.likedMeta = mergedMeta;
   }
   saveUserData(req.userId, data);
   res.json({ success: true, ts: data.ts });
@@ -530,8 +568,6 @@ const streamHandler = async (req, res, bitrate = '320') => {
     // If not local, try to proxy from external stream URL
     try {
       let streamUrl;
-      const fallbackUrl = req.query.url; // Fallback downloadUrl from query param
-      
       const requestedQuality = `${bitrate}kbps`;
 
       const pickUrl = (urls) => (urls || []).find(u => u.quality === requestedQuality)?.url ||
@@ -596,12 +632,6 @@ const streamHandler = async (req, res, bitrate = '320') => {
         } catch (officialError) {
           console.error('Official API also failed for stream:', officialError.message);
         }
-      }
-      
-      // If primary stream URL failed or is unavailable, use fallback URL if provided
-      if (!streamUrl && fallbackUrl) {
-        console.log('Using fallback downloadUrl for stream');
-        streamUrl = fallbackUrl;
       }
       
       if (!streamUrl) {

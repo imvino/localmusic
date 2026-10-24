@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ListMusic, Plus, Pencil, Trash2, Music, Check, X } from 'lucide-react'
+import { ListMusic, Plus, Pencil, Trash2, Music, Check, X, Pin } from 'lucide-react'
 import { usePlaylistStore } from '../stores/playlistStore'
 import { getImageSrc } from '../utils'
 
@@ -10,13 +10,14 @@ export default function PlaylistsView({ showToast }) {
   const createPlaylist = usePlaylistStore(s => s.createPlaylist)
   const renamePlaylist = usePlaylistStore(s => s.renamePlaylist)
   const deletePlaylist = usePlaylistStore(s => s.deletePlaylist)
+  const pinPlaylist = usePlaylistStore(s => s.pinPlaylist)
   const [editingId, setEditingId] = useState(null)
   const [editName, setEditName] = useState('')
   const [creating, setCreating] = useState(false)
   const [newName, setNewName] = useState('')
   const [confirmDeleteId, setConfirmDeleteId] = useState(null)
 
-  const list = Object.values(playlists).sort((a, b) => b.createdAt - a.createdAt)
+  const list = Object.values(playlists).sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0) || b.createdAt - a.createdAt)
 
   const commitCreate = () => {
     const name = newName.trim()
@@ -122,6 +123,13 @@ export default function PlaylistsView({ showToast }) {
                     </div>
                   ) : (
                     <div className="flex items-center gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+                      <button
+                        onClick={e => { e.stopPropagation(); pinPlaylist(p.id) }}
+                        className={`p-1.5 transition-colors ${p.pinned ? 'text-[#fc3c44]' : 'text-zinc-500 hover:text-white'}`}
+                        title={p.pinned ? 'Unpin' : 'Pin to top'}
+                      >
+                        <Pin size={13} className={p.pinned ? 'fill-[#fc3c44]' : ''} />
+                      </button>
                       <button
                         onClick={e => { e.stopPropagation(); setEditingId(p.id); setEditName(p.name) }}
                         className="p-1.5 text-zinc-500 hover:text-white transition-colors"

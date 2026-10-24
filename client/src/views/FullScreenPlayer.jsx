@@ -120,7 +120,7 @@ export default function FullScreenPlayer({
           <TrackMenu
             song={currentSong}
             likedSongs={likedSongs}
-            onLikeToggle={onLikeToggle ? () => onLikeToggle(currentSong.id) : undefined}
+            onLikeToggle={onLikeToggle ? () => onLikeToggle(currentSong.id, currentSong) : undefined}
             onPlayNext={onPlayNext}
             onAddToQueue={onAddToQueue}
             onGoToAlbum={onGoToAlbum}

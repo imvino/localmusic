@@ -1,10 +1,22 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { X, ArrowUp, ArrowDown, Trash2, ListX, Music, GripVertical } from 'lucide-react'
 import { getImageSrc } from '../utils'
 
 export default function QueueDrawer({ open, onClose, queue, queueIndex, shuffle, shuffleOrder, shufflePos = -1, isPlaying, onPlayAt, onRemoveAt, onMove, onMoveTo, onClear }) {
   const [dragPos, setDragPos] = useState(null)
   const [dropPos, setDropPos] = useState(null)
+  const prevFocus = useRef(null)
+  // Escape closes + restore focus to the triggering control
+  useEffect(() => {
+    if (!open) return
+    prevFocus.current = document.activeElement
+    const onKey = (e) => { if (e.key === 'Escape') onClose?.() }
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('keydown', onKey)
+      prevFocus.current?.focus?.()
+    }
+  }, [open]) // eslint-disable-line react-hooks/exhaustive-deps
   if (!open) return null
 
   // Display order: shuffleOrder when shuffling, else raw queue indices
@@ -98,7 +110,7 @@ export default function QueueDrawer({ open, onClose, queue, queueIndex, shuffle,
       <div className="fixed inset-0 bg-black/50 z-50" onClick={onClose} />
 
       {/* Panel: right drawer on md+, bottom sheet on mobile */}
-      <div className="fixed z-50 bg-zinc-900 border-zinc-800 flex flex-col
+      <div role="dialog" aria-modal="true" aria-label="Play queue" className="fixed z-50 bg-zinc-900 border-zinc-800 flex flex-col
         inset-x-0 bottom-0 top-24 border-t rounded-t-2xl
         md:inset-y-0 md:right-0 md:left-auto md:w-96 md:border-l md:border-t-0 md:rounded-none">
         <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-800">

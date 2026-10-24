@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { BarChart3, Music, Mic2, Clock3, Heart, TrendingUp, Play, Trash2 } from 'lucide-react'
 import { decodeHtmlEntities } from '../utils'
+import { HISTORY_CLEARED_KEY } from '../utils/sync'
 import ArtImage from '../components/ArtImage'
 
 const relTime = (ts) => {
@@ -24,32 +25,54 @@ export default function StatsView({ likedSongs, onSongClick, showToast }) {
   }, [version])
 
   const clearHistory = () => {
-    try { localStorage.setItem('playHistory', '[]') } catch { /* quota */ }
+    try {
+      localStorage.setItem('playHistory', '[]')
+      // Tombstone: the sync push carries this so the server (and other
+      // devices) don't resurrect cleared entries on the next merge
+      localStorage.setItem(HISTORY_CLEARED_KEY, String(Date.now()))
+      window.dispatchEvent(new Event('library:changed'))
+    } catch { /* quota */ }
     setConfirmClear(false)
     setVersion(v => v + 1)
     showToast?.('Play history cleared')
   }
 
   const stats = useMemo(() => {
+    // playCounts survives the history cap and counts every play incl.
+    // consecutive repeats — the durable source of truth for totals
+    const pc = (() => { try { return JSON.parse(localStorage.getItem('playCounts') || '{}') } catch { return {} } })()
+    const pcList = Object.values(pc).filter(e => e?.id && e.count > 0)
     const songCounts = new Map()
     const artistCounts = new Map()
     let minutes = 0
-    for (const s of history) {
-      if (!s?.id) continue
-      const entry = songCounts.get(s.id) || { ...s, count: 0 }
-      entry.count++
-      songCounts.set(s.id, entry)
-      const artist = s.artist || s.artists?.primary?.[0]?.name
-      if (artist) artistCounts.set(artist, (artistCounts.get(artist) || 0) + 1)
-      minutes += (parseInt(s.duration) || 0) / 60
+    let plays = 0
+    if (pcList.length) {
+      for (const e of pcList) {
+        songCounts.set(e.id, { ...e })
+        if (e.artist) artistCounts.set(e.artist, (artistCounts.get(e.artist) || 0) + e.count)
+        plays += e.count
+        minutes += ((parseInt(e.duration) || 0) / 60) * e.count
+      }
+    } else {
+      // Fallback for entries predating playCounts
+      for (const s of history) {
+        if (!s?.id) continue
+        const entry = songCounts.get(s.id) || { ...s, count: 0 }
+        entry.count++
+        songCounts.set(s.id, entry)
+        const artist = s.artist || s.artists?.primary?.[0]?.name
+        if (artist) artistCounts.set(artist, (artistCounts.get(artist) || 0) + 1)
+        plays++
+        minutes += (parseInt(s.duration) || 0) / 60
+      }
     }
     return {
-      plays: history.length,
+      plays,
       minutes: Math.round(minutes),
-      topSongs: [...songCounts.values()].sort((a, b) => b.count - a.count).slice(0, 10),
+      topSongs: [...songCounts.values()].sort((a, b) => (b.count || 1) - (a.count || 1)).slice(0, 10),
       topArtists: [...artistCounts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 10)
     }
-  }, [history])
+  }, [history, version])
 
   return (
     <div className="p-4 md:p-8 pb-32">

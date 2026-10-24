@@ -47,7 +47,7 @@ export default function TrackMenu({ song, likedSongs, onLikeToggle, onPlayNext, 
       if (menuRef.current?.contains(e.target) || triggerRef.current?.contains(e.target)) return
       setOpen(false)
     }
-    const onKey = (e) => { if (e.key === 'Escape') setOpen(false) }
+    const onKey = (e) => { if (e.key === 'Escape') { setOpen(false); triggerRef.current?.focus() } }
     // Menu is fixed-positioned while triggers live in scroll containers —
     // any scroll detaches it from the row, so just close (capture: inner
     // scrollers don't bubble scroll events)
@@ -134,6 +134,7 @@ export default function TrackMenu({ song, likedSongs, onLikeToggle, onPlayNext, 
       {open && createPortal(
         <div
           ref={menuRef}
+          role="menu" aria-label="Track options"
           className="fixed w-56 bg-zinc-900 border border-zinc-800 rounded-xl shadow-2xl z-[100] py-1 overflow-hidden"
           style={{ top: pos.top, left: pos.left }}
           onClick={e => e.stopPropagation()}
@@ -195,7 +196,7 @@ export default function TrackMenu({ song, likedSongs, onLikeToggle, onPlayNext, 
               <button className={itemCls} onClick={() => act(() => onSongRadio?.(song))}>
                 <Radio size={16} /> Go to song radio
               </button>
-              <button className={itemCls} onClick={() => act(() => onLikeToggle?.(song.id))}>
+              <button className={itemCls} onClick={() => act(() => onLikeToggle?.(song.id, song))}>
                 <Heart size={16} className={liked ? 'fill-[#fc3c44] text-[#fc3c44]' : ''} />
                 {liked ? 'Unlike' : 'Like'}
               </button>

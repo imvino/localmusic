@@ -33,6 +33,7 @@ import { usePlaylistStore } from './stores/playlistStore'
 import { enableEq, warmEq, setEqGains } from './audio/eq'
 import { isDownloaded, downloadUrlFor, reconcileDownloads } from './utils/downloads'
 import { getSongArtwork } from './utils'
+import { addTombstone, clearTombstone, slimSong } from './utils/sync'
 import TermsOfService from './pages/TermsOfService'
 import PrivacyPolicy from './pages/PrivacyPolicy'
 import DMCA from './pages/DMCA'
@@ -206,9 +207,11 @@ function AppContent() {
         if (next.has(album.id)) {
           next.delete(album.id)
           nextList = list.filter(a => a.id !== album.id)
+          addTombstone('albums', album.id)
         } else {
           next.add(album.id)
           nextList = [{ id: album.id, name: album.name || '', artist: album.artist || '', image: album.image || '', savedAt: Date.now() }, ...list.filter(a => a.id !== album.id)]
+          clearTombstone('albums', album.id)
         }
         try { localStorage.setItem('savedAlbums', JSON.stringify(nextList.slice(0, 2000))) } catch { /* quota */ }
         return next
@@ -226,9 +229,11 @@ function AppContent() {
         if (next.has(artist.id)) {
           next.delete(artist.id)
           nextList = list.filter(a => a.id !== artist.id)
+          addTombstone('artists', artist.id)
         } else {
           next.add(artist.id)
           nextList = [{ id: artist.id, name: artist.name || '', image: artist.image || '', followedAt: Date.now() }, ...list.filter(a => a.id !== artist.id)]
+          clearTombstone('artists', artist.id)
         }
         try { localStorage.setItem('followedArtists', JSON.stringify(nextList.slice(0, 2000))) } catch { /* quota */ }
         return next
@@ -596,8 +601,15 @@ function AppContent() {
       const s = currentSong
       if (!s) return
       try {
+        // playCounts — durable per-song play totals that survive the 200-item
+        // history cap; counts EVERY play including consecutive repeats, so
+        // repeat-one sessions still feed Stats + "On Repeat"
+        const pc = (() => { try { return JSON.parse(localStorage.getItem('playCounts') || '{}') } catch { return {} } })()
+        const prevPc = pc[s.id] || {}
+        pc[s.id] = { ...(slimSong(s) || { id: s.id, name: s.name }), count: (prevPc.count || 0) + 1, ts: Date.now() }
+        localStorage.setItem('playCounts', JSON.stringify(pc))
         const prev = JSON.parse(localStorage.getItem('playHistory') || '[]')
-        if (prev[0]?.id === s.id) return
+        if (prev[0]?.id === s.id) { setHistoryVersion(v => v + 1); return }
         const entry = {
           id: s.id, name: s.name, artist: s.artist, album: s.album,
           albumId: s.albumId, image: s.imageUrl || s.artworkUrl,
@@ -677,7 +689,7 @@ function AppContent() {
         case 'KeyL':
           e.preventDefault()
           if (currentSong) {
-            handleLikeToggle(currentSong.id)
+            handleLikeToggle(currentSong.id, currentSong)
           }
           break
         case 'Digit0':
@@ -1546,16 +1558,23 @@ function AppContent() {
     }
   }
 
-  const handleLikeToggle = (songId) => {
+  const handleLikeToggle = (songId, song) => {
     requireAuth(() => {
       setLikedSongs(prev => {
         const newSet = new Set(prev)
+        // likedMeta keeps display metadata so local-collection or delisted
+        // songs still render in Liked Songs when the API can't resolve them
+        const meta = (() => { try { return JSON.parse(localStorage.getItem('likedMeta') || '{}') } catch { return {} } })()
         if (newSet.has(songId)) {
           newSet.delete(songId)
+          delete meta[songId]
         } else {
           newSet.add(songId)
+          const slim = song ? slimSong(song) : null
+          if (slim) meta[songId] = { ...slim, likedAt: Date.now() }
         }
         localStorage.setItem('likedSongs', JSON.stringify([...newSet]))
+        try { localStorage.setItem('likedMeta', JSON.stringify(meta)) } catch { /* quota */ }
         return newSet
       })
     }, () => showToastMessage('Sign in to save songs to your library'))
@@ -1846,7 +1865,7 @@ function AppContent() {
             repeat={repeat}
             onRepeatToggle={() => setRepeat(r => repeatCycle(r))}
             liked={currentSong ? likedSongs.has(currentSong.id) : false}
-            onLikeToggle={() => currentSong && handleLikeToggle(currentSong.id)}
+            onLikeToggle={() => currentSong && handleLikeToggle(currentSong.id, currentSong)}
             currentTime={currentTime}
             duration={duration}
             onSeek={handleSeek}
@@ -1884,7 +1903,7 @@ function AppContent() {
             repeat={repeat}
             onRepeatToggle={() => setRepeat(r => repeatCycle(r))}
             liked={currentSong ? likedSongs.has(currentSong.id) : false}
-            onLikeToggle={() => currentSong && handleLikeToggle(currentSong.id)}
+            onLikeToggle={() => currentSong && handleLikeToggle(currentSong.id, currentSong)}
             currentTime={currentTime}
             duration={duration}
             onSeek={handleSeek}
@@ -1945,7 +1964,7 @@ function AppContent() {
           repeat={repeat}
           onRepeatToggle={() => setRepeat(r => repeatCycle(r))}
           liked={currentSong ? likedSongs.has(currentSong.id) : false}
-          onLikeToggle={() => currentSong && handleLikeToggle(currentSong.id)}
+          onLikeToggle={() => currentSong && handleLikeToggle(currentSong.id, currentSong)}
           currentTime={currentTime}
           duration={duration}
           onSeek={handleSeek}

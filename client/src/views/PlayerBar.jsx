@@ -139,7 +139,7 @@ export default function PlayerBar({ currentSong, isPlaying, onTogglePlay, onPrev
         <TrackMenu
           song={currentSong}
           likedSongs={likedSongs}
-          onLikeToggle={onLikeToggle ? () => onLikeToggle() : undefined}
+          onLikeToggle={onLikeToggle ? () => onLikeToggle(currentSong.id, currentSong) : undefined}
           onPlayNext={onPlayNext}
           onAddToQueue={onAddToQueue}
           onGoToAlbum={onGoToAlbum}

@@ -41,17 +41,24 @@ export default function DiscoverView({ onSongClick, showToast, likedSongs, onLik
     } catch { return [] }
   })
 
-  // Spotify-style "Made for you" mixes — pure play-history math, no server
+  // Spotify-style "Made for you" mixes — pure play-history math, no server.
+  // playCounts (durable map, survives the history cap, counts repeats) is
+  // the source; playHistory is the fallback for entries predating it.
   const mixes = useState(() => {
     try {
-      const raw = JSON.parse(localStorage.getItem('playHistory') || '[]')
+      const pc = (() => { try { return JSON.parse(localStorage.getItem('playCounts') || '{}') } catch { return {} } })()
       const counts = new Map()
       const oldest = new Map()
+      for (const [id, e] of Object.entries(pc)) {
+        if (!e?.id) continue
+        counts.set(id, { ...e, count: e.count || 1 })
+      }
+      const raw = JSON.parse(localStorage.getItem('playHistory') || '[]')
       for (const s of raw) {
         if (!s?.id) continue
-        const e = counts.get(s.id) || { ...s, count: 0 }
-        e.count++
-        counts.set(s.id, e)
+        if (!counts.has(s.id)) counts.set(s.id, { ...s, count: 0 })
+        const e = counts.get(s.id)
+        if (!pc[s.id]) e.count++ // pre-playCounts entries still count
         if (!oldest.has(s.id) || (s.ts || 0) < oldest.get(s.id)) oldest.set(s.id, s.ts || 0)
       }
       const onRepeat = [...counts.values()].filter(e => e.count >= 2)

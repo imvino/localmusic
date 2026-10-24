@@ -1,8 +1,8 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useAuth } from '@clerk/clerk-react'
 import { usePlaylistStore } from '../stores/playlistStore'
 import { clearPersonalData, getLastUserId, setLastUserId } from '../utils/personalData'
-import { slimSong, slimPlaylists, mergePlaylists, mergeHistory, mergeCollections, markPullDone, resetPullDone, isPullDone, onPullDone } from '../utils/sync'
+import { slimSong, slimPlaylists, mergePlaylists, mergeHistory, mergeCollections, markPullDone, resetPullDone, isPullDone, onPullDone, getTombstones, applyTombstones, TOMB_KEYS, HISTORY_CLEARED_KEY } from '../utils/sync'
 
 const API_BASE = import.meta.env.VITE_API_URL
 const LAST_SYNC_KEY = 'libraryLastSync'
@@ -26,7 +26,12 @@ async function pushSnapshot(getToken, likedSongs, playlists, collections) {
         playlists: slimPlaylists(playlists),
         history,
         savedAlbums: collections?.savedAlbums?.slice(0, 2000) || [],
-        followedArtists: collections?.followedArtists?.slice(0, 2000) || []
+        followedArtists: collections?.followedArtists?.slice(0, 2000) || [],
+        likedMeta: readLS('likedMeta', {}), // metadata so local/delisted songs still render
+        // Tombstones let deletes propagate through the union merges
+        removedAlbums: getTombstones(TOMB_KEYS.albums),
+        removedArtists: getTombstones(TOMB_KEYS.artists),
+        historyClearedAt: Number(localStorage.getItem(HISTORY_CLEARED_KEY)) || 0
       })
     })
     if (res.ok) {
@@ -55,6 +60,21 @@ async function pushSnapshot(getToken, likedSongs, playlists, collections) {
 export function useLibrarySync({ likedSongs, setLikedSongs, savedAlbums, setSavedAlbums, followedArtists, setFollowedArtists, historyVersion }) {
   const { isSignedIn, userId, getToken } = useAuth()
   const playlists = usePlaylistStore(s => s.playlists)
+  // Re-pull when the network comes back — otherwise a device that was
+  // offline while another device changed the library pushes STALE
+  // likes/playlists and resurrects deletes (the post-offline race)
+  const [syncNonce, setSyncNonce] = useState(0)
+  const [changedBump, setChangedBump] = useState(0)
+  useEffect(() => {
+    const onOnline = () => setSyncNonce(n => n + 1)
+    const onChanged = () => setChangedBump(b => b + 1) // tombstone writes etc.
+    window.addEventListener('online', onOnline)
+    window.addEventListener('library:changed', onChanged)
+    return () => {
+      window.removeEventListener('online', onOnline)
+      window.removeEventListener('library:changed', onChanged)
+    }
+  }, [])
   const lastSyncRef = useRef(() => {
     try { return parseInt(localStorage.getItem(LAST_SYNC_KEY) || '0', 10) || 0 } catch { return 0 }
   })
@@ -121,16 +141,34 @@ export function useLibrarySync({ likedSongs, setLikedSongs, savedAlbums, setSave
           : (server.playlists || {})
         usePlaylistStore.setState({ playlists: mergedPls })
 
-        const applyCollection = (serverArr, localKey, setState) => {
-          const next = union ? mergeCollections(readLS(localKey, []), serverArr || []) : (serverArr || [])
+        const applyCollection = (serverArr, localKey, setState, kind, tsKey) => {
+          const next = applyTombstones(
+            union ? mergeCollections(readLS(localKey, []), serverArr || []) : (serverArr || []),
+            kind, tsKey
+          )
           writeLS(localKey, next)
           setState?.(new Set(next.map(x => x.id)))
           return next
         }
-        const nextAlbums = applyCollection(server.savedAlbums, 'savedAlbums', setSavedAlbums)
-        const nextArtists = applyCollection(server.followedArtists, 'followedArtists', setFollowedArtists)
+        const nextAlbums = applyCollection(server.savedAlbums, 'savedAlbums', setSavedAlbums, 'albums', 'savedAt')
+        const nextArtists = applyCollection(server.followedArtists, 'followedArtists', setFollowedArtists, 'artists', 'followedAt')
 
+        // likedMeta rides alongside — newest likedAt wins per id
+        if (server.likedMeta && typeof server.likedMeta === 'object') {
+          const local = readLS('likedMeta', {})
+          const merged = union ? { ...server.likedMeta, ...local } : server.likedMeta
+          writeLS('likedMeta', merged)
+        }
+
+        // Cleared-at wins on BOTH sides — entries older than the latest
+        // clear (local or server) stay gone after the union merge
+        const clearedAt = Math.max(
+          Number(localStorage.getItem(HISTORY_CLEARED_KEY)) || 0,
+          Number(server.historyClearedAt) || 0
+        )
+        if (clearedAt) localStorage.setItem(HISTORY_CLEARED_KEY, String(clearedAt))
         const mergedHist = mergeHistory(readLS('playHistory', []), server.history || [])
+          .filter(s => (s.ts || 0) > clearedAt)
         writeLS('playHistory', mergedHist)
 
         localStorage.setItem(LAST_SYNC_KEY, String(serverTs))
@@ -144,7 +182,7 @@ export function useLibrarySync({ likedSongs, setLikedSongs, savedAlbums, setSave
       finally { done() }
     })()
     return () => { live = false }
-  }, [isSignedIn, userId]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [isSignedIn, userId, syncNonce]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Debounced push on any local change — held until the session's first
   // pull resolves so a fresh/empty state can never clobber the server.
@@ -160,5 +198,5 @@ export function useLibrarySync({ likedSongs, setLikedSongs, savedAlbums, setSave
       const off = onPullDone(() => { off(); push() })
     }, 2500)
     return () => clearTimeout(t)
-  }, [likedSongs, playlists, savedAlbums, followedArtists, historyVersion, isSignedIn]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [likedSongs, playlists, savedAlbums, followedArtists, historyVersion, changedBump, isSignedIn]) // eslint-disable-line react-hooks/exhaustive-deps
 }

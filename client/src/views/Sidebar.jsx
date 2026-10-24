@@ -1,4 +1,4 @@
-import { Compass, RefreshCw, Keyboard, X, Trash2, ListMusic, Settings, Heart, Music, Radio, Timer, SlidersHorizontal, BarChart3, Waves, Download, Lock } from 'lucide-react'
+import { Compass, RefreshCw, Keyboard, X, Trash2, ListMusic, Settings, Heart, Music, Radio, Timer, SlidersHorizontal, BarChart3, Waves, Download, Lock, Pin } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 import { useState } from 'react'
 import { usePlaylistStore } from '../stores/playlistStore'
@@ -325,7 +325,7 @@ export default function Sidebar({ showToast, onClose, qualityPreference, onQuali
 
           {/* Recent playlists inline */}
           {Object.values(playlists)
-            .sort((a, b) => b.createdAt - a.createdAt)
+            .sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0) || b.createdAt - a.createdAt)
             .slice(0, 5)
             .map(p => (
               <Link
@@ -337,7 +337,7 @@ export default function Sidebar({ showToast, onClose, qualityPreference, onQuali
                     ? 'bg-zinc-800 text-white'
                     : 'text-zinc-500 hover:text-white hover:bg-zinc-800/40'}`}
               >
-                <Music size={14} className="shrink-0" />
+                {p.pinned ? <Pin size={14} className="shrink-0 fill-[#fc3c44] text-[#fc3c44]" /> : <Music size={14} className="shrink-0" />}
                 <span className="truncate">{p.name}</span>
               </Link>
             ))}

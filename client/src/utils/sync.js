@@ -26,6 +26,7 @@ export function slimPlaylists(playlists) {
       id: p.id || id,
       name: p.name || 'Untitled Playlist',
       createdAt: p.createdAt || Date.now(),
+      pinned: !!p.pinned,
       songs: (p.songs || []).map(slimSong).filter(Boolean)
     }
   }
@@ -76,6 +77,32 @@ export function mergeCollections(local, server) {
     if (!prev || ts > pts) byId.set(item.id, item)
   }
   return [...byId.values()]
+}
+
+// Tombstones — deletes must propagate through union merges, or an un-save /
+// un-follow / clear-history silently resurrects on the next pull. A tombstone
+// only kills items saved BEFORE it, so re-saving later still works.
+export const TOMB_KEYS = { albums: 'removedAlbums', artists: 'removedArtists' }
+export const HISTORY_CLEARED_KEY = 'historyClearedAt'
+
+export function getTombstones(key) {
+  try { return JSON.parse(localStorage.getItem(key) || '[]') } catch { return [] }
+}
+export function addTombstone(kind, id) {
+  const list = getTombstones(TOMB_KEYS[kind]).filter(t => t.id !== id)
+  list.push({ id, ts: Date.now() })
+  try { localStorage.setItem(TOMB_KEYS[kind], JSON.stringify(list.slice(-500))) } catch { /* quota */ }
+}
+export function clearTombstone(kind, id) {
+  try {
+    localStorage.setItem(TOMB_KEYS[kind], JSON.stringify(getTombstones(TOMB_KEYS[kind]).filter(t => t.id !== id)))
+  } catch { /* quota */ }
+}
+// Keep items whose save-ts is at/after any tombstone for their id
+export function applyTombstones(items, kind, tsKey) {
+  const m = new Map(getTombstones(TOMB_KEYS[kind]).map(t => [t.id, t.ts]))
+  if (!m.size) return items
+  return items.filter(i => (m.get(i.id) || 0) <= (i[tsKey] || 0))
 }
 
 // Shared pull-done signal: AuthGate holds a pending member action (e.g. a
