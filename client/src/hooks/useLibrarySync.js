@@ -127,31 +127,52 @@ export function useLibrarySync({ likedSongs, setLikedSongs, savedAlbums, setSave
           return // nothing newer
         }
 
-        // Import local data on first login, a user switch, OR a wiped server
-        // doc (ts===0 means the default empty doc — re-seed it).
-        const union = firstLogin || differentUser || serverTs === 0
+        // ALWAYS merge — never blind-replace. Unpushed local adds (offline
+        // edits, inside-debounce changes) must survive a pull; deletes travel
+        // exclusively through tombstones, which are merged from BOTH sides.
 
-        const serverLikes = new Set(server.likedSongs || [])
-        setLikedSongs(prev => {
-          // Local song tombstones still apply — an unlike pending push must
-          // not resurrect just because the pull raced it.
-          const merged = union ? new Set([...serverLikes, ...prev]) : serverLikes
-          const next = new Set([...merged].filter(id => !isTombstoned('songs', id)))
-          writeLS('likedSongs', [...next])
-          return next
-        })
+        // 1. Fold server tombstones into local storage so every filter below
+        // (and future pushes) honors deletes from either device.
+        for (const kind of Object.keys(TOMB_KEYS)) {
+          const incoming = server.tombstones?.[kind] || []
+          if (!incoming.length) continue
+          const m = new Map(getTombstones(TOMB_KEYS[kind]).map(t => [t.id, t.ts]))
+          for (const t of incoming) if ((t.ts || 0) > (m.get(t.id) || 0)) m.set(t.id, Number(t.ts))
+          writeLS(TOMB_KEYS[kind], [...m.entries()].map(([id, ts]) => ({ id, ts })).slice(-500))
+        }
 
-        const plTombs = new Set(getTombstones(TOMB_KEYS.playlists).map(t => t.id))
+        // 2. likedMeta — union by newest likedAt per id (must precede the
+        // like filter, which compares tombstones against likedAt).
+        const mergedMeta = { ...(server.likedMeta || {}) }
+        for (const [id, m] of Object.entries(readLS('likedMeta', {}))) {
+          const s = mergedMeta[id]
+          if (!s || (m?.likedAt || 0) > (s?.likedAt || 0)) mergedMeta[id] = m
+        }
+
+        // 3. Likes — union; a tombstone kills an id only when it's newer
+        // than the newest likedAt seen on either device.
+        const songTombMap = new Map(getTombstones(TOMB_KEYS.songs).map(t => [t.id, t.ts]))
+        const nextLikes = new Set(
+          [...(server.likedSongs || []), ...readLS('likedSongs', [])]
+            .filter(id => (songTombMap.get(id) || 0) <= (mergedMeta[id]?.likedAt || 0))
+        )
+        writeLS('likedSongs', [...nextLikes])
+        setLikedSongs(nextLikes)
+        for (const id of Object.keys(mergedMeta)) if (!nextLikes.has(id)) delete mergedMeta[id]
+        writeLS('likedMeta', mergedMeta)
+
+        // 4. Playlists — per-id winner by updatedAt (song lists unioned);
+        // a tombstone newer than createdAt kills the stale copy.
+        const plTombMap = new Map(getTombstones(TOMB_KEYS.playlists).map(t => [t.id, t.ts]))
         const mergedPls = Object.fromEntries(Object.entries(
-          union
-            ? mergePlaylists(usePlaylistStore.getState().playlists, server.playlists || {})
-            : (server.playlists || {})
-        ).filter(([id]) => !plTombs.has(id)))
+          mergePlaylists(usePlaylistStore.getState().playlists, server.playlists || {})
+        ).filter(([id, p]) => (plTombMap.get(id) || 0) <= (p.createdAt || 0)))
         usePlaylistStore.setState({ playlists: mergedPls })
 
+        // 5. Collections — union + tombstone filter (server tombs are local now)
         const applyCollection = (serverArr, localKey, setState, kind, tsKey) => {
           const next = applyTombstones(
-            union ? mergeCollections(readLS(localKey, []), serverArr || []) : (serverArr || []),
+            mergeCollections(readLS(localKey, []), serverArr || []),
             kind, tsKey
           )
           writeLS(localKey, next)
@@ -161,18 +182,15 @@ export function useLibrarySync({ likedSongs, setLikedSongs, savedAlbums, setSave
         const nextAlbums = applyCollection(server.savedAlbums, 'savedAlbums', setSavedAlbums, 'albums', 'savedAt')
         const nextArtists = applyCollection(server.followedArtists, 'followedArtists', setFollowedArtists, 'artists', 'followedAt')
 
-        // likedMeta rides alongside — newest likedAt wins per id
-        if (server.likedMeta && typeof server.likedMeta === 'object') {
-          const local = readLS('likedMeta', {})
-          const merged = union ? { ...server.likedMeta, ...local } : server.likedMeta
-          writeLS('likedMeta', merged)
-        }
-
-        // playCounts — durable totals; max-merge per id, never regresses
+        // 6. playCounts — { ...slimSong, count, ts } per id; max-merge, never regresses
         if (server.playCounts && typeof server.playCounts === 'object') {
           const merged = { ...readLS('playCounts', {}) }
           for (const [id, c] of Object.entries(server.playCounts)) {
-            merged[id] = Math.max(Number(merged[id]) || 0, Number(c) || 0)
+            const cnt = Number(c?.count ?? c) || 0
+            const prev = merged[id]
+            if (cnt > (Number(prev?.count ?? prev) || 0)) {
+              merged[id] = c && typeof c === 'object' ? c : { id, count: cnt, ts: 0 }
+            }
           }
           writeLS('playCounts', merged)
         }

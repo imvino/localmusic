@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ListMusic, Plus, Pencil, Trash2, Music, Check, X, Pin } from 'lucide-react'
 import { usePlaylistStore } from '../stores/playlistStore'
+import { clearTombstone } from '../utils/sync'
 import { getImageSrc } from '../utils'
 
 export default function PlaylistsView({ showToast }) {
@@ -109,7 +110,19 @@ export default function PlaylistsView({ showToast }) {
                   {confirmDeleteId === p.id ? (
                     <div className="flex items-center gap-1" onClick={e => e.stopPropagation()}>
                       <button
-                        onClick={() => { deletePlaylist(p.id); setConfirmDeleteId(null); showToast?.('Playlist deleted', 'success') }}
+                        onClick={() => {
+                          const snapshot = p
+                          deletePlaylist(p.id)
+                          setConfirmDeleteId(null)
+                          showToast?.('Playlist deleted', 'success', {
+                            label: 'Undo',
+                            onClick: () => {
+                              clearTombstone('playlists', snapshot.id)
+                              usePlaylistStore.setState(s => ({ playlists: { ...s.playlists, [snapshot.id]: snapshot } }))
+                              showToast?.('Playlist restored', 'success')
+                            }
+                          })
+                        }}
                         className="px-2 py-1 text-[11px] font-medium rounded bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-colors"
                       >
                         Delete

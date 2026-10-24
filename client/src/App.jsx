@@ -243,20 +243,41 @@ function AppContent() {
 
   // Backup restore — refresh React state from an imported backup file
   const handleImportLibrary = (backup) => {
-    if (Array.isArray(backup?.likedSongs)) setLikedSongs(new Set(backup.likedSongs))
-    if (Array.isArray(backup?.savedAlbums)) setSavedAlbums(new Set(backup.savedAlbums.map(a => a.id)))
-    if (Array.isArray(backup?.followedArtists)) setFollowedArtists(new Set(backup.followedArtists.map(a => a.id)))
+    if (Array.isArray(backup?.likedSongs)) {
+      setLikedSongs(new Set(backup.likedSongs))
+      // Restored likes must survive sync: clear any song tombstones and
+      // synthesize likedMeta (tombstone-vs-likedAt comparison would
+      // otherwise kill them on the next push/pull).
+      const meta = (() => { try { return JSON.parse(localStorage.getItem('likedMeta') || '{}') } catch { return {} } })()
+      const now = Date.now()
+      for (const id of backup.likedSongs) {
+        clearTombstone('songs', id)
+        if (!meta[id]) meta[id] = { id, name: '', likedAt: now }
+      }
+      try { localStorage.setItem('likedMeta', JSON.stringify(meta)) } catch { /* quota */ }
+    }
+    if (Array.isArray(backup?.savedAlbums)) {
+      setSavedAlbums(new Set(backup.savedAlbums.map(a => a.id)))
+      backup.savedAlbums.forEach(a => a?.id && clearTombstone('albums', a.id))
+    }
+    if (Array.isArray(backup?.followedArtists)) {
+      setFollowedArtists(new Set(backup.followedArtists.map(a => a.id)))
+      backup.followedArtists.forEach(a => a?.id && clearTombstone('artists', a.id))
+    }
     if (backup?.playlists && typeof backup.playlists === 'object') {
       usePlaylistStore.setState({ playlists: backup.playlists })
+      Object.keys(backup.playlists).forEach(id => clearTombstone('playlists', id))
     }
   }
 
   // Function to show toast notifications — each new toast resets the 5s
   // hide timer so rapid messages don't vanish early
   const toastTimerRef = useRef(null)
-  const showToastMessage = (message, type = 'error') => {
+  const [toastAction, setToastAction] = useState(null)
+  const showToastMessage = (message, type = 'error', action = null) => {
     setToastMessage(message)
     setToastType(type)
+    setToastAction(action)
     setShowToast(true)
     clearTimeout(toastTimerRef.current)
     toastTimerRef.current = setTimeout(() => setShowToast(false), 5000)
@@ -1881,6 +1902,7 @@ function AppContent() {
             onGoToAlbum={handleGoToAlbum}
             onSongRadio={handleSongRadio}
             showToast={showToast}
+            onOpenFullScreen={() => setShowFullScreenPlayer(true)}
           />
           </ErrorBoundary>
         </div>
@@ -2070,6 +2092,14 @@ function AppContent() {
                 </svg>
               )}
               <span className="text-sm font-medium whitespace-pre-wrap">{toastMessage}</span>
+              {toastAction && (
+                <button
+                  onClick={() => { toastAction.onClick?.(); setShowToast(false) }}
+                  className="ml-1 px-2 py-1 text-xs font-bold uppercase tracking-wide bg-white/20 hover:bg-white/30 rounded transition-colors shrink-0"
+                >
+                  {toastAction.label}
+                </button>
+              )}
             </div>
           </div>
         </div>

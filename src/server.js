@@ -350,13 +350,20 @@ app.put('/api/me/library', requireUser, (req, res) => {
     Object.entries(mergedPls).filter(([id, p]) => (plTombs.get(id) || 0) <= (p.createdAt || 0))
   );
 
-  // playCounts — durable per-song totals; max-merge undercounts split-device
-  // sessions but never regresses, which is the right trade for stats.
+  // playCounts — durable per-song totals stored as { ...slimSong, count, ts };
+  // max-merge undercounts split-device sessions but never regresses, which
+  // is the right trade for stats.
   if (req.body?.playCounts && typeof req.body.playCounts === 'object') {
     const mergedCounts = { ...(existingDoc.playCounts || {}) };
     for (const [id, c] of Object.entries(req.body.playCounts).slice(0, 20000)) {
-      const n = Math.min(Number(c) || 0, 1000000);
-      if (n > 0) mergedCounts[id] = Math.max(mergedCounts[id] || 0, n);
+      const n = Math.min(Number(c?.count ?? c) || 0, 1000000);
+      if (n <= 0) continue;
+      const prev = mergedCounts[id];
+      if (n > (Number(prev?.count ?? prev) || 0)) {
+        mergedCounts[id] = c && typeof c === 'object'
+          ? { ...slimLibrarySong(c), count: n, ts: Number(c?.ts) || 0 }
+          : { id, count: n, ts: 0 };
+      }
     }
     data.playCounts = mergedCounts;
   }

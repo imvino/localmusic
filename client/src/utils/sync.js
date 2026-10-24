@@ -44,12 +44,16 @@ export function mergePlaylists(local, server) {
     const s = server[id]
     if (!l) { merged[id] = s; continue }
     if (!s) { merged[id] = l; continue }
-    const seen = new Set(l.songs.map(x => x.id))
+    // Scalars (name, pinned) go to the most recently edited copy; song
+    // lists union so adds from either device survive.
+    const winner = (s.updatedAt || s.createdAt || 0) >= (l.updatedAt || l.createdAt || 0) ? s : l
+    const loser = winner === s ? l : s
+    const seen = new Set((winner.songs || []).map(x => x.id))
     const songs = [
-      ...l.songs,
-      ...(s.songs || []).filter(x => !seen.has(x.id))
+      ...(winner.songs || []),
+      ...(loser.songs || []).filter(x => !seen.has(x.id))
     ]
-    merged[id] = { ...s, ...l, songs }
+    merged[id] = { ...loser, ...winner, songs }
   }
   return merged
 }

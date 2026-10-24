@@ -9,13 +9,23 @@ export const LAST_USER_KEY = 'clerkLastUserId'
 // TanStack catalog cache stay; they belong to the device, not the account.
 const PERSONAL_KEYS = [
   'likedSongs',
+  'likedMeta',
   'playlists',       // zustand persist key
   'playHistory',
+  'playCounts',
+  'historyClearedAt',
   'playerSession',
   'downloads',
   'savedAlbums',
   'followedArtists',
   'libraryLastSync',
+  'recentSearches',
+  // Tombstones — CRITICAL: a surviving tombstone lets the previous user's
+  // delete propagate into the NEXT account's library (cross-account loss).
+  'removedSongs',
+  'removedAlbums',
+  'removedArtists',
+  'removedPlaylists',
 ]
 
 export function clearPersonalData() {

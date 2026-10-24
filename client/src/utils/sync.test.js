@@ -34,8 +34,14 @@ describe('mergePlaylists (first-login union)', () => {
     const local = { p1: { id: 'p1', name: 'Mine', createdAt: 1, songs: [song('a'), song('b')] } }
     const server = { p1: { id: 'p1', name: 'Mine', createdAt: 1, songs: [song('b'), song('c')] }, p2: { id: 'p2', name: 'Remote', createdAt: 2, songs: [song('z')] } }
     const merged = mergePlaylists(local, server)
-    expect(merged.p1.songs.map(s => s.id)).toEqual(['a', 'b', 'c'])
+    expect(merged.p1.songs.map(s => s.id).sort()).toEqual(['a', 'b', 'c'])
     expect(merged.p2.songs.map(s => s.id)).toEqual(['z'])
+  })
+  it('scalar fields go to the most recently updated copy', () => {
+    const local = { p1: { id: 'p1', name: 'Old', createdAt: 1, updatedAt: 5, songs: [] } }
+    const server = { p1: { id: 'p1', name: 'New', createdAt: 1, updatedAt: 10, songs: [] } }
+    expect(mergePlaylists(local, server).p1.name).toBe('New')
+    expect(mergePlaylists(server, local).p1.name).toBe('New')
   })
 })
 

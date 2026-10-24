@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useQueries } from '@tanstack/react-query'
-import { Heart, Play, Shuffle, Music, ArrowDownWideNarrow } from 'lucide-react'
+import { Heart, Play, Shuffle, Music, ArrowDownWideNarrow, Search, X } from 'lucide-react'
 import { getImageSrc, formatDuration } from '../utils'
 import TrackMenu from '../components/TrackMenu'
 import BatchDownloadButton from '../components/BatchDownloadButton'
@@ -51,14 +51,21 @@ export default function LikedSongsView({ likedSongs, onLikeToggle, onSongClick, 
   // Spotify-style sort — custom (liked order) / title / artist / oldest
   const [sort, setSort] = useState('recent')
   const [sortOpen, setSortOpen] = useState(false)
+  const [filter, setFilter] = useState('')
+  const [filterOpen, setFilterOpen] = useState(false)
   const sortedSongs = useMemo(() => {
-    if (sort === 'recent') return songs
-    const copy = [...songs]
+    const q = filter.trim().toLowerCase()
+    const base = q ? songs.filter(s =>
+      (s.name || s.title || '').toLowerCase().includes(q) ||
+      (s.artist || s.artists?.primary?.[0]?.name || s.primaryArtists || '').toLowerCase().includes(q)
+    ) : songs
+    if (sort === 'recent') return base
+    const copy = [...base]
     if (sort === 'title') copy.sort((a, b) => (a.name || '').localeCompare(b.name || ''))
     if (sort === 'artist') copy.sort((a, b) => (a.artists?.primary?.[0]?.name || a.artist || '').localeCompare(b.artists?.primary?.[0]?.name || b.artist || ''))
     if (sort === 'oldest') copy.reverse()
     return copy
-  }, [songs, sort])
+  }, [songs, sort, filter])
   const SORT_OPTIONS = [
     ['recent', 'Recently added'],
     ['oldest', 'Oldest'],
@@ -107,30 +114,52 @@ export default function LikedSongsView({ likedSongs, onLikeToggle, onSongClick, 
         </div>
       ) : (
         <div>
-          {/* Sort control */}
-          <div className="relative inline-block mb-3">
-            <button
-              onClick={() => setSortOpen(o => !o)}
-              className="flex items-center gap-1.5 text-xs text-zinc-400 hover:text-white bg-zinc-800/70 hover:bg-zinc-700 px-3 py-1.5 rounded-full transition-colors"
-            >
-              <ArrowDownWideNarrow size={13} />
-              {SORT_OPTIONS.find(([k]) => k === sort)?.[1]}
-            </button>
-            {sortOpen && (
-              <>
-                <div className="fixed inset-0 z-40" onClick={() => setSortOpen(false)} />
-                <div className="absolute left-0 top-full mt-1 z-50 bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden shadow-xl w-44">
-                  {SORT_OPTIONS.map(([key, label]) => (
-                    <button
-                      key={key}
-                      onClick={() => { setSort(key); setSortOpen(false) }}
-                      className={`w-full text-left px-3 py-2 text-xs transition-colors ${sort === key ? 'text-[#fc3c44] font-semibold' : 'text-zinc-300 hover:bg-zinc-800'}`}
-                    >
-                      {label}
-                    </button>
-                  ))}
-                </div>
-              </>
+          {/* Sort + find controls */}
+          <div className="flex items-center justify-between mb-3">
+            <div className="relative inline-block">
+              <button
+                onClick={() => setSortOpen(o => !o)}
+                className="flex items-center gap-1.5 text-xs text-zinc-400 hover:text-white bg-zinc-800/70 hover:bg-zinc-700 px-3 py-1.5 rounded-full transition-colors"
+              >
+                <ArrowDownWideNarrow size={13} />
+                {SORT_OPTIONS.find(([k]) => k === sort)?.[1]}
+              </button>
+              {sortOpen && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setSortOpen(false)} />
+                  <div className="absolute left-0 top-full mt-1 z-50 bg-zinc-900 border border-zinc-800 rounded-lg overflow-hidden shadow-xl w-44">
+                    {SORT_OPTIONS.map(([key, label]) => (
+                      <button
+                        key={key}
+                        onClick={() => { setSort(key); setSortOpen(false) }}
+                        className={`w-full text-left px-3 py-2 text-xs transition-colors ${sort === key ? 'text-[#fc3c44] font-semibold' : 'text-zinc-300 hover:bg-zinc-800'}`}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+            {filterOpen ? (
+              <div className="flex items-center gap-2 bg-zinc-800/80 rounded-lg px-3 py-1.5 w-64">
+                <Search size={14} className="text-zinc-500 shrink-0" />
+                <input
+                  autoFocus
+                  value={filter}
+                  onChange={e => setFilter(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Escape') { setFilter(''); setFilterOpen(false) } }}
+                  placeholder="Find in liked songs"
+                  className="bg-transparent text-sm text-white placeholder-zinc-500 outline-none flex-1 min-w-0"
+                />
+                <button onClick={() => { setFilter(''); setFilterOpen(false) }} className="text-zinc-500 hover:text-white shrink-0" aria-label="Close filter">
+                  <X size={14} />
+                </button>
+              </div>
+            ) : (
+              <button onClick={() => setFilterOpen(true)} className="p-2 text-zinc-500 hover:text-white transition-colors" title="Find in liked songs" aria-label="Find in liked songs">
+                <Search size={16} />
+              </button>
             )}
           </div>
 
@@ -180,6 +209,9 @@ export default function LikedSongsView({ likedSongs, onLikeToggle, onSongClick, 
               </div>
             )
           })}
+          {sortedSongs.length === 0 && songs.length > 0 && (
+            <p className="text-sm text-zinc-500 text-center py-10">No matches for “{filter.trim()}”</p>
+          )}
           {songs.length === 0 && !isLoading && (
             <div className="flex flex-col items-center justify-center py-20 text-zinc-500 gap-3">
               <Music size={36} />

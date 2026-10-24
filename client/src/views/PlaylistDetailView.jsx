@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Play, Shuffle, Music, ArrowUp, ArrowDown, Trash2, Pencil, Share2 } from 'lucide-react'
+import { ArrowLeft, Play, Shuffle, Music, ArrowUp, ArrowDown, Trash2, Pencil, Share2, Search, X } from 'lucide-react'
 import { useState } from 'react'
 import { usePlaylistStore } from '../stores/playlistStore'
 import { getImageSrc, formatDuration, encodePlaylistShare, haptic } from '../utils'
@@ -15,6 +15,8 @@ export default function PlaylistDetailView({ onSongClick, onShufflePlay, onPlayN
   const renamePlaylist = usePlaylistStore(s => s.renamePlaylist)
   const [editing, setEditing] = useState(false)
   const [name, setName] = useState('')
+  const [filter, setFilter] = useState('')
+  const [filterOpen, setFilterOpen] = useState(false)
 
   if (!playlist) {
     return (
@@ -113,7 +115,38 @@ export default function PlaylistDetailView({ onSongClick, onShufflePlay, onPlayN
         </div>
       ) : (
         <div>
-          {playlist.songs.map((song, i) => {
+          <div className="flex items-center justify-end mb-2">
+            {filterOpen ? (
+              <div className="flex items-center gap-2 bg-zinc-800/80 rounded-lg px-3 py-1.5 w-64">
+                <Search size={14} className="text-zinc-500 shrink-0" />
+                <input
+                  autoFocus
+                  value={filter}
+                  onChange={e => setFilter(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Escape') { setFilter(''); setFilterOpen(false) } }}
+                  placeholder="Find in playlist"
+                  className="bg-transparent text-sm text-white placeholder-zinc-500 outline-none flex-1 min-w-0"
+                />
+                <button onClick={() => { setFilter(''); setFilterOpen(false) }} className="text-zinc-500 hover:text-white shrink-0" aria-label="Close filter">
+                  <X size={14} />
+                </button>
+              </div>
+            ) : (
+              <button onClick={() => setFilterOpen(true)} className="p-2 text-zinc-500 hover:text-white transition-colors" title="Find in playlist" aria-label="Find in playlist">
+                <Search size={16} />
+              </button>
+            )}
+          </div>
+          {(() => {
+            const q = filter.trim().toLowerCase()
+            const shown = q
+              ? playlist.songs.filter(s => (s.name || s.title || '').toLowerCase().includes(q) || (s.artist || '').toLowerCase().includes(q))
+              : playlist.songs
+            if (q && shown.length === 0) {
+              return <p className="text-sm text-zinc-500 text-center py-10">No matches for “{filter.trim()}”</p>
+            }
+            return shown.map((song) => {
+            const i = playlist.songs.indexOf(song)
             const isCurrent = currentSong?.id === song.id
             return (
               <div
@@ -139,12 +172,16 @@ export default function PlaylistDetailView({ onSongClick, onShufflePlay, onPlayN
                   {formatDuration(song.duration)}
                 </span>
                 <div className="flex items-center gap-0.5 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity shrink-0">
-                  <button onClick={e => { e.stopPropagation(); moveSong(playlist.id, i, i - 1) }} disabled={i === 0} className="p-1.5 text-zinc-500 hover:text-white disabled:opacity-30" title="Move up">
-                    <ArrowUp size={14} />
-                  </button>
-                  <button onClick={e => { e.stopPropagation(); moveSong(playlist.id, i, i + 1) }} disabled={i === playlist.songs.length - 1} className="p-1.5 text-zinc-500 hover:text-white disabled:opacity-30" title="Move down">
-                    <ArrowDown size={14} />
-                  </button>
+                  {!q && (
+                    <>
+                      <button onClick={e => { e.stopPropagation(); moveSong(playlist.id, i, i - 1) }} disabled={i === 0} className="p-1.5 text-zinc-500 hover:text-white disabled:opacity-30" title="Move up">
+                        <ArrowUp size={14} />
+                      </button>
+                      <button onClick={e => { e.stopPropagation(); moveSong(playlist.id, i, i + 1) }} disabled={i === playlist.songs.length - 1} className="p-1.5 text-zinc-500 hover:text-white disabled:opacity-30" title="Move down">
+                        <ArrowDown size={14} />
+                      </button>
+                    </>
+                  )}
                   <button onClick={e => { e.stopPropagation(); removeSong(playlist.id, song.id) }} className="p-1.5 text-zinc-500 hover:text-red-400" title="Remove">
                     <Trash2 size={14} />
                   </button>
@@ -162,7 +199,8 @@ export default function PlaylistDetailView({ onSongClick, onShufflePlay, onPlayN
                 </div>
               </div>
             )
-          })}
+            })
+          })()}
         </div>
       )}
     </div>
