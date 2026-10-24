@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { Play, Pause, SkipBack, SkipForward, Shuffle, Repeat, Repeat1, Heart, Music, Loader2, ChevronDown, ListVideo, Mic2, Volume2, VolumeX } from 'lucide-react'
+import { Play, Pause, SkipBack, SkipForward, Shuffle, Repeat, Repeat1, Heart, Music, Loader2, ChevronDown, ListVideo, Mic2, Volume2, VolumeX, Timer } from 'lucide-react'
 import { formatTime, decodeHtmlEntities, getSongArtwork } from '../utils'
 import { getDominantColor } from '../utils/color'
 import { Range, getTrackBackground } from 'react-range'
@@ -33,10 +33,13 @@ export default function FullScreenPlayer({
   onAddToQueue,
   onGoToAlbum,
   onSongRadio,
-  showToast
+  showToast,
+  sleepTimer,
+  onSleepTimer
 }) {
   const playerRef = useRef(null)
   const [lyricsOpen, setLyricsOpen] = useState(false)
+  const [sleepSheetOpen, setSleepSheetOpen] = useState(false)
   const [dragY, setDragY] = useState(0)
   const [tint, setTint] = useState(null)
   const touch = useRef(null)
@@ -244,6 +247,13 @@ export default function FullScreenPlayer({
             >
               <Mic2 size={20} />
             </button>
+            <button
+              onClick={() => setSleepSheetOpen(true)}
+              className={`transition-colors ${sleepTimer ? 'text-[#fc3c44]' : 'text-zinc-400 hover:text-white'}`}
+              title={sleepTimer ? 'Sleep timer on' : 'Sleep timer'}
+            >
+              <Timer size={20} />
+            </button>
           </div>
 
           {/* Play Controls Row */}
@@ -302,6 +312,35 @@ export default function FullScreenPlayer({
         </div>
       </div>
       {lyricsOpen && <LyricsModal song={currentSong} currentTime={currentTime} onSeek={onSeek} onClose={() => setLyricsOpen(false)} />}
+
+      {/* Sleep timer sheet — Spotify puts this inside Now Playing */}
+      {sleepSheetOpen && (
+        <div
+          className="absolute inset-0 z-10 flex items-end bg-black/60"
+          onClick={() => setSleepSheetOpen(false)}
+          onTouchStart={e => e.stopPropagation()}
+          onTouchEnd={e => e.stopPropagation()}
+        >
+          <div className="w-full bg-zinc-900 rounded-t-2xl p-4 pb-[max(1rem,env(safe-area-inset-bottom))]" onClick={e => e.stopPropagation()}>
+            <div className="w-10 h-1 bg-zinc-700 rounded-full mx-auto mb-4" />
+            <h3 className="text-white font-semibold text-sm mb-3 px-2">Sleep timer</h3>
+            {[['off', 'Off'], ['15', '15 minutes'], ['30', '30 minutes'], ['60', '60 minutes'], ['eot', 'End of track']].map(([v, label]) => {
+              const active = v === 'off' ? !sleepTimer
+                : v === 'eot' ? sleepTimer?.type === 'eot'
+                : sleepTimer?.type === 'timer' && Math.round((sleepTimer.endsAt - Date.now()) / 60000) <= Number(v)
+              return (
+                <button
+                  key={v}
+                  onClick={() => { onSleepTimer?.(v); setSleepSheetOpen(false) }}
+                  className={`w-full text-left px-4 py-3 rounded-xl text-sm transition-colors ${active ? 'text-[#fc3c44] font-semibold' : 'text-zinc-300 hover:bg-zinc-800'}`}
+                >
+                  {label}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      )}
     </div>
   )
 }

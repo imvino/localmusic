@@ -1902,6 +1902,8 @@ function AppContent() {
           onGoToAlbum={handleGoToAlbum}
           onSongRadio={handleSongRadio}
           showToast={showToastMessage}
+          sleepTimer={sleepTimer}
+          onSleepTimer={handleSleepTimer}
         />
       )}
       
