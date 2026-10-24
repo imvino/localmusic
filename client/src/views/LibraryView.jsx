@@ -7,16 +7,26 @@ import { getImageSrc, decodeHtmlEntities } from '../utils'
 
 const API_BASE = import.meta.env.VITE_API_URL
 
-// Your Library — the local collection browser. Albums/artists come straight
-// from the server's music-library index (dev/LAN: the owner's disk is the
-// library). The online half (liked, downloads, playlists, stats) stays on top.
-export default function LibraryView({ likedSongs, onSongClick }) {
+// Your Library — the member's own world: synced collections (saved albums,
+// followed artists) + liked/downloads/stats + playlists. The local
+// music-library index is a bonus layer that only exists on the owner's LAN —
+// when it's unreachable (production) the member content stands alone.
+export default function LibraryView({ likedSongs, savedAlbums, followedArtists, onSongClick }) {
   const navigate = useNavigate()
   const playlists = usePlaylistStore(s => s.playlists)
   const [albums, setAlbums] = useState(null)
   const [error, setError] = useState(false)
   const [tab, setTab] = useState('albums') // albums | artists
   const [query, setQuery] = useState('')
+
+  // Saved collections (object lists live in localStorage; the Set props bump
+  // on every toggle/sync so this view re-renders fresh)
+  const savedAlbumList = useMemo(() => {
+    try { return (JSON.parse(localStorage.getItem('savedAlbums') || '[]')) } catch { return [] }
+  }, [savedAlbums])
+  const followedArtistList = useMemo(() => {
+    try { return (JSON.parse(localStorage.getItem('followedArtists') || '[]')) } catch { return [] }
+  }, [followedArtists])
 
   useEffect(() => {
     let live = true
@@ -83,14 +93,77 @@ export default function LibraryView({ likedSongs, onSongClick }) {
         <Row icon={BarChart3} label="Your Stats" sub="Listening activity" to="/stats" tint="bg-gradient-to-br from-indigo-500 to-indigo-800" />
       </div>
 
-      {/* Collection header — the local music index */}
+      {/* Saved albums — synced member collection */}
+      {savedAlbumList.length > 0 && (
+        <>
+          <div className="flex items-center justify-between mb-2 px-1">
+            <h2 className="text-lg font-bold text-white flex items-center gap-2">
+              <Heart size={18} className="text-[#fc3c44]" /> Saved Albums
+            </h2>
+          </div>
+          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-3 mb-6">
+            {savedAlbumList.slice(0, 21).map(album => (
+              <button key={album.id} onClick={() => navigate(`/discover/album/${album.id}`)} className="group text-left">
+                <ArtImage
+                  image={album.image}
+                  alt={album.name}
+                  className="aspect-square w-full rounded-lg"
+                  imgClassName="group-hover:scale-105 transition-transform"
+                  iconSize={28}
+                  fallback={Disc3}
+                />
+                <div className="mt-2">
+                  <div className="text-xs font-medium text-white truncate group-hover:text-[#fc3c44] transition-colors">
+                    {decodeHtmlEntities(album.name)}
+                  </div>
+                  <div className="text-[11px] text-zinc-500 truncate">{album.artist || 'Album'}</div>
+                </div>
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+
+      {/* Following — synced member collection */}
+      {followedArtistList.length > 0 && (
+        <>
+          <div className="flex items-center justify-between mb-2 px-1">
+            <h2 className="text-lg font-bold text-white flex items-center gap-2">
+              <Mic2 size={18} className="text-[#fc3c44]" /> Following
+            </h2>
+          </div>
+          <div className="flex flex-wrap gap-4 mb-6">
+            {followedArtistList.map(artist => (
+              <button key={artist.id} onClick={() => navigate(`/discover/artist/${artist.id}`)} className="flex flex-col items-center gap-2 w-20 group">
+                <ArtImage
+                  image={artist.image}
+                  alt={artist.name}
+                  className="w-20 h-20 rounded-full"
+                  imgClassName="group-hover:scale-105 transition-transform"
+                  iconSize={26}
+                  fallback={Mic2}
+                />
+                <div className="text-xs font-medium text-white truncate w-full text-center group-hover:text-[#fc3c44] transition-colors">{artist.name}</div>
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+
+      {/* Collection — the owner's local music index; only rendered when the
+          LAN endpoint is reachable (dev/home server), never an error state */}
+      {(albums === null && !error) && (
+        <div className="flex items-center justify-center py-10">
+          <Loader2 className="animate-spin text-zinc-500" size={28} />
+        </div>
+      )}
+      {albums && albums.length > 0 && (
+      <>
       <div className="flex items-center justify-between mb-2 px-1">
         <h2 className="text-lg font-bold text-white flex items-center gap-2">
           <Disc3 size={18} className="text-[#fc3c44]" /> Collection
         </h2>
-        {albums && (
-          <span className="text-xs text-zinc-500">{albums.length} albums · {albums.reduce((n, a) => n + (a.songs?.length || 0), 0)} songs</span>
-        )}
+        <span className="text-xs text-zinc-500">{albums.length} albums · {albums.reduce((n, a) => n + (a.songs?.length || 0), 0)} songs</span>
       </div>
 
       {/* Tabs + search */}
@@ -124,16 +197,7 @@ export default function LibraryView({ likedSongs, onSongClick }) {
         </div>
       </div>
 
-      {albums === null && !error ? (
-        <div className="flex items-center justify-center py-16">
-          <Loader2 className="animate-spin text-zinc-500" size={28} />
-        </div>
-      ) : error ? (
-        <div className="flex flex-col items-center justify-center py-16 text-zinc-500 gap-3">
-          <Disc3 size={32} />
-          <p className="text-sm text-center">Your music collection isn't reachable right now.<br />Connect to your home server to browse albums.</p>
-        </div>
-      ) : tab === 'albums' ? (
+      {tab === 'albums' ? (
         filteredAlbums.length ? (
           <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-3">
             {filteredAlbums.map(album => {
@@ -198,6 +262,8 @@ export default function LibraryView({ likedSongs, onSongClick }) {
           <Mic2 size={32} />
           <p className="text-sm">No artists match "{query}"</p>
         </div>
+      )}
+      </>
       )}
 
       {/* Playlists */}

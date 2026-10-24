@@ -209,15 +209,28 @@ function saveUserData(userId, data) {
   }
 }
 
-// Pull the user's library (liked songs + playlists)
+// Pull the user's library (liked songs + playlists + history + collections)
 app.get('/api/me/library', requireUser, (req, res) => {
   const data = loadUserData(req.userId);
   res.json({ success: true, data: data || { v: 1, ts: 0, likedSongs: [], playlists: {} } });
 });
 
-// Push the user's library — size-capped to keep the JSON store sane
+const slimLibrarySong = (s) => ({
+  id: String(s?.id || '').slice(0, 200),
+  name: String(s?.name || '').slice(0, 500),
+  artist: String(s?.artist || '').slice(0, 500),
+  album: String(s?.album || '').slice(0, 500),
+  albumId: String(s?.albumId || ''),
+  duration: Number(s?.duration) || 0,
+  image: String(s?.image || '').slice(0, 1000),
+  isLocal: !!s?.isLocal
+});
+
+// Push the user's library — size-capped to keep the JSON store sane.
+// history/savedAlbums/followedArtists are optional additive fields so older
+// clients keep working.
 app.put('/api/me/library', requireUser, (req, res) => {
-  const { v, ts, likedSongs, playlists } = req.body || {};
+  const { v, ts, likedSongs, playlists, history, savedAlbums, followedArtists } = req.body || {};
   if (!Array.isArray(likedSongs) || typeof playlists !== 'object' || playlists === null) {
     return res.status(400).json({ success: false, error: 'Bad payload' });
   }
@@ -228,16 +241,7 @@ app.put('/api/me/library', requireUser, (req, res) => {
       id: p.id || id,
       name: typeof p.name === 'string' ? p.name.slice(0, 200) : 'Untitled Playlist',
       createdAt: Number(p.createdAt) || Date.now(),
-      songs: Array.isArray(p.songs) ? p.songs.slice(0, 2000).map(s => ({
-        id: String(s?.id || '').slice(0, 200),
-        name: String(s?.name || '').slice(0, 500),
-        artist: String(s?.artist || '').slice(0, 500),
-        album: String(s?.album || '').slice(0, 500),
-        albumId: String(s?.albumId || ''),
-        duration: Number(s?.duration) || 0,
-        image: String(s?.image || '').slice(0, 1000),
-        isLocal: !!s?.isLocal
-      })).filter(s => s.id) : []
+      songs: Array.isArray(p.songs) ? p.songs.slice(0, 2000).map(slimLibrarySong).filter(s => s.id) : []
     };
   }
   const data = {
@@ -246,6 +250,22 @@ app.put('/api/me/library', requireUser, (req, res) => {
     likedSongs: likedSongs.map(String).filter(Boolean).slice(0, 5000),
     playlists: safePlaylists
   };
+  if (Array.isArray(history)) {
+    data.history = history.slice(0, 200).map(s => ({ ...slimLibrarySong(s), ts: Number(s?.ts) || 0 })).filter(s => s.id);
+  }
+  const slimCollection = (item, tsKey) => item && typeof item === 'object' ? {
+    id: String(item.id || '').slice(0, 200),
+    name: String(item.name || '').slice(0, 300),
+    artist: String(item.artist || '').slice(0, 300),
+    image: String(item.image || '').slice(0, 1000),
+    [tsKey]: Number(item[tsKey]) || 0
+  } : null;
+  if (Array.isArray(savedAlbums)) {
+    data.savedAlbums = savedAlbums.slice(0, 2000).map(a => slimCollection(a, 'savedAt')).filter(Boolean);
+  }
+  if (Array.isArray(followedArtists)) {
+    data.followedArtists = followedArtists.slice(0, 2000).map(a => slimCollection(a, 'followedAt')).filter(Boolean);
+  }
   saveUserData(req.userId, data);
   res.json({ success: true, ts: data.ts });
 });
@@ -1549,6 +1569,34 @@ app.get('/api/lyrics/:id', async (req, res) => {
 
 const translateCache = new Map(); // key -> { ts, text }
 const TRANSLATE_TTL = 7 * 24 * 60 * 60 * 1000; // 7 days
+const TRANSLATE_CACHE_MAX = 5000;
+
+// Per-IP token bucket — /api/translate calls out to free services; without a
+// cap it is an open abuse proxy (spam → upstream rate-limits → feature dies).
+const rateBuckets = new Map(); // ip -> { tokens, ts }
+function rateLimited(ip, limit = 60, windowMs = 60 * 1000) {
+  const now = Date.now();
+  const b = rateBuckets.get(ip) || { tokens: limit, ts: now };
+  if (now - b.ts > windowMs) { b.tokens = limit; b.ts = now; }
+  if (b.tokens <= 0) { rateBuckets.set(ip, b); return true; }
+  b.tokens--;
+  rateBuckets.set(ip, b);
+  return false;
+}
+setInterval(() => {
+  const now = Date.now();
+  for (const [k, b] of rateBuckets) if (now - b.ts > 10 * 60 * 1000) rateBuckets.delete(k);
+}, 60 * 60 * 1000).unref();
+
+function cacheSet(key, value) {
+  if (translateCache.size >= TRANSLATE_CACHE_MAX) {
+    // Drop the oldest ~10% — Map preserves insertion order
+    const drop = Math.ceil(TRANSLATE_CACHE_MAX * 0.1);
+    let n = 0;
+    for (const k of translateCache.keys()) { translateCache.delete(k); if (++n >= drop) break; }
+  }
+  translateCache.set(key, value);
+}
 
 async function translateText(text, to = 'en') {
   if (!text || !text.trim()) return '';
@@ -1564,7 +1612,7 @@ async function translateText(text, to = 'en') {
     if (Array.isArray(segments)) {
       const out = segments.map(s => s?.[0] || '').join('');
       if (out.trim()) {
-        translateCache.set(key, { ts: Date.now(), text: out });
+        cacheSet(key, { ts: Date.now(), text: out });
         return out;
       }
     }
@@ -1578,7 +1626,7 @@ async function translateText(text, to = 'en') {
     });
     const out = res.data?.responseData?.translatedText;
     if (out && out.trim()) {
-      translateCache.set(key, { ts: Date.now(), text: out });
+      cacheSet(key, { ts: Date.now(), text: out });
       return out;
     }
   } catch (e) { /* fall through */ }
@@ -1590,15 +1638,18 @@ async function translateText(text, to = 'en') {
 // plain lyrics. Always 200 with data:null on failure (lyrics are optional).
 app.post('/api/translate', async (req, res) => {
   try {
+    if (rateLimited(req.ip)) {
+      return res.status(429).json({ success: false, error: 'Rate limited — try again shortly' });
+    }
     const { text, lines } = req.body || {};
     const to = typeof req.query.lang === 'string' ? req.query.lang.slice(0, 8) : 'en';
     if (Array.isArray(lines)) {
-      const chunk = lines.slice(0, 200);
+      const chunk = lines.slice(0, 200).map(l => String(l || '').slice(0, 1000));
       const out = [];
-      for (const line of chunk) out.push(await translateText(String(line || ''), to));
+      for (const line of chunk) out.push(await translateText(line, to));
       return res.json({ success: true, data: { lines: out } });
     }
-    const out = await translateText(String(text || ''), to);
+    const out = await translateText(String(text || '').slice(0, 4500), to);
     return res.json({ success: true, data: out ? { text: out } : null });
   } catch (e) {
     console.error('Translate error:', e.message);

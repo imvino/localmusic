@@ -7,6 +7,7 @@ import TrackMenu from '../components/TrackMenu'
 import { decodeHtmlEntities, getBestImageUrl, getImageSrc } from '../utils'
 import { useJioFeaturedPlaylists, useJioNewReleases, useCharts, useTrending, useNewReleaseAlbums, useSongSuggestions } from '../hooks/useApi'
 import { useArtistConfig } from '../artist-config'
+import { useAppAuth } from '../components/AuthGate'
 
 const API_BASE = import.meta.env.VITE_API_URL
 const isProduction = import.meta.env.MODE === 'production'
@@ -27,6 +28,9 @@ export default function DiscoverView({ onSongClick, showToast, likedSongs, onLik
   const navigate = useNavigate()
   const [downloadProgress, setDownloadProgress] = useState({})
   const appUrl = import.meta.env.VITE_APP_URL
+  // Personalization is a member feature — guests get generic editorial rails
+  // only (charts/new releases/artists), like Spotify's logged-out browse.
+  const { isSignedIn } = useAppAuth()
 
   // Recently played from local play history (unique songs, newest first)
   const [recentlyPlayed] = useState(() => {
@@ -68,7 +72,7 @@ export default function DiscoverView({ onSongClick, showToast, likedSongs, onLik
   const { data: newAlbums } = useNewReleaseAlbums()
 
   // "Because you listened to X" — suggestions seeded by the most recent play
-  const seedSong = recentlyPlayed[0]
+  const seedSong = isSignedIn ? recentlyPlayed[0] : null
   const { data: becauseYouListened } = useSongSuggestions(seedSong?.id)
 
   const loading = configLoading || playlistsLoading || songsLoading
@@ -125,8 +129,22 @@ export default function DiscoverView({ onSongClick, showToast, likedSongs, onLik
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-full">
-        <Loader2 className="animate-spin text-zinc-500" size={32} />
+      <div className="p-4 md:p-8 pb-32">
+        <div className="h-8 w-48 bg-zinc-800 rounded-md animate-pulse mb-8" />
+        {[0, 1, 2].map(rail => (
+          <div key={rail} className="mb-8">
+            <div className="h-5 w-36 bg-zinc-800 rounded animate-pulse mb-4" />
+            <div className="flex gap-4 overflow-hidden">
+              {[0, 1, 2, 3, 4, 5, 6].map(i => (
+                <div key={i} className="w-32 md:w-40 flex-shrink-0 bg-zinc-900/50 rounded-lg p-3">
+                  <div className="aspect-square rounded-md bg-zinc-800 animate-pulse mb-3" />
+                  <div className="h-3 w-4/5 bg-zinc-800 rounded animate-pulse mb-2" />
+                  <div className="h-3 w-3/5 bg-zinc-800 rounded animate-pulse" />
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
       </div>
     )
   }
@@ -152,8 +170,8 @@ export default function DiscoverView({ onSongClick, showToast, likedSongs, onLik
       />
       <h1 className="text-2xl font-bold text-white mb-8">Discover Music</h1>
 
-      {/* Recently Played */}
-      {recentlyPlayed.length > 0 && (
+      {/* Recently Played — member-only personalization */}
+      {isSignedIn && recentlyPlayed.length > 0 && (
         <HorizontalScroll
           title="Recently Played"
           icon={History}
@@ -166,7 +184,7 @@ export default function DiscoverView({ onSongClick, showToast, likedSongs, onLik
       )}
 
       {/* Because you listened — personalized suggestions from play history */}
-      {becauseYouListened?.length > 0 && seedSong && (
+      {isSignedIn && becauseYouListened?.length > 0 && seedSong && (
         <HorizontalScroll
           title={`Because you listened to ${decodeHtmlEntities(seedSong.name || '')}`}
           icon={History}
@@ -179,7 +197,7 @@ export default function DiscoverView({ onSongClick, showToast, likedSongs, onLik
       )}
 
       {/* On Repeat — your most-played songs */}
-      {mixes.onRepeat.length > 0 && (
+      {isSignedIn && mixes.onRepeat.length > 0 && (
         <HorizontalScroll
           title="On Repeat"
           icon={TrendingUp}
@@ -192,7 +210,7 @@ export default function DiscoverView({ onSongClick, showToast, likedSongs, onLik
       )}
 
       {/* Repeat Rewind — old favorites resurfaced */}
-      {mixes.rewind.length > 0 && (
+      {isSignedIn && mixes.rewind.length > 0 && (
         <HorizontalScroll
           title="Repeat Rewind"
           icon={History}
@@ -383,7 +401,10 @@ function SongCard({ song, onSongClick, downloadProgress, setDownloadProgress, li
   }
 
   return (
-    <div className="w-32 md:w-40 flex-shrink-0 bg-zinc-900/50 rounded-lg p-3 hover:bg-zinc-800/50 transition-colors">
+    <div
+      onClick={handlePlay}
+      className="w-32 md:w-40 flex-shrink-0 bg-zinc-900/50 rounded-lg p-3 hover:bg-zinc-800/50 transition-colors cursor-pointer"
+    >
       <div className="aspect-square rounded-md overflow-hidden mb-3 bg-zinc-800 relative group">
         {imageUrl && !failed ? (
           <img src={imageUrl} alt={song.name} className="w-full h-full object-cover" loading="lazy" referrerPolicy="no-referrer" onError={() => setFailed(true)} />
@@ -435,7 +456,9 @@ function SongCard({ song, onSongClick, downloadProgress, setDownloadProgress, li
       </div>
       <h3 className="text-xs font-medium text-white truncate">{decodeHtmlEntities(song.name)}</h3>
       <p className="text-xs text-zinc-400 truncate">{song.artist}</p>
-      <p className="text-xs text-zinc-500 mt-1">{formatPlayCount(song.playCount)} plays</p>
+      {Number(song.playCount) > 0 && (
+        <p className="text-xs text-zinc-500 mt-1">{formatPlayCount(song.playCount)} plays</p>
+      )}
     </div>
   )
 }

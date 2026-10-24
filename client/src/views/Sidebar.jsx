@@ -1,10 +1,11 @@
-import { Compass, RefreshCw, Keyboard, X, Trash2, ListMusic, Settings, Heart, Music, Radio, Timer, SlidersHorizontal, BarChart3, Waves, Download } from 'lucide-react'
+import { Compass, RefreshCw, Keyboard, X, Trash2, ListMusic, Settings, Heart, Music, Radio, Timer, SlidersHorizontal, BarChart3, Waves, Download, Lock } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 import { useState } from 'react'
 import { usePlaylistStore } from '../stores/playlistStore'
 import { EQ_PRESETS, isEqAvailable } from '../audio/eq'
 import UserMenu from '../components/UserMenu'
 import BackupControls from '../components/BackupControls'
+import { useAppAuth } from '../components/AuthGate'
 
 const API_BASE = import.meta.env.VITE_API_URL
 const isProduction = import.meta.env.MODE === 'production'
@@ -17,6 +18,7 @@ export default function Sidebar({ showToast, onClose, qualityPreference, onQuali
   const location = useLocation()
   const currentPath = location.pathname
   const playlists = usePlaylistStore(s => s.playlists)
+  const { isSignedIn, openSignIn } = useAppAuth()
   const [isScanning, setIsScanning] = useState(false)
   const [showShortcuts, setShowShortcuts] = useState(false)
   const [showQualitySettings, setShowQualitySettings] = useState(false)
@@ -255,14 +257,15 @@ export default function Sidebar({ showToast, onClose, qualityPreference, onQuali
           >
             <div className="flex items-center gap-3">
               <Waves size={17} />
-              Crossfade
+              Smooth transitions
             </div>
             <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${smoothTransitions ? 'bg-[#fc3c44] text-white' : 'bg-zinc-800 text-zinc-500'}`}>
               {smoothTransitions ? 'On' : 'Off'}
             </span>
           </button>
 
-          {/* Stats */}
+          {/* Stats — member-only surface */}
+          {isSignedIn && (
           <Link
             to="/stats"
             onClick={onClose}
@@ -274,9 +277,13 @@ export default function Sidebar({ showToast, onClose, qualityPreference, onQuali
             <BarChart3 size={17} />
             Your Stats
           </Link>
+          )}
         </div>
 
-        {/* Library - local collections, no sign-in needed */}
+        {/* Library — member-only; guests get a sign-in teaser instead of
+            leaking liked/playlist names (also the previous user's data after
+            sign-out on shared devices) */}
+        {isSignedIn ? (
         <div className="flex flex-col gap-0.5">
           <div className="text-[10px] font-semibold text-zinc-600 uppercase tracking-widest mb-2 px-2">Library</div>
 
@@ -335,6 +342,21 @@ export default function Sidebar({ showToast, onClose, qualityPreference, onQuali
               </Link>
             ))}
         </div>
+        ) : (
+        <div className="flex flex-col gap-0.5">
+          <div className="text-[10px] font-semibold text-zinc-600 uppercase tracking-widest mb-2 px-2">Library</div>
+          <button
+            onClick={openSignIn}
+            className="flex items-center gap-3 px-3 py-3 rounded-xl text-left w-full bg-zinc-800/50 hover:bg-zinc-800 transition-colors"
+          >
+            <Lock size={16} className="text-[#fc3c44] shrink-0" />
+            <span>
+              <span className="block text-sm font-medium text-zinc-200">Your Library</span>
+              <span className="block text-xs text-zinc-500">Sign in to unlock likes, playlists & downloads</span>
+            </span>
+          </button>
+        </div>
+        )}
 
         {/* Install prompt — only rendered when the browser offers A2HS */}
         {installPrompt && (

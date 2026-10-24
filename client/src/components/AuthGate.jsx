@@ -1,4 +1,4 @@
-import { createContext, useContext } from 'react'
+import { createContext, useContext, useEffect, useRef } from 'react'
 import { useAuth, useClerk } from '@clerk/clerk-react'
 import { Lock, LogIn } from 'lucide-react'
 
@@ -30,13 +30,25 @@ export function AuthProvider({ children }) {
 function ClerkAuthProvider({ children }) {
   const { isLoaded, isSignedIn } = useAuth()
   const { openSignIn } = useClerk()
+  // Queue the action a guest attempted so it completes once they sign in —
+  // tap Like → modal → sign in → the song gets liked without a second tap.
+  const pendingRef = useRef(null)
 
   // run fn when signed in; as a guest, open the sign-in modal instead
   const requireAuth = (fn, onDeny) => {
     if (isSignedIn) return fn?.()
+    pendingRef.current = fn || null
     openSignIn()
     onDeny?.()
   }
+
+  useEffect(() => {
+    if (isSignedIn && pendingRef.current) {
+      const fn = pendingRef.current
+      pendingRef.current = null
+      fn()
+    }
+  }, [isSignedIn])
 
   return (
     <AuthCtx.Provider value={{ isLoaded, isSignedIn, requireAuth, openSignIn }}>

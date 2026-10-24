@@ -21,6 +21,8 @@ export default function BackupControls({ onImportLibrary, showToast }) {
         likedSongs: read('likedSongs', '[]'),
         playlists: usePlaylistStore.getState().playlists,
         playHistory: read('playHistory', '[]'),
+        savedAlbums: read('savedAlbums', '[]'),
+        followedArtists: read('followedArtists', '[]'),
         prefs: {
           qualityPreference: read('qualityPreference', '"auto"'),
           autoplay: read('autoplay', '"on"'),
@@ -55,6 +57,8 @@ export default function BackupControls({ onImportLibrary, showToast }) {
       if (Array.isArray(backup.likedSongs)) localStorage.setItem('likedSongs', JSON.stringify(backup.likedSongs))
       if (backup.playlists && typeof backup.playlists === 'object') localStorage.setItem('playlists', JSON.stringify({ state: { playlists: backup.playlists }, version: 0 }))
       if (Array.isArray(backup.playHistory)) localStorage.setItem('playHistory', JSON.stringify(backup.playHistory))
+      if (Array.isArray(backup.savedAlbums)) localStorage.setItem('savedAlbums', JSON.stringify(backup.savedAlbums))
+      if (Array.isArray(backup.followedArtists)) localStorage.setItem('followedArtists', JSON.stringify(backup.followedArtists))
       for (const [k, v] of Object.entries(backup.prefs || {})) {
         if (typeof v === 'string') localStorage.setItem(k, v)
         else localStorage.setItem(k, JSON.stringify(v))

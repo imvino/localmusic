@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { useClerk, useUser } from '@clerk/clerk-react'
 import { UserRound, LogOut, ChevronDown, UserPlus } from 'lucide-react'
+import { clearPersonalData } from '../utils/personalData'
 
 // Spotify-style account control: "Sign in" button when signed out, avatar +
 // name menu when signed in. Opens Clerk's hosted/unstyled modal (friends &
@@ -69,7 +70,13 @@ function UserMenuInner({ compact }) {
             <div className="text-xs text-zinc-500 truncate">{user.primaryEmailAddress?.emailAddress || user.username || ''}</div>
           </div>
           <button
-            onClick={() => signOut()}
+            onClick={() => {
+              // Scrub personal data before sign-out — shared family devices
+              // must never leak one user's library into the next session.
+              // The redirect reloads the app, resetting all React state.
+              clearPersonalData()
+              signOut({ redirectUrl: '/discover' })
+            }}
             className="w-full flex items-center gap-2 px-4 py-3 text-sm text-zinc-300 hover:bg-zinc-800 hover:text-white transition-colors text-left"
           >
             <LogOut size={16} />

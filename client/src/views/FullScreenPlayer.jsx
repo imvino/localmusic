@@ -4,6 +4,7 @@ import { formatTime, decodeHtmlEntities, getSongArtwork } from '../utils'
 import { getDominantColor } from '../utils/color'
 import { Range, getTrackBackground } from 'react-range'
 import LyricsModal from '../components/LyricsModal'
+import TrackMenu from '../components/TrackMenu'
 
 export default function FullScreenPlayer({ 
   currentSong, 
@@ -26,7 +27,13 @@ export default function FullScreenPlayer({
   volume = 1,
   onVolumeChange,
   muted = false,
-  onMuteToggle
+  onMuteToggle,
+  likedSongs,
+  onPlayNext,
+  onAddToQueue,
+  onGoToAlbum,
+  onSongRadio,
+  showToast
 }) {
   const playerRef = useRef(null)
   const [lyricsOpen, setLyricsOpen] = useState(false)
@@ -103,7 +110,20 @@ export default function FullScreenPlayer({
         <h2 className="text-sm font-semibold text-white truncate flex-1 text-center mx-4">
           {decodeHtmlEntities(currentSong.album?.name || currentSong.album || currentSong.movie || 'Now Playing')}
         </h2>
-        <div className="w-6" /> {/* Spacer for center alignment */}
+        {/* ⋯ menu — Spotify Now Playing overflow: add-to-playlist, download,
+            share, go-to-album/artist etc. (auth-gated inside TrackMenu) */}
+        <div onTouchStart={e => e.stopPropagation()} onTouchEnd={e => e.stopPropagation()}>
+          <TrackMenu
+            song={currentSong}
+            likedSongs={likedSongs}
+            onLikeToggle={onLikeToggle ? () => onLikeToggle(currentSong.id) : undefined}
+            onPlayNext={onPlayNext}
+            onAddToQueue={onAddToQueue}
+            onGoToAlbum={onGoToAlbum}
+            onSongRadio={onSongRadio}
+            showToast={showToast}
+          />
+        </div>
       </div>
 
       {/* Main Content */}

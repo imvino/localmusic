@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { useParams, useNavigate, useLocation } from 'react-router-dom'
-import { ArrowLeft, Disc, Download, Loader2, ChevronDown, Play, Shuffle, Radio, Share2 } from 'lucide-react'
+import { ArrowLeft, Disc, Download, Loader2, ChevronDown, Play, Shuffle, Radio, Share2, Heart, UserPlus, UserCheck } from 'lucide-react'
 import TrackMenu from '../components/TrackMenu'
 import BatchDownloadButton from '../components/BatchDownloadButton'
 import { useDownloadStore } from '../stores/downloadStore'
@@ -13,7 +13,7 @@ import { useArtistConfig, hasCustomAlbums, getAlbumsTabLabel } from '../artist-c
 const API_BASE = import.meta.env.VITE_API_URL
 const isProduction = import.meta.env.MODE === 'production'
 
-export default function DiscoverDetailView({ onSongClick, showToast, currentSong, isPlaying, sidebarOpen, likedSongs, onLikeToggle, onPlayNext, onAddToQueue, onGoToAlbum, onSongRadio, onShufflePlay, onArtistRadio }) {
+export default function DiscoverDetailView({ onSongClick, showToast, currentSong, isPlaying, sidebarOpen, likedSongs, onLikeToggle, onPlayNext, onAddToQueue, onGoToAlbum, onSongRadio, onShufflePlay, onArtistRadio, savedAlbums, onSaveAlbumToggle, followedArtists, onFollowArtistToggle }) {
   const { id, slug } = useParams()
   const navigate = useNavigate()
   const location = useLocation()
@@ -505,6 +505,27 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
             >
               <Shuffle size={16} /> Shuffle
             </button>
+            {isAlbum && onSaveAlbumToggle && (
+              <button
+                onClick={() => onSaveAlbumToggle({ id, name: data?.name || meta?.name || albumName, artist: data?.artists?.[0]?.name || '', image: imageUrl })}
+                className={`flex items-center gap-2 px-5 py-2.5 text-sm font-semibold rounded-full transition-colors touch-target ${
+                  savedAlbums?.has(id) ? 'bg-zinc-800 text-[#fc3c44]' : 'bg-zinc-800 hover:bg-zinc-700 text-white'}`}
+                title={savedAlbums?.has(id) ? 'Remove from Your Library' : 'Save to Your Library'}
+              >
+                <Heart size={16} className={savedAlbums?.has(id) ? 'fill-[#fc3c44] text-[#fc3c44]' : ''} />
+                {savedAlbums?.has(id) ? 'Saved' : 'Save'}
+              </button>
+            )}
+            {isArtist && onFollowArtistToggle && (
+              <button
+                onClick={() => onFollowArtistToggle({ id, name: data?.name || meta?.name, image: imageUrl })}
+                className={`flex items-center gap-2 px-5 py-2.5 text-sm font-semibold rounded-full transition-colors touch-target ${
+                  followedArtists?.has(id) ? 'bg-zinc-800 text-[#fc3c44]' : 'bg-zinc-800 hover:bg-zinc-700 text-white'}`}
+              >
+                {followedArtists?.has(id) ? <UserCheck size={16} /> : <UserPlus size={16} />}
+                {followedArtists?.has(id) ? 'Following' : 'Follow'}
+              </button>
+            )}
             {isArtist && onArtistRadio && (
               <button
                 onClick={() => onArtistRadio(songs)}
