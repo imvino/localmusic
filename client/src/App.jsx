@@ -169,6 +169,45 @@ function AppContent() {
     setTimeout(() => setShowToast(false), 5000)
   }
 
+  // Title bar mirrors now-playing — like Spotify's window title / tab text
+  useEffect(() => {
+    document.title = currentSong
+      ? `${currentSong.name} · ${currentSong.artist || ''} — Torsongs`
+      : 'Torsongs'
+  }, [currentSong])
+
+  // Keep the screen awake while the fullscreen player is up and playing —
+  // prevents karaoke-style lyrics from dying mid-song on mobile
+  useEffect(() => {
+    if (!showFullScreenPlayer || !isPlaying || !('wakeLock' in navigator)) return
+    let lock = null
+    const acquire = () => navigator.wakeLock.request('screen').then(l => { lock = l }).catch(() => {})
+    acquire()
+    const onVis = () => { if (document.visibilityState === 'visible') acquire() }
+    document.addEventListener('visibilitychange', onVis)
+    return () => { document.removeEventListener('visibilitychange', onVis); lock?.release?.().catch(() => {}) }
+  }, [showFullScreenPlayer, isPlaying])
+
+  // PWA install prompt — stash the event, surface "Install App" in the sidebar
+  const [installPrompt, setInstallPrompt] = useState(null)
+  useEffect(() => {
+    const onBip = (e) => { e.preventDefault(); setInstallPrompt(e) }
+    const onInstalled = () => setInstallPrompt(null)
+    window.addEventListener('beforeinstallprompt', onBip)
+    window.addEventListener('appinstalled', onInstalled)
+    return () => {
+      window.removeEventListener('beforeinstallprompt', onBip)
+      window.removeEventListener('appinstalled', onInstalled)
+    }
+  }, [])
+
+  const handleInstall = async () => {
+    if (!installPrompt) return
+    installPrompt.prompt()
+    await installPrompt.userChoice.catch(() => {})
+    setInstallPrompt(null)
+  }
+
   // Sleep timer — interval checks for timed expiry; 'eot' handled in onEnded
   useEffect(() => {
     if (sleepTimer?.type !== 'timer') return
@@ -335,6 +374,16 @@ function AppContent() {
     // Add timeupdate event listener for progress tracking and adaptive bitrate
     const handleTimeUpdate = () => {
       setCurrentTime(audio.currentTime)
+      // Keep lock-screen/control-center seek bar in sync (Android, iOS 18+)
+      if (audio.duration > 0) {
+        try {
+          navigator.mediaSession?.setPositionState?.({
+            duration: audio.duration,
+            playbackRate: audio.playbackRate || 1,
+            position: Math.min(audio.currentTime, audio.duration)
+          })
+        } catch { /* unsupported */ }
+      }
       
       // Adaptive bitrate: upgrade based on buffer health (less aggressive).
       // Skipped for local songs (endpoint ignores bitrate), downloaded songs
@@ -1451,6 +1500,8 @@ function AppContent() {
               onEqChange={setEqSettings}
               smoothTransitions={smoothTransitions}
               onSmoothTransitionsToggle={setSmoothTransitions}
+              installPrompt={installPrompt}
+              onInstall={handleInstall}
             />
           </div>
         </div>
@@ -1472,6 +1523,8 @@ function AppContent() {
           onEqChange={setEqSettings}
           smoothTransitions={smoothTransitions}
           onSmoothTransitionsToggle={setSmoothTransitions}
+          installPrompt={installPrompt}
+          onInstall={handleInstall}
         />
       </div>
       

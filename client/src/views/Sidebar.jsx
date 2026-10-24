@@ -11,7 +11,7 @@ const NAV_ITEMS = [
   { id: 'discover', label: 'Discover', icon: Compass, path: '/discover' },
 ]
 
-export default function Sidebar({ showToast, onClose, qualityPreference, onQualityChange, autoplayEnabled, onAutoplayToggle, sleepTimer, onSleepTimer, eqSettings, onEqChange, smoothTransitions, onSmoothTransitionsToggle }) {
+export default function Sidebar({ showToast, onClose, qualityPreference, onQualityChange, autoplayEnabled, onAutoplayToggle, sleepTimer, onSleepTimer, eqSettings, onEqChange, smoothTransitions, onSmoothTransitionsToggle, installPrompt, onInstall }) {
   const location = useLocation()
   const currentPath = location.pathname
   const playlists = usePlaylistStore(s => s.playlists)
@@ -333,6 +333,18 @@ export default function Sidebar({ showToast, onClose, qualityPreference, onQuali
               </Link>
             ))}
         </div>
+
+        {/* Install prompt — only rendered when the browser offers A2HS */}
+        {installPrompt && (
+          <div className="flex flex-col gap-0.5 mb-4">
+            <button
+              onClick={onInstall}
+              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold bg-[#fc3c44] text-white hover:bg-[#e03239] transition-colors"
+            >
+              <Download size={16} /> Install App
+            </button>
+          </div>
+        )}
 
         {/* Legal links */}
         <div className="flex flex-col gap-0.5">
