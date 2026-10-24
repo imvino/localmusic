@@ -46,6 +46,32 @@ export async function removeDownload(id) {
   write(read().filter(d => d.id !== id))
 }
 
+// Sequential batch download — powers the "Download" buttons on album,
+// playlist, and liked-songs headers. One at a time (keeps the audio-cache LRU
+// sane, doesn't hammer the stream proxy). Skips already-downloaded songs.
+export async function downloadSongs(songs, { onProgress } = {}) {
+  const list = Array.isArray(songs) ? songs.filter(s => s?.id) : []
+  const results = { done: 0, failed: 0, total: list.length }
+  for (let i = 0; i < list.length; i++) {
+    const song = list[i]
+    if (isDownloaded(song.id)) {
+      results.done++
+      onProgress?.(i + 1, list.length)
+      continue
+    }
+    try {
+      await downloadSong(song)
+      results.done++
+    } catch {
+      results.failed++
+    }
+    onProgress?.(i + 1, list.length)
+    // Space requests so the proxy + cache aren't slammed
+    await new Promise(r => setTimeout(r, 150))
+  }
+  return results
+}
+
 // Drop registry entries whose audio was evicted from the shared cache.
 export async function reconcileDownloads() {
   const list = read()

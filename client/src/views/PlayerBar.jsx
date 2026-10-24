@@ -1,8 +1,8 @@
 import { useRef } from 'react'
-import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, Shuffle, Repeat, Repeat1, Heart, Music, Loader2, ListVideo } from 'lucide-react'
+import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, Shuffle, Repeat, Repeat1, Heart, Music, Loader2, ListVideo, Mic2 } from 'lucide-react'
 import { formatTime, decodeHtmlEntities, getSongArtwork } from '../utils'
 
-export default function PlayerBar({ currentSong, isPlaying, onTogglePlay, onPrev, onNext, volume, onVolumeChange, muted, onMuteToggle, shuffle, onShuffleToggle, repeat, onRepeatToggle, liked, onLikeToggle, currentTime, duration, onSeek, onArtworkClick, onQueueToggle, isSearchingAlbum, isMobileMiniplayer = false, onOpenFullScreen = null }) {
+export default function PlayerBar({ currentSong, isPlaying, onTogglePlay, onPrev, onNext, volume, onVolumeChange, muted, onMuteToggle, shuffle, onShuffleToggle, repeat, onRepeatToggle, liked, onLikeToggle, currentTime, duration, onSeek, onArtworkClick, onQueueToggle, onLyricsToggle, isSearchingAlbum, isMobileMiniplayer = false, onOpenFullScreen = null }) {
   const touch = useRef(null)
 
   if (!currentSong) {
@@ -180,6 +180,9 @@ export default function PlayerBar({ currentSong, isPlaying, onTogglePlay, onPrev
 
       {/* Volume */}
       <div className="w-1/3 flex items-center justify-end gap-2 text-zinc-500">
+        <button onClick={onLyricsToggle} className="hover:text-white cursor-pointer transition-colors" title="Lyrics">
+          <Mic2 size={16} />
+        </button>
         <button onClick={onQueueToggle} className="hover:text-white cursor-pointer transition-colors" title="Queue">
           <ListVideo size={16} />
         </button>

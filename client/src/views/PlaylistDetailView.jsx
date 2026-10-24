@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { usePlaylistStore } from '../stores/playlistStore'
 import { getImageSrc, formatDuration, encodePlaylistShare, haptic } from '../utils'
 import TrackMenu from '../components/TrackMenu'
+import BatchDownloadButton from '../components/BatchDownloadButton'
 
 export default function PlaylistDetailView({ onSongClick, onShufflePlay, onPlayNext, onAddToQueue, onGoToAlbum, onSongRadio, likedSongs, onLikeToggle, currentSong, isPlaying, showToast }) {
   const { id } = useParams()
@@ -79,6 +80,7 @@ export default function PlaylistDetailView({ onSongClick, onShufflePlay, onPlayN
               >
                 <Shuffle size={16} /> Shuffle
               </button>
+              <BatchDownloadButton songs={playlist.songs} compact />
               <button
                 onClick={async () => {
                   haptic()

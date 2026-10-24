@@ -3,6 +3,7 @@ import { useQueries } from '@tanstack/react-query'
 import { Heart, Play, Shuffle, Music } from 'lucide-react'
 import { getImageSrc, formatDuration } from '../utils'
 import TrackMenu from '../components/TrackMenu'
+import BatchDownloadButton from '../components/BatchDownloadButton'
 
 const API_BASE = import.meta.env.VITE_API_URL
 const CHUNK = 50
@@ -65,6 +66,7 @@ export default function LikedSongsView({ likedSongs, onLikeToggle, onSongClick, 
               >
                 <Shuffle size={16} /> Shuffle
               </button>
+              <BatchDownloadButton songs={songs} compact />
             </div>
           )}
         </div>

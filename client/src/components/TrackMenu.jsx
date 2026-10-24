@@ -1,12 +1,14 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { MoreHorizontal, Heart, ListPlus, Play, Disc3, ListMusic, Plus, ChevronLeft, Radio, Mic2, Share2, Download, Check } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { MoreHorizontal, Heart, ListPlus, Play, Disc3, ListMusic, Plus, ChevronLeft, Radio, Mic2, Share2, Download, Check, UserRound } from 'lucide-react'
 import { usePlaylistStore } from '../stores/playlistStore'
 import { downloadSong, removeDownload, isDownloaded } from '../utils/downloads'
 import { haptic } from '../utils'
 import LyricsModal from './LyricsModal'
 
 export default function TrackMenu({ song, likedSongs, onLikeToggle, onPlayNext, onAddToQueue, onGoToAlbum, onSongRadio, showToast }) {
+  const navigate = useNavigate()
   const [open, setOpen] = useState(false)
   const [showPlaylistPicker, setShowPlaylistPicker] = useState(false)
   const [lyricsOpen, setLyricsOpen] = useState(false)
@@ -69,6 +71,7 @@ export default function TrackMenu({ song, likedSongs, onLikeToggle, onPlayNext, 
   const itemCls = 'flex items-center gap-3 w-full px-3 py-2.5 text-sm text-zinc-200 hover:bg-zinc-800 transition-colors text-left'
   const albumId = song.albumId || (typeof song.album === 'object' ? song.album?.id : null)
   const isLocal = song.isLocal || song.audioPath
+  const artistId = song.artists?.primary?.[0]?.id || song.artistId
 
   const toggleDownload = async () => {
     if (downloaded) {
@@ -176,15 +179,20 @@ export default function TrackMenu({ song, likedSongs, onLikeToggle, onPlayNext, 
               >
                 <Disc3 size={16} /> Go to album
               </button>
+              <button
+                className={`${itemCls} ${!artistId ? 'opacity-40 cursor-not-allowed' : ''}`}
+                disabled={!artistId}
+                onClick={() => act(() => navigate(`/discover/artist/${artistId}`))}
+              >
+                <UserRound size={16} /> Go to artist
+              </button>
               <div className="border-t border-zinc-800 my-1" />
-              {!isLocal && (
-                <button className={itemCls} disabled={downloading} onClick={() => act(toggleDownload)}>
-                  {downloading
-                    ? <div className="w-4 h-4 border-2 border-zinc-600 border-t-white rounded-full animate-spin shrink-0" />
-                    : downloaded ? <Check size={16} className="text-emerald-400" /> : <Download size={16} />}
-                  {downloading ? 'Downloading…' : downloaded ? 'Downloaded' : 'Download'}
-                </button>
-              )}
+              <button className={itemCls} disabled={downloading} onClick={() => act(toggleDownload)}>
+                {downloading
+                  ? <div className="w-4 h-4 border-2 border-zinc-600 border-t-white rounded-full animate-spin shrink-0" />
+                  : downloaded ? <Check size={16} className="text-emerald-400" /> : <Download size={16} />}
+                {downloading ? 'Downloading…' : downloaded ? 'Downloaded' : 'Download'}
+              </button>
               <button className={itemCls} onClick={() => act(() => setLyricsOpen(true))}>
                 <Mic2 size={16} /> View lyrics
               </button>

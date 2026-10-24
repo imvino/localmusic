@@ -7,6 +7,19 @@ import ArtImage from '../components/ArtImage'
 import { useSearch } from '../hooks/useApi'
 import { decodeHtmlEntities, formatDuration, getImageSrc } from '../utils'
 
+// Browse tiles on the search landing — quick genre/mood jumps, Spotify style
+const BROWSE_TILES = [
+  { label: 'Tamil Hits', query: 'tamil hits', classes: 'bg-gradient-to-br from-rose-500 to-orange-600' },
+  { label: 'Melody', query: 'melody songs', classes: 'bg-gradient-to-br from-indigo-500 to-violet-700' },
+  { label: 'Devotional', query: 'devotional', classes: 'bg-gradient-to-br from-amber-500 to-yellow-700' },
+  { label: 'Party', query: 'party songs', classes: 'bg-gradient-to-br from-fuchsia-500 to-pink-700' },
+  { label: 'Workout', query: 'workout songs', classes: 'bg-gradient-to-br from-emerald-500 to-teal-700' },
+  { label: 'Retro Classics', query: 'old songs', classes: 'bg-gradient-to-br from-sky-500 to-blue-700' },
+  { label: 'Focus', query: 'relaxing', classes: 'bg-gradient-to-br from-slate-500 to-zinc-700' },
+  { label: 'A.R. Rahman', query: 'ar rahman', classes: 'bg-gradient-to-br from-red-500 to-rose-800' },
+  { label: 'Anirudh', query: 'anirudh', classes: 'bg-gradient-to-br from-purple-500 to-indigo-800' },
+]
+
 export default function SearchView({ query, onSongClick, onAlbumClick, onArtistClick, showToast, likedSongs, onLikeToggle, onPlayNext, onAddToQueue, onGoToAlbum, onSongRadio }) {
   const navigate = useNavigate()
   const appUrl = import.meta.env.VITE_APP_URL
@@ -68,12 +81,15 @@ export default function SearchView({ query, onSongClick, onAlbumClick, onArtistC
 
   if (!query.trim()) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center p-8 w-full">
-        <Search size={56} className="text-zinc-700 mb-4" />
-        <h2 className="text-xl font-semibold text-white mb-2">Search Music</h2>
-        <p className="text-sm text-zinc-500 mb-8">Find songs, albums, and artists online</p>
+      <div className="p-4 md:p-8 w-full">
+        <div className="flex flex-col items-center text-center py-8 w-full">
+          <Search size={56} className="text-zinc-700 mb-4" />
+          <h2 className="text-xl font-semibold text-white mb-2">Search Music</h2>
+          <p className="text-sm text-zinc-500 mb-8">Find songs, albums, and artists online</p>
+        </div>
+
         {recentSearches.length > 0 && (
-          <div className="w-full max-w-md">
+          <div className="w-full max-w-md mx-auto mb-8">
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-sm font-semibold text-zinc-300 flex items-center gap-2">
                 <Clock3 size={14} className="text-zinc-500" /> Recent searches
@@ -99,6 +115,20 @@ export default function SearchView({ query, onSongClick, onAlbumClick, onArtistC
             </div>
           </div>
         )}
+
+        {/* Browse tiles — Spotify-style landing */}
+        <h3 className="text-sm font-semibold text-zinc-300 max-w-md mx-auto mb-3 px-1">Browse</h3>
+        <div className="grid grid-cols-2 md:grid-cols-3 max-w-md mx-auto gap-3">
+          {BROWSE_TILES.map(({ label, query, classes }) => (
+            <button
+              key={label}
+              onClick={() => runRecent(query)}
+              className={`rounded-lg p-4 h-20 flex items-end text-left font-bold text-white/90 text-sm leading-tight transition-transform hover:scale-[1.03] active:scale-95 ${classes}`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
       </div>
     )
   }

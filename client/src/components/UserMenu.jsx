@@ -4,8 +4,16 @@ import { UserRound, LogOut, ChevronDown, UserPlus } from 'lucide-react'
 
 // Spotify-style account control: "Sign in" button when signed out, avatar +
 // name menu when signed in. Opens Clerk's hosted/unstyled modal (friends &
-// family scale — no invite list, anyone with the link can sign up).
+// family scale — anyone with the link can sign up). Renders nothing when
+// Clerk isn't configured, so the app never breaks without auth.
+const HAS_CLERK = !!import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
+
 export default function UserMenu({ compact = false }) {
+  if (!HAS_CLERK) return null
+  return <UserMenuInner compact={compact} />
+}
+
+function UserMenuInner({ compact }) {
   const { openSignIn, signOut } = useClerk()
   const { isSignedIn, user } = useUser()
   const [open, setOpen] = useState(false)

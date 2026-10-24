@@ -3,6 +3,7 @@ import { useNavigate, useParams, useLocation } from 'react-router-dom'
 import { ArrowLeft, Disc, Play, Shuffle, Loader2, Music } from 'lucide-react'
 import TrackMenu from '../components/TrackMenu'
 import ArtImage from '../components/ArtImage'
+import BatchDownloadButton from '../components/BatchDownloadButton'
 import { decodeHtmlEntities, getImageSrc, getSongArtwork } from '../utils'
 
 const API_BASE = import.meta.env.VITE_API_URL
@@ -103,6 +104,7 @@ export default function LocalAlbumView({ onSongClick, onShufflePlay, showToast, 
                 <Shuffle size={18} /> Shuffle
               </button>
             )}
+            <BatchDownloadButton songs={songs} compact />
           </div>
         </div>
       </div>

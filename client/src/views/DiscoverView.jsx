@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Disc, ListMusic, Loader2, Download, Play, History } from 'lucide-react'
+import { Disc, ListMusic, Loader2, Download, Play, History, TrendingUp } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import MetaTags from '../components/MetaTags'
 import HorizontalScroll from '../components/HorizontalScroll'
@@ -36,6 +36,28 @@ export default function DiscoverView({ onSongClick, showToast, likedSongs, onLik
       return history.filter(s => !seen.has(s.id) && seen.add(s.id)).slice(0, 15)
     } catch { return [] }
   })
+
+  // Spotify-style "Made for you" mixes — pure play-history math, no server
+  const mixes = useState(() => {
+    try {
+      const raw = JSON.parse(localStorage.getItem('playHistory') || '[]')
+      const counts = new Map()
+      const oldest = new Map()
+      for (const s of raw) {
+        if (!s?.id) continue
+        const e = counts.get(s.id) || { ...s, count: 0 }
+        e.count++
+        counts.set(s.id, e)
+        if (!oldest.has(s.id) || (s.ts || 0) < oldest.get(s.id)) oldest.set(s.id, s.ts || 0)
+      }
+      const onRepeat = [...counts.values()].filter(e => e.count >= 2)
+        .sort((a, b) => b.count - a.count).slice(0, 15)
+      const rewindCutoff = Date.now() - 14 * 24 * 60 * 60 * 1000
+      const rewind = [...counts.values()].filter(e => oldest.get(e.id) < rewindCutoff)
+        .sort((a, b) => b.count - a.count).slice(0, 15)
+      return { onRepeat, rewind }
+    } catch { return { onRepeat: [], rewind: [] } }
+  })[0]
 
   // Fetch artist config and JioSaavn data
   const { config: artistConfig, loading: configLoading } = useArtistConfig()
@@ -151,6 +173,32 @@ export default function DiscoverView({ onSongClick, showToast, likedSongs, onLik
           items={becauseYouListened.slice(0, 15)}
           renderItem={(song) => (
             <SongCard song={{ ...song, name: decodeHtmlEntities(song.name || song.title || ''), artist: decodeHtmlEntities(song.artists?.primary?.[0]?.name || song.artist || ''), image: song.image }} onSongClick={onSongClick} downloadProgress={downloadProgress} setDownloadProgress={setDownloadProgress} likedSongs={likedSongs} onLikeToggle={onLikeToggle} onPlayNext={onPlayNext} onAddToQueue={onAddToQueue} onGoToAlbum={onGoToAlbum} onSongRadio={onSongRadio} showToast={showToast} />
+          )}
+          emptyMessage=""
+        />
+      )}
+
+      {/* On Repeat — your most-played songs */}
+      {mixes.onRepeat.length > 0 && (
+        <HorizontalScroll
+          title="On Repeat"
+          icon={TrendingUp}
+          items={mixes.onRepeat}
+          renderItem={(song) => (
+            <SongCard song={song} onSongClick={onSongClick} downloadProgress={downloadProgress} setDownloadProgress={setDownloadProgress} likedSongs={likedSongs} onLikeToggle={onLikeToggle} onPlayNext={onPlayNext} onAddToQueue={onAddToQueue} onGoToAlbum={onGoToAlbum} onSongRadio={onSongRadio} showToast={showToast} />
+          )}
+          emptyMessage=""
+        />
+      )}
+
+      {/* Repeat Rewind — old favorites resurfaced */}
+      {mixes.rewind.length > 0 && (
+        <HorizontalScroll
+          title="Repeat Rewind"
+          icon={History}
+          items={mixes.rewind}
+          renderItem={(song) => (
+            <SongCard song={song} onSongClick={onSongClick} downloadProgress={downloadProgress} setDownloadProgress={setDownloadProgress} likedSongs={likedSongs} onLikeToggle={onLikeToggle} onPlayNext={onPlayNext} onAddToQueue={onAddToQueue} onGoToAlbum={onGoToAlbum} onSongRadio={onSongRadio} showToast={showToast} />
           )}
           emptyMessage=""
         />

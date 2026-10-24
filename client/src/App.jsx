@@ -26,6 +26,7 @@ import SharedPlaylistView from './views/SharedPlaylistView'
 import QueueDrawer from './components/QueueDrawer'
 import ErrorBoundary from './components/ErrorBoundary'
 import UserMenu from './components/UserMenu'
+import LyricsModal from './components/LyricsModal'
 import { useLibrarySync } from './hooks/useLibrarySync'
 import { enableEq, warmEq, setEqGains } from './audio/eq'
 import { isDownloaded, downloadUrlFor, reconcileDownloads } from './utils/downloads'
@@ -67,6 +68,15 @@ function buildShuffleOrder(queueLength, anchorIndex = -1) {
 }
 
 const repeatCycle = (r) => (r === 'off' ? 'all' : r === 'all' ? 'one' : 'off')
+
+// Starting bitrate for a new track. Metered connections start at 96 (fast
+// start, saves data); everything else starts at 160 and upgrades to max once
+// buffered — no more degraded first-15-seconds on WiFi.
+const startBitrateFor = (maxBitrate, connType) => {
+  if (maxBitrate <= 96) return 96
+  if (connType === 'cellular' || connType === 'cellular-slow') return 96
+  return Math.min(maxBitrate, 160)
+}
 
 // Configure QueryClient with 5-minute cache
 export const queryClient = new QueryClient({
@@ -135,6 +145,7 @@ function AppContent() {
   const pendingSeekRef = useRef(null) // position to restore after loadedmetadata (resume)
   const [resumeSession, setResumeSession] = useState(null)
   const [queueOpen, setQueueOpen] = useState(false)
+  const [desktopLyricsOpen, setDesktopLyricsOpen] = useState(false)
   const [autoplayEnabled, setAutoplayEnabled] = useState(() => localStorage.getItem('autoplay') !== 'off')
   const queueEpochRef = useRef(0) // bumped on every queue mutation — async ops bail if it moved
   const autoplayAttemptedRef = useRef(false) // one suggestions fetch per queue-end event
@@ -738,13 +749,14 @@ function AppContent() {
     // Rebuild the stream URL deterministically — never trust persisted URLs
     const song = session.currentSong
     const maxBitrate = getMaxBitrate(getConnectionType(), qualityPreference)
+    const startBitrate = startBitrateFor(maxBitrate, getConnectionType())
     pendingSeekRef.current = session.currentTime || 0
-    previousBitrateRef.current = 96
+    previousBitrateRef.current = startBitrate
     warmedNextRef.current = null
-    setCurrentBitrate(96)
+    setCurrentBitrate(startBitrate)
     setCurrentSong({
       ...song,
-      streamUrl: streamUrlFor(song, 96),
+      streamUrl: streamUrlFor(song, startBitrate),
       maxBitrate,
       isStream: true
     })
@@ -1188,14 +1200,15 @@ function AppContent() {
     // Determine appropriate bitrate based on connection and preference
     const connType = getConnectionType()
     const maxBitrate = getMaxBitrate(connType, qualityPreference)
+    const startBitrate = startBitrateFor(maxBitrate, connType)
 
-    // Reset bitrate tracking for new song; start at 96 for fast start
-    previousBitrateRef.current = 96
+    // Reset bitrate tracking for new song; start at 160 on fast connections
+    previousBitrateRef.current = startBitrate
     warmedNextRef.current = null
     if (bitrateSwitchTimeoutRef.current) {
       clearTimeout(bitrateSwitchTimeoutRef.current)
     }
-    setCurrentBitrate(96)
+    setCurrentBitrate(startBitrate)
 
     const local = isLocalSong(song)
     setCurrentSong({
@@ -1203,7 +1216,7 @@ function AppContent() {
       album: typeof song.album === 'object' ? song.album.name : song.album,
       artist: song.artist || song.artists?.primary?.[0]?.name,
       albumId: song.album?.id || song.albumId,
-      streamUrl: streamUrlFor(song, 96),
+      streamUrl: streamUrlFor(song, startBitrate),
       maxBitrate,
       isLocal: local,
       isStream: true
@@ -1375,19 +1388,20 @@ function AppContent() {
 
     const connType = getConnectionType()
     const maxBitrate = getMaxBitrate(connType, qualityPreference)
+    const startBitrate = startBitrateFor(maxBitrate, connType)
 
-    previousBitrateRef.current = 96
+    previousBitrateRef.current = startBitrate
     warmedNextRef.current = null
     if (bitrateSwitchTimeoutRef.current) {
       clearTimeout(bitrateSwitchTimeoutRef.current)
     }
-    setCurrentBitrate(96)
+    setCurrentBitrate(startBitrate)
 
     const local = isLocalSong(song)
     setCurrentSong({
       ...song,
       album: typeof song.album === 'object' ? song.album.name : song.album,
-      streamUrl: streamUrlFor(song, 96),
+      streamUrl: streamUrlFor(song, startBitrate),
       downloadUrl: song.downloadUrl,
       albumId: song.album?.id || song.albumId,
       imageUrl: song.imageUrl || getSongArtwork(song),
@@ -1721,6 +1735,7 @@ function AppContent() {
             onSeek={handleSeek}
             onArtworkClick={handleArtworkClick}
             onQueueToggle={() => setQueueOpen(o => !o)}
+            onLyricsToggle={() => currentSong && setDesktopLyricsOpen(o => !o)}
             isSearchingAlbum={isSearchingAlbum}
           />
         </div>
@@ -1832,6 +1847,16 @@ function AppContent() {
         onMove={handleQueueMove}
         onClear={handleQueueClear}
       />
+
+      {/* Desktop now-playing lyrics — the bar's Mic2 button opens this */}
+      {desktopLyricsOpen && currentSong && (
+        <LyricsModal
+          song={currentSong}
+          onClose={() => setDesktopLyricsOpen(false)}
+          currentTime={currentTime}
+          onSeek={handleSeek}
+        />
+      )}
 
       {/* Download Manager - Only in development */}
       {!isProduction && <DownloadManager />}
