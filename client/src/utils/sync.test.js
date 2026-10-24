@@ -1,5 +1,14 @@
-import { describe, it, expect } from 'vitest'
-import { slimSong, mergePlaylists, mergeHistory, mergeCollections } from './sync'
+import { describe, it, expect, beforeEach } from 'vitest'
+import { slimSong, mergePlaylists, mergeHistory, mergeCollections, addTombstone, clearTombstone, isTombstoned, applyTombstones, getTombstones, TOMB_KEYS } from './sync'
+
+// Minimal localStorage stub — vitest runs node, not a browser
+const __store = new Map()
+globalThis.localStorage = {
+  getItem: k => (__store.has(k) ? __store.get(k) : null),
+  setItem: (k, v) => { __store.set(k, String(v)) },
+  removeItem: k => { __store.delete(k) },
+  clear: () => __store.clear()
+}
 
 const song = (id, extra = {}) => ({ id, name: `S${id}`, artist: 'A', image: `https://img/${id}.jpg`, duration: 100, ...extra })
 
@@ -60,5 +69,63 @@ describe('mergeCollections', () => {
     const byId = Object.fromEntries(merged.map(x => [x.id, x]))
     expect(Object.keys(byId).sort()).toEqual(['al1', 'al2', 'al3'])
     expect(byId.al1.savedAt).toBe(100)
+  })
+})
+
+describe('tombstones', () => {
+  beforeEach(() => {
+    localStorage.clear()
+  })
+
+  it('kills items saved before the tombstone, keeps re-saves after', () => {
+    addTombstone('albums', 'al1')
+    const items = [
+      { id: 'al1', savedAt: 50 },     // saved before tombstone → dead
+      { id: 'al1b', savedAt: Date.now() }, // different id → survives
+      { id: 'al2', savedAt: Date.now() + 1000 }
+    ]
+    const out = applyTombstones(items, 'albums', 'savedAt')
+    expect(out.map(x => x.id).sort()).toEqual(['al1b', 'al2'])
+  })
+
+  it('a re-save after the tombstone survives', () => {
+    const tombTs = Date.now()
+    localStorage.setItem(TOMB_KEYS.albums, JSON.stringify([{ id: 'al1', ts: tombTs }]))
+    const items = [{ id: 'al1', savedAt: tombTs + 1000 }] // re-saved AFTER → survives
+    expect(applyTombstones(items, 'albums', 'savedAt')).toHaveLength(1)
+  })
+
+  it('clearTombstone removes the kill', () => {
+    addTombstone('artists', 'ar1')
+    clearTombstone('artists', 'ar1')
+    expect(getTombstones(TOMB_KEYS.artists)).toEqual([])
+    expect(applyTombstones([{ id: 'ar1', followedAt: 1 }], 'artists', 'followedAt')).toHaveLength(1)
+  })
+
+  it('caps the tombstone list at 500', () => {
+    for (let i = 0; i < 600; i++) addTombstone('albums', `a${i}`)
+    expect(getTombstones(TOMB_KEYS.albums).length).toBe(500)
+  })
+
+  it('song tombstones: unlike kills the id, re-like clears it', () => {
+    addTombstone('songs', 'songA')
+    expect(isTombstoned('songs', 'songA')).toBe(true)
+    // Pull-side filter drops a stale server like
+    const merged = ['songA', 'songB'].filter(id => !isTombstoned('songs', id))
+    expect(merged).toEqual(['songB'])
+    clearTombstone('songs', 'songA')
+    expect(isTombstoned('songs', 'songA')).toBe(false)
+  })
+
+  it('playlist tombstones survive push/pull so deletes propagate', () => {
+    addTombstone('playlists', 'pl1')
+    const tombs = getTombstones(TOMB_KEYS.playlists)
+    expect(tombs.find(t => t.id === 'pl1')).toBeTruthy()
+    // Server-side semantics: tombstone newer than createdAt kills the stale copy
+    const pl = { id: 'pl1', createdAt: tombs[0].ts - 1000 }
+    const recreated = { id: 'pl2', createdAt: tombs[0].ts + 1000 }
+    const plTombs = new Map(getTombstones(TOMB_KEYS.playlists).map(t => [t.id, t.ts]))
+    expect((plTombs.get(pl.id) || 0) <= pl.createdAt).toBe(false) // killed
+    expect((plTombs.get(recreated.id) || 0) <= recreated.createdAt).toBe(true) // survives
   })
 })

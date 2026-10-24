@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useAuth } from '@clerk/clerk-react'
 import { usePlaylistStore } from '../stores/playlistStore'
 import { clearPersonalData, getLastUserId, setLastUserId } from '../utils/personalData'
-import { slimSong, slimPlaylists, mergePlaylists, mergeHistory, mergeCollections, markPullDone, resetPullDone, isPullDone, onPullDone, getTombstones, applyTombstones, TOMB_KEYS, HISTORY_CLEARED_KEY } from '../utils/sync'
+import { slimSong, slimPlaylists, mergePlaylists, mergeHistory, mergeCollections, markPullDone, resetPullDone, isPullDone, onPullDone, getTombstones, isTombstoned, applyTombstones, TOMB_KEYS, HISTORY_CLEARED_KEY } from '../utils/sync'
 
 const API_BASE = import.meta.env.VITE_API_URL
 const LAST_SYNC_KEY = 'libraryLastSync'
@@ -31,7 +31,10 @@ async function pushSnapshot(getToken, likedSongs, playlists, collections) {
         // Tombstones let deletes propagate through the union merges
         removedAlbums: getTombstones(TOMB_KEYS.albums),
         removedArtists: getTombstones(TOMB_KEYS.artists),
-        historyClearedAt: Number(localStorage.getItem(HISTORY_CLEARED_KEY)) || 0
+        removedSongs: getTombstones(TOMB_KEYS.songs),
+        removedPlaylists: getTombstones(TOMB_KEYS.playlists),
+        historyClearedAt: Number(localStorage.getItem(HISTORY_CLEARED_KEY)) || 0,
+        playCounts: readLS('playCounts', {})
       })
     })
     if (res.ok) {
@@ -99,46 +102,51 @@ export function useLibrarySync({ likedSongs, setLikedSongs, savedAlbums, setSave
         usePlaylistStore.setState({ playlists: {} })
       }
 
+      // A failed pull must NOT release deferred pushes (they'd push stale
+      // state over a healthy doc) — retry via syncNonce until it succeeds.
+      const retryPull = () => setTimeout(() => { if (live) setSyncNonce(n => n + 1) }, 15000)
+      let succeeded = false
       try {
         const token = await getToken()
-        if (!token) return
+        if (!token) { retryPull(); return }
         const res = await fetch(`${API_BASE}/api/me/library`, {
           headers: { Authorization: `Bearer ${token}` },
           signal: AbortSignal.timeout(10000) // cold-start cap — pullDone MUST resolve
         })
         if (!live) return
 
-        if (res.status === 404 || !res.ok) {
-          // No server doc — seed the account with the local snapshot
-          if (!differentUser) {
-            pushSnapshot(getToken, likedSongs, usePlaylistStore.getState().playlists,
-              { savedAlbums: readLS('savedAlbums', []), followedArtists: readLS('followedArtists', []) })
-          }
-          setLastUserId(userId)
-          return
-        }
+        if (!res.ok) { retryPull(); return } // server unhealthy — don't seed over it
         const json = await res.json()
-        if (!live || !json?.success || !json.data) return
+        if (!live || !json?.success || !json.data) { retryPull(); return }
         const server = json.data
         const serverTs = server.ts || 0
 
-        if (!firstLogin && !differentUser && serverTs <= lastSyncRef.current()) {
+        if (serverTs > 0 && !firstLogin && !differentUser && serverTs <= lastSyncRef.current()) {
+          succeeded = true
           setLastUserId(userId)
           return // nothing newer
         }
 
-        const union = firstLogin // only the first merge imports local data
+        // Import local data on first login, a user switch, OR a wiped server
+        // doc (ts===0 means the default empty doc — re-seed it).
+        const union = firstLogin || differentUser || serverTs === 0
 
         const serverLikes = new Set(server.likedSongs || [])
         setLikedSongs(prev => {
-          const next = union ? new Set([...serverLikes, ...prev]) : serverLikes
+          // Local song tombstones still apply — an unlike pending push must
+          // not resurrect just because the pull raced it.
+          const merged = union ? new Set([...serverLikes, ...prev]) : serverLikes
+          const next = new Set([...merged].filter(id => !isTombstoned('songs', id)))
           writeLS('likedSongs', [...next])
           return next
         })
 
-        const mergedPls = union
-          ? mergePlaylists(usePlaylistStore.getState().playlists, server.playlists || {})
-          : (server.playlists || {})
+        const plTombs = new Set(getTombstones(TOMB_KEYS.playlists).map(t => t.id))
+        const mergedPls = Object.fromEntries(Object.entries(
+          union
+            ? mergePlaylists(usePlaylistStore.getState().playlists, server.playlists || {})
+            : (server.playlists || {})
+        ).filter(([id]) => !plTombs.has(id)))
         usePlaylistStore.setState({ playlists: mergedPls })
 
         const applyCollection = (serverArr, localKey, setState, kind, tsKey) => {
@@ -160,6 +168,15 @@ export function useLibrarySync({ likedSongs, setLikedSongs, savedAlbums, setSave
           writeLS('likedMeta', merged)
         }
 
+        // playCounts — durable totals; max-merge per id, never regresses
+        if (server.playCounts && typeof server.playCounts === 'object') {
+          const merged = { ...readLS('playCounts', {}) }
+          for (const [id, c] of Object.entries(server.playCounts)) {
+            merged[id] = Math.max(Number(merged[id]) || 0, Number(c) || 0)
+          }
+          writeLS('playCounts', merged)
+        }
+
         // Cleared-at wins on BOTH sides — entries older than the latest
         // clear (local or server) stay gone after the union merge
         const clearedAt = Math.max(
@@ -173,13 +190,14 @@ export function useLibrarySync({ likedSongs, setLikedSongs, savedAlbums, setSave
 
         localStorage.setItem(LAST_SYNC_KEY, String(serverTs))
         setLastUserId(userId)
+        succeeded = true
         // Push the merged snapshot back so the server converges
         pushSnapshot(getToken,
           new Set(readLS('likedSongs', [])),
           mergedPls,
           { savedAlbums: nextAlbums, followedArtists: nextArtists })
-      } catch { /* offline — local wins */ }
-      finally { done() }
+      } catch { retryPull() /* offline — retry rather than pushing stale */ }
+      finally { if (succeeded) done() }
     })()
     return () => { live = false }
   }, [isSignedIn, userId, syncNonce]) // eslint-disable-line react-hooks/exhaustive-deps

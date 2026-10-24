@@ -128,3 +128,18 @@ Backend auth hardening deferred unless abuse appears.
   - P1.7 Playback starts at 160kbps on fast connections (was 96 floor)
 - [ ] Next backlog: sort in playlist rows, PWA stream-cache only for
   registry'd downloads, backup/restore export, vitest for utils
+
+## Critic loop — rounds 2-4 hardening (commit 791226a)
+
+- Sync correctness: pulls gated on pullDone, pushes deferred not dropped,
+  tombstones for deletes (removedAlbums/removedArtists/historyClearedAt),
+  server-side union merges for history + collections, reconnect re-pull on
+  'online', express.json 2mb, AbortSignal pull timeout
+- Security: /api/stream ?url= open proxy removed (SSRF)
+- likedMeta syncs display metadata so local/delisted songs still render
+- playCounts durable map feeds Stats + On Repeat (survives history cap)
+- Queue: Spotify-style sections, artwork, HTML5 drag reorder
+- Player: sleep timer sheet, ⋯ menu (mobile + desktop), seek onFinalChange
+- A11y: aria-labels on transport + dialog roles + Escape/focus-return
+- Pinning, inline create/confirm everywhere, Stats recently-played + clear
+- 23 vitest cases covering image utils, sync merges, tombstones

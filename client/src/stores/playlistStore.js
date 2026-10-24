@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { addTombstone } from '../utils/sync'
 
 export const usePlaylistStore = create(persist(
   (set, get) => ({
@@ -10,7 +11,7 @@ export const usePlaylistStore = create(persist(
       set(state => ({
         playlists: {
           ...state.playlists,
-          [id]: { id, name: name.trim() || 'Untitled Playlist', songs: [], createdAt: Date.now() }
+          [id]: { id, name: name.trim() || 'Untitled Playlist', songs: [], createdAt: Date.now(), updatedAt: Date.now() }
         }
       }))
       return id
@@ -18,17 +19,18 @@ export const usePlaylistStore = create(persist(
 
     pinPlaylist: (id, pinned) => {
       set(state => state.playlists[id] ? {
-        playlists: { ...state.playlists, [id]: { ...state.playlists[id], pinned: pinned ?? !state.playlists[id].pinned } }
+        playlists: { ...state.playlists, [id]: { ...state.playlists[id], pinned: pinned ?? !state.playlists[id].pinned, updatedAt: Date.now() } }
       } : state)
     },
 
     renamePlaylist: (id, name) => {
       set(state => state.playlists[id] ? {
-        playlists: { ...state.playlists, [id]: { ...state.playlists[id], name: name.trim() || state.playlists[id].name } }
+        playlists: { ...state.playlists, [id]: { ...state.playlists[id], name: name.trim() || state.playlists[id].name, updatedAt: Date.now() } }
       } : state)
     },
 
     deletePlaylist: (id) => {
+      addTombstone('playlists', id) // deleted playlists must stay deleted across devices
       set(state => {
         const playlists = { ...state.playlists }
         delete playlists[id]
@@ -46,7 +48,7 @@ export const usePlaylistStore = create(persist(
       set(state => ({
         playlists: {
           ...state.playlists,
-          [id]: { ...playlist, songs: [...playlist.songs, safeSong] }
+          [id]: { ...playlist, songs: [...playlist.songs, safeSong], updatedAt: Date.now() }
         }
       }))
       return 'added'
@@ -59,7 +61,7 @@ export const usePlaylistStore = create(persist(
         return {
           playlists: {
             ...state.playlists,
-            [id]: { ...playlist, songs: playlist.songs.filter(s => s.id !== songId) }
+            [id]: { ...playlist, songs: playlist.songs.filter(s => s.id !== songId), updatedAt: Date.now() }
           }
         }
       })
@@ -70,7 +72,7 @@ export const usePlaylistStore = create(persist(
       set(state => ({
         playlists: {
           ...state.playlists,
-          [id]: { id, name: (name || '').trim() || 'Shared Playlist', songs: songs || [], createdAt: Date.now() }
+          [id]: { id, name: (name || '').trim() || 'Shared Playlist', songs: songs || [], createdAt: Date.now(), updatedAt: Date.now() }
         }
       }))
       return id
@@ -84,7 +86,7 @@ export const usePlaylistStore = create(persist(
         const [moved] = songs.splice(from, 1)
         songs.splice(to, 0, moved)
         return {
-          playlists: { ...state.playlists, [id]: { ...playlist, songs } }
+          playlists: { ...state.playlists, [id]: { ...playlist, songs, updatedAt: Date.now() } }
         }
       })
     }

@@ -26,6 +26,7 @@ export function slimPlaylists(playlists) {
       id: p.id || id,
       name: p.name || 'Untitled Playlist',
       createdAt: p.createdAt || Date.now(),
+      updatedAt: p.updatedAt || p.createdAt || Date.now(),
       pinned: !!p.pinned,
       songs: (p.songs || []).map(slimSong).filter(Boolean)
     }
@@ -82,7 +83,7 @@ export function mergeCollections(local, server) {
 // Tombstones — deletes must propagate through union merges, or an un-save /
 // un-follow / clear-history silently resurrects on the next pull. A tombstone
 // only kills items saved BEFORE it, so re-saving later still works.
-export const TOMB_KEYS = { albums: 'removedAlbums', artists: 'removedArtists' }
+export const TOMB_KEYS = { albums: 'removedAlbums', artists: 'removedArtists', songs: 'removedSongs', playlists: 'removedPlaylists' }
 export const HISTORY_CLEARED_KEY = 'historyClearedAt'
 
 export function getTombstones(key) {
@@ -97,6 +98,11 @@ export function clearTombstone(kind, id) {
   try {
     localStorage.setItem(TOMB_KEYS[kind], JSON.stringify(getTombstones(TOMB_KEYS[kind]).filter(t => t.id !== id)))
   } catch { /* quota */ }
+}
+// For id-keyed collections (likes): any tombstone kills the id — the
+// re-add path clears the tombstone first, so a live tombstone = deleted.
+export function isTombstoned(kind, id) {
+  return getTombstones(TOMB_KEYS[kind]).some(t => t.id === id)
 }
 // Keep items whose save-ts is at/after any tombstone for their id
 export function applyTombstones(items, kind, tsKey) {

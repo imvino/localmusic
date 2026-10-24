@@ -242,31 +242,29 @@ app.put('/api/me/library', requireUser, (req, res) => {
       id: p.id || id,
       name: typeof p.name === 'string' ? p.name.slice(0, 200) : 'Untitled Playlist',
       createdAt: Number(p.createdAt) || Date.now(),
+      updatedAt: Number(p.updatedAt) || Number(p.createdAt) || Date.now(),
       pinned: !!p.pinned,
       songs: Array.isArray(p.songs) ? p.songs.slice(0, 2000).map(slimLibrarySong).filter(s => s.id) : []
     };
   }
-  const data = {
-    v: v || 1,
-    ts: Number(ts) || Date.now(),
-    likedSongs: likedSongs.map(String).filter(Boolean).slice(0, 5000),
-    playlists: safePlaylists
-  };
+  const data = { v: v || 1, ts: Number(ts) || Date.now() };
   const existingDoc = loadUserData(req.userId) || {};
   // Tombstones — deletes propagate through the union merges below, else an
-  // un-save / clear-history silently resurrects on the next pull.
+  // un-save / unlike / clear-history silently resurrects on the next pull.
   const unionTombstones = (existing, incoming) => {
     const m = new Map();
     for (const t of [...(existing || []), ...(incoming || [])]) {
       if (!t?.id) continue;
       const pts = m.get(t.id) || 0;
-      if ((t.ts || 0) > pts) m.set(t.id, Number(t.ts));
+      if ((t.ts || 0) > pts) { m.delete(t.id); m.set(t.id, Number(t.ts)); } // re-insert keeps eviction order
     }
     return [...m.entries()].map(([id, ts]) => ({ id, ts })).slice(-500);
   };
   data.tombstones = {
     albums: unionTombstones(existingDoc.tombstones?.albums, Array.isArray(removedAlbums) ? removedAlbums : []),
-    artists: unionTombstones(existingDoc.tombstones?.artists, Array.isArray(removedArtists) ? removedArtists : [])
+    artists: unionTombstones(existingDoc.tombstones?.artists, Array.isArray(removedArtists) ? removedArtists : []),
+    songs: unionTombstones(existingDoc.tombstones?.songs, Array.isArray(req.body?.removedSongs) ? req.body.removedSongs : []),
+    playlists: unionTombstones(existingDoc.tombstones?.playlists, Array.isArray(req.body?.removedPlaylists) ? req.body.removedPlaylists : [])
   };
   data.historyClearedAt = Math.max(
     Number(existingDoc.historyClearedAt) || 0,
@@ -315,8 +313,8 @@ app.put('/api/me/library', requireUser, (req, res) => {
   }
   // likedMeta — display metadata keyed by song id so local-collection or
   // delisted songs still render on other devices; union by likedAt
+  const mergedMeta = { ...(existingDoc.likedMeta || {}) };
   if (likedMeta && typeof likedMeta === 'object') {
-    const mergedMeta = { ...(existingDoc.likedMeta || {}) };
     for (const [id, m] of Object.entries(likedMeta).slice(0, 5000)) {
       if (!m || typeof m !== 'object') continue;
       const prev = mergedMeta[id];
@@ -324,10 +322,43 @@ app.put('/api/me/library', requireUser, (req, res) => {
         mergedMeta[id] = { ...slimLibrarySong(m), likedAt: Number(m.likedAt) || 0 };
       }
     }
-    // Drop meta for songs no longer liked
-    const likeSet = new Set(data.likedSongs);
-    for (const id of Object.keys(mergedMeta)) if (!likeSet.has(id)) delete mergedMeta[id];
-    data.likedMeta = mergedMeta;
+  }
+  // Likes are additive like the other collections — a stale device's list
+  // must merge, not replace — and song tombstones propagate unlikes.
+  // A tombstone newer than the song's likedAt kills it; a re-like
+  // (fresh likedAt) survives.
+  const songTombs = new Map(data.tombstones.songs.map(t => [t.id, t.ts]));
+  const mergedLikes = new Set([...(existingDoc.likedSongs || []), ...likedSongs.map(String).filter(Boolean)]);
+  data.likedSongs = [...mergedLikes]
+    .filter(id => (songTombs.get(id) || 0) <= (mergedMeta[id]?.likedAt || 0))
+    .slice(0, 5000);
+  // Drop meta for songs no longer liked
+  const likeSet = new Set(data.likedSongs);
+  for (const id of Object.keys(mergedMeta)) if (!likeSet.has(id)) delete mergedMeta[id];
+  data.likedMeta = mergedMeta;
+
+  // Playlists: union by id (a stale device's copy must merge, not replace),
+  // per-playlist updatedAt resolves concurrent edits, playlist tombstones
+  // propagate deletes — a tombstone newer than createdAt kills the stale copy.
+  const plTombs = new Map(data.tombstones.playlists.map(t => [t.id, t.ts]));
+  const mergedPls = { ...(existingDoc.playlists || {}) };
+  for (const [id, p] of Object.entries(safePlaylists)) {
+    const prev = mergedPls[id];
+    if (!prev || (p.updatedAt || p.createdAt || 0) >= (prev.updatedAt || prev.createdAt || 0)) mergedPls[id] = p;
+  }
+  data.playlists = Object.fromEntries(
+    Object.entries(mergedPls).filter(([id, p]) => (plTombs.get(id) || 0) <= (p.createdAt || 0))
+  );
+
+  // playCounts — durable per-song totals; max-merge undercounts split-device
+  // sessions but never regresses, which is the right trade for stats.
+  if (req.body?.playCounts && typeof req.body.playCounts === 'object') {
+    const mergedCounts = { ...(existingDoc.playCounts || {}) };
+    for (const [id, c] of Object.entries(req.body.playCounts).slice(0, 20000)) {
+      const n = Math.min(Number(c) || 0, 1000000);
+      if (n > 0) mergedCounts[id] = Math.max(mergedCounts[id] || 0, n);
+    }
+    data.playCounts = mergedCounts;
   }
   saveUserData(req.userId, data);
   res.json({ success: true, ts: data.ts });
@@ -650,6 +681,11 @@ const streamHandler = async (req, res, bitrate = '320') => {
         headers['Range'] = range;
       }
       
+      // The stream URL comes from third-party upstream APIs — only fetch
+      // known JioSaavn CDN hosts, never an arbitrary upstream-supplied URL.
+      if (!/^https?:\/\/[a-z0-9.-]*\.(saavncdn\.com|jiosaavn\.com)(\/|:|$)/i.test(streamUrl)) {
+        return res.status(404).json({ error: 'Stream unavailable' });
+      }
       // Proxy the stream from external URL — timeout covers the upstream
       // response start; once headers arrive piping continues unbounded
       const streamResponse = await axios.get(streamUrl, {
@@ -686,8 +722,13 @@ const streamHandler = async (req, res, bitrate = '320') => {
   }
 };
 
-// Register stream endpoint (auth temporarily disabled for deployment)
+// Register stream endpoint — open so guests can listen, but rate-limited
+// per IP (seeks = range requests, so the cap is generous) to stop the
+// deployed URL becoming a free public proxy.
 app.get('/api/stream/:songId', async (req, res) => {
+  if (rateLimited(`stream:${req.ip}`, 300)) {
+    return res.status(429).json({ error: 'Too many requests — try again in a minute' });
+  }
   const { songId } = req.params;
   const bitrate = req.query.bitrate || '320'; // Default to 320kbps
   
@@ -1696,7 +1737,8 @@ app.post('/api/translate', async (req, res) => {
       return res.status(429).json({ success: false, error: 'Rate limited — try again shortly' });
     }
     const { text, lines } = req.body || {};
-    const to = typeof req.query.lang === 'string' ? req.query.lang.slice(0, 8) : 'en';
+    const langRaw = typeof req.query.lang === 'string' ? req.query.lang : '';
+    const to = /^[a-z]{2}(-[a-z]{2})?$/i.test(langRaw) ? langRaw.toLowerCase() : 'en';
     if (Array.isArray(lines)) {
       const chunk = lines.slice(0, 200).map(l => String(l || '').slice(0, 1000));
       // Fast path: one upstream call for the whole song — join on \n (gtx

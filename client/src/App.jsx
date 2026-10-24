@@ -1568,10 +1568,12 @@ function AppContent() {
         if (newSet.has(songId)) {
           newSet.delete(songId)
           delete meta[songId]
+          addTombstone('songs', songId)
         } else {
           newSet.add(songId)
           const slim = song ? slimSong(song) : null
           if (slim) meta[songId] = { ...slim, likedAt: Date.now() }
+          clearTombstone('songs', songId)
         }
         localStorage.setItem('likedSongs', JSON.stringify([...newSet]))
         try { localStorage.setItem('likedMeta', JSON.stringify(meta)) } catch { /* quota */ }
