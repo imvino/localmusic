@@ -22,6 +22,9 @@ export default class ErrorBoundary extends Component {
 
   render() {
     if (this.state.error) {
+      // Player chrome (seekbar, queue, fullscreen) — a render crash hides the
+      // UI but must never kill playback; recover on the next route change.
+      if (this.props.silent) return null
       return (
         <div className="flex flex-col items-center justify-center min-h-[40vh] text-center p-8 gap-3">
           <AlertTriangle size={40} className="text-zinc-600" />

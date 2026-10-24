@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react'
 import { useAuth } from '@clerk/clerk-react'
 import { usePlaylistStore } from '../stores/playlistStore'
 import { clearPersonalData, getLastUserId, setLastUserId } from '../utils/personalData'
-import { slimSong, slimPlaylists, mergePlaylists, mergeHistory, mergeCollections, markPullDone, resetPullDone, isPullDone } from '../utils/sync'
+import { slimSong, slimPlaylists, mergePlaylists, mergeHistory, mergeCollections, markPullDone, resetPullDone, isPullDone, onPullDone } from '../utils/sync'
 
 const API_BASE = import.meta.env.VITE_API_URL
 const LAST_SYNC_KEY = 'libraryLastSync'
@@ -52,7 +52,7 @@ async function pushSnapshot(getToken, likedSongs, playlists, collections) {
 // must never fire before the session's first pull resolves. A push of the
 // just-wiped empty state would overwrite the good server doc AND stamp
 // libraryLastSync so the pull's apply is skipped: total loss both sides.
-export function useLibrarySync({ likedSongs, setLikedSongs, savedAlbums, setSavedAlbums, followedArtists, setFollowedArtists }) {
+export function useLibrarySync({ likedSongs, setLikedSongs, savedAlbums, setSavedAlbums, followedArtists, setFollowedArtists, historyVersion }) {
   const { isSignedIn, userId, getToken } = useAuth()
   const playlists = usePlaylistStore(s => s.playlists)
   const lastSyncRef = useRef(() => {
@@ -83,7 +83,8 @@ export function useLibrarySync({ likedSongs, setLikedSongs, savedAlbums, setSave
         const token = await getToken()
         if (!token) return
         const res = await fetch(`${API_BASE}/api/me/library`, {
-          headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` },
+          signal: AbortSignal.timeout(10000) // cold-start cap — pullDone MUST resolve
         })
         if (!live) return
 
@@ -147,13 +148,17 @@ export function useLibrarySync({ likedSongs, setLikedSongs, savedAlbums, setSave
 
   // Debounced push on any local change — held until the session's first
   // pull resolves so a fresh/empty state can never clobber the server.
+  // If the pull is still in-flight when the debounce fires, the push is
+  // DEFERRED (one-shot onPullDone), not dropped — otherwise changes made
+  // during a slow cold-start pull would be silently lost.
   useEffect(() => {
     if (!isSignedIn) return
     const t = setTimeout(() => {
-      if (!isPullDone()) return
-      pushSnapshot(getToken, likedSongs, usePlaylistStore.getState().playlists,
+      const push = () => pushSnapshot(getToken, likedSongs, usePlaylistStore.getState().playlists,
         { savedAlbums: readLS('savedAlbums', []), followedArtists: readLS('followedArtists', []) })
+      if (isPullDone()) { push(); return }
+      const off = onPullDone(() => { off(); push() })
     }, 2500)
     return () => clearTimeout(t)
-  }, [likedSongs, playlists, savedAlbums, followedArtists, isSignedIn]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [likedSongs, playlists, savedAlbums, followedArtists, historyVersion, isSignedIn]) // eslint-disable-line react-hooks/exhaustive-deps
 }

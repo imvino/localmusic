@@ -39,6 +39,7 @@ export default function FullScreenPlayer({
 }) {
   const playerRef = useRef(null)
   const [lyricsOpen, setLyricsOpen] = useState(false)
+  const [dragT, setDragT] = useState(null) // scrub preview — seek commits on release
   const [sleepSheetOpen, setSleepSheetOpen] = useState(false)
   const [dragY, setDragY] = useState(0)
   const [tint, setTint] = useState(null)
@@ -172,16 +173,20 @@ export default function FullScreenPlayer({
               step={0.1}
               min={0}
               max={duration || 100}
-              values={[currentTime]}
-              onChange={(values) => onSeek(values[0])}
-              renderTrack={({ props, children }) => (
+              values={[dragT ?? currentTime]}
+              onChange={(values) => setDragT(values[0])}
+              onFinalChange={(values) => { onSeek(values[0]); setDragT(null) }}
+              renderTrack={({ props, children }) => {
+                const { key, ...rest } = props
+                return (
                 <div
-                  {...props}
+                  key={key}
+                  {...rest}
                   className="h-2 bg-zinc-800 rounded-full"
                   style={{
                     ...props.style,
                     background: getTrackBackground({
-                      values: [currentTime],
+                      values: [dragT ?? currentTime],
                       colors: ['#ffffff', '#27272a'],
                       min: 0,
                       max: duration || 100
@@ -190,20 +195,26 @@ export default function FullScreenPlayer({
                 >
                   {children}
                 </div>
-              )}
-              renderThumb={({ props, isDragged }) => (
+                )
+              }}
+              renderThumb={({ props, isDragged }) => {
+                const { key, ...rest } = props
+                return (
                 <div
-                  {...props}
+                  key={key}
+                  {...rest}
+                  aria-label="Seek"
                   className={`h-3 w-3 bg-white rounded-full shadow-lg cursor-pointer transition-opacity ${isDragged ? 'opacity-100' : 'opacity-0'}`}
                   style={{
                     ...props.style,
                   }}
                 />
-              )}
+                )
+              }}
             />
           </div>
           <div className="flex items-center justify-between text-xs text-zinc-500">
-            <span>{formatTime(currentTime)}</span>
+            <span>{formatTime(dragT ?? currentTime)}</span>
             <span>{formatTime(duration)}</span>
           </div>
         </div>

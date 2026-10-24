@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, Shuffle, Repeat, Repeat1, Heart, Music, Loader2, ListVideo, Mic2 } from 'lucide-react'
 import { Range, getTrackBackground } from 'react-range'
 import { formatTime, decodeHtmlEntities, getSongArtwork } from '../utils'
@@ -6,6 +6,8 @@ import TrackMenu from '../components/TrackMenu'
 
 export default function PlayerBar({ currentSong, isPlaying, onTogglePlay, onPrev, onNext, volume, onVolumeChange, muted, onMuteToggle, shuffle, onShuffleToggle, repeat, onRepeatToggle, liked, onLikeToggle, currentTime, duration, onSeek, onArtworkClick, onQueueToggle, onLyricsToggle, isSearchingAlbum, isMobileMiniplayer = false, onOpenFullScreen = null, likedSongs, onPlayNext, onAddToQueue, onGoToAlbum, onSongRadio, showToast }) {
   const touch = useRef(null)
+  // Scrub preview — seek commits once on release, not per drag frame
+  const [dragT, setDragT] = useState(null)
 
   if (!currentSong) {
     return null
@@ -131,7 +133,7 @@ export default function PlayerBar({ currentSong, isPlaying, onTogglePlay, onPrev
           <p className="text-sm font-semibold text-white truncate leading-snug">{decodeHtmlEntities(currentSong.name || currentSong.title)}</p>
           <p className="text-xs text-zinc-400 truncate">{currentSong.artist}</p>
         </div>
-        <button onClick={onLikeToggle} className="flex-shrink-0 ml-1">
+        <button onClick={onLikeToggle} className="flex-shrink-0 ml-1" aria-label={liked ? 'Remove from liked songs' : 'Like this song'} title={liked ? 'Liked' : 'Like'}>
           <Heart size={15} className={`transition-colors ${liked ? 'text-[#fc3c44] fill-[#fc3c44]' : 'text-zinc-600 hover:text-[#fc3c44]'}`} />
         </button>
         <TrackMenu
@@ -149,45 +151,51 @@ export default function PlayerBar({ currentSong, isPlaying, onTogglePlay, onPrev
       {/* Controls */}
       <div className="flex-1 flex flex-col items-center gap-1.5 max-w-lg mx-auto">
         <div className="flex items-center gap-5 text-zinc-400">
-          <button onClick={onShuffleToggle} className={`transition-colors ${shuffle ? 'text-[#fc3c44]' : 'hover:text-white'}`}>
+          <button onClick={onShuffleToggle} className={`transition-colors ${shuffle ? 'text-[#fc3c44]' : 'hover:text-white'}`} aria-label="Shuffle" title="Shuffle">
             <Shuffle size={15} />
           </button>
-          <button onClick={onPrev} className="hover:text-white transition-colors">
+          <button onClick={onPrev} className="hover:text-white transition-colors" aria-label="Previous track" title="Previous">
             <SkipBack size={20} className="fill-zinc-400 hover:fill-white" />
           </button>
           <button
             onClick={onTogglePlay}
             className="w-8 h-8 rounded-full bg-white flex items-center justify-center hover:scale-105 transition-transform shadow-md"
+            aria-label={isPlaying ? 'Pause' : 'Play'}
+            title={isPlaying ? 'Pause' : 'Play'}
           >
             {isPlaying
               ? <Pause size={15} className="text-black fill-black" />
               : <Play size={15} className="text-black fill-black ml-0.5" />
             }
           </button>
-          <button onClick={onNext} className="hover:text-white transition-colors">
+          <button onClick={onNext} className="hover:text-white transition-colors" aria-label="Next track" title="Next">
             <SkipForward size={20} className="fill-zinc-400 hover:fill-white" />
           </button>
-          <button onClick={onRepeatToggle} className={`transition-colors ${repeat !== 'off' ? 'text-[#fc3c44]' : 'hover:text-white'}`} title={`Repeat: ${repeat}`}>
+          <button onClick={onRepeatToggle} className={`transition-colors ${repeat !== 'off' ? 'text-[#fc3c44]' : 'hover:text-white'}`} title={`Repeat: ${repeat}`} aria-label={`Repeat: ${repeat}`}>
             {repeat === 'one' ? <Repeat1 size={15} /> : <Repeat size={15} />}
           </button>
         </div>
         <div className="w-full flex items-center gap-2 text-xs text-zinc-600">
-          <span>{formatTime(currentTime)}</span>
+          <span>{formatTime(dragT ?? currentTime)}</span>
           <div className="flex-1 relative group py-1.5 -my-1.5">
             <Range
               step={0.1}
               min={0}
               max={duration || 100}
-              values={[currentTime]}
-              onChange={(values) => onSeek(values[0])}
-              renderTrack={({ props, children }) => (
+              values={[dragT ?? currentTime]}
+              onChange={(values) => setDragT(values[0])}
+              onFinalChange={(values) => { onSeek(values[0]); setDragT(null) }}
+              renderTrack={({ props, children }) => {
+                const { key, ...rest } = props
+                return (
                 <div
-                  {...props}
+                  key={key}
+                  {...rest}
                   className="h-1 rounded-full"
                   style={{
                     ...props.style,
                     background: getTrackBackground({
-                      values: [currentTime],
+                      values: [dragT ?? currentTime],
                       colors: ['#a1a1aa', '#27272a'],
                       min: 0,
                       max: duration || 100
@@ -196,14 +204,20 @@ export default function PlayerBar({ currentSong, isPlaying, onTogglePlay, onPrev
                 >
                   {children}
                 </div>
-              )}
-              renderThumb={({ props, isDragged }) => (
-                <div
-                  {...props}
-                  className={`h-3 w-3 bg-white rounded-full shadow cursor-grab active:cursor-grabbing transition-opacity ${isDragged ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
-                  style={{ ...props.style }}
-                />
-              )}
+                )
+              }}
+              renderThumb={({ props, isDragged }) => {
+                const { key, ...rest } = props // react-range spreads key via props — pass it directly
+                return (
+                  <div
+                    key={key}
+                    {...rest}
+                    aria-label="Seek"
+                    className={`h-3 w-3 bg-white rounded-full shadow cursor-grab active:cursor-grabbing transition-opacity ${isDragged ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
+                    style={{ ...props.style }}
+                  />
+                )
+              }}
             />
           </div>
           <span>{formatTime(duration)}</span>
@@ -212,13 +226,13 @@ export default function PlayerBar({ currentSong, isPlaying, onTogglePlay, onPrev
 
       {/* Volume */}
       <div className="w-1/3 flex items-center justify-end gap-2 text-zinc-500">
-        <button onClick={onLyricsToggle} className="hover:text-white cursor-pointer transition-colors" title="Lyrics">
+        <button onClick={onLyricsToggle} className="hover:text-white cursor-pointer transition-colors" title="Lyrics" aria-label="Lyrics">
           <Mic2 size={16} />
         </button>
-        <button onClick={onQueueToggle} className="hover:text-white cursor-pointer transition-colors" title="Queue">
+        <button onClick={onQueueToggle} className="hover:text-white cursor-pointer transition-colors" title="Queue" aria-label="Queue">
           <ListVideo size={16} />
         </button>
-        <button onClick={onMuteToggle} className="hover:text-white cursor-pointer transition-colors">
+        <button onClick={onMuteToggle} className="hover:text-white cursor-pointer transition-colors" aria-label={muted ? 'Unmute' : 'Mute'} title={muted ? 'Unmute' : 'Mute'}>
           {muted ? <VolumeX size={15} /> : <Volume2 size={15} />}
         </button>
         <input

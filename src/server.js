@@ -252,7 +252,16 @@ app.put('/api/me/library', requireUser, (req, res) => {
     playlists: safePlaylists
   };
   if (Array.isArray(history)) {
-    data.history = history.slice(0, 200).map(s => ({ ...slimLibrarySong(s), ts: Number(s?.ts) || 0 })).filter(s => s.id);
+    // History is append-only — union by id+ts with the existing doc so two
+    // devices pushing different sessions don't clobber each other, and
+    // repeat plays (count stats, "On Repeat") survive the merge.
+    const existing = (loadUserData(req.userId)?.history) || [];
+    const byKey = new Map();
+    for (const s of [...existing, ...history.slice(0, 200)]) {
+      const slim = { ...slimLibrarySong(s), ts: Number(s?.ts) || 0 };
+      if (slim.id) byKey.set(`${slim.id}:${slim.ts}`, slim);
+    }
+    data.history = [...byKey.values()].sort((a, b) => b.ts - a.ts).slice(0, 200);
   }
   const slimCollection = (item, tsKey) => item && typeof item === 'object' ? {
     id: String(item.id || '').slice(0, 200),
@@ -261,11 +270,26 @@ app.put('/api/me/library', requireUser, (req, res) => {
     image: String(item.image || '').slice(0, 1000),
     [tsKey]: Number(item[tsKey]) || 0
   } : null;
+  // Collections are additive — union by id with the existing doc (newest
+  // per-item ts wins) so a stale device push can't silently un-save
+  // albums/artists saved on another device.
+  const existingDoc = (Array.isArray(savedAlbums) || Array.isArray(followedArtists))
+    ? (loadUserData(req.userId) || {})
+    : {};
+  const mergeCollection = (key, incoming, tsKey) => {
+    const byId = new Map();
+    for (const item of [...(existingDoc[key] || []), ...incoming]) {
+      if (!item?.id) continue;
+      const prev = byId.get(item.id);
+      if (!prev || (item[tsKey] || 0) > (prev[tsKey] || 0)) byId.set(item.id, item);
+    }
+    data[key] = [...byId.values()];
+  };
   if (Array.isArray(savedAlbums)) {
-    data.savedAlbums = savedAlbums.slice(0, 2000).map(a => slimCollection(a, 'savedAt')).filter(Boolean);
+    mergeCollection('savedAlbums', savedAlbums.slice(0, 2000).map(a => slimCollection(a, 'savedAt')).filter(Boolean), 'savedAt');
   }
   if (Array.isArray(followedArtists)) {
-    data.followedArtists = followedArtists.slice(0, 2000).map(a => slimCollection(a, 'followedAt')).filter(Boolean);
+    mergeCollection('followedArtists', followedArtists.slice(0, 2000).map(a => slimCollection(a, 'followedAt')).filter(Boolean), 'followedAt');
   }
   saveUserData(req.userId, data);
   res.json({ success: true, ts: data.ts });
@@ -596,10 +620,12 @@ const streamHandler = async (req, res, bitrate = '320') => {
         headers['Range'] = range;
       }
       
-      // Proxy the stream from external URL
+      // Proxy the stream from external URL — timeout covers the upstream
+      // response start; once headers arrive piping continues unbounded
       const streamResponse = await axios.get(streamUrl, {
         responseType: 'stream',
-        headers
+        headers,
+        timeout: 15000
       });
       
       res.setHeader('Content-Type', 'audio/mpeg');

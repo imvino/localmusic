@@ -1,15 +1,34 @@
-import { useMemo } from 'react'
-import { BarChart3, Music, Mic2, Clock3, Heart, TrendingUp, Play } from 'lucide-react'
+import { useMemo, useState } from 'react'
+import { BarChart3, Music, Mic2, Clock3, Heart, TrendingUp, Play, Trash2 } from 'lucide-react'
 import { decodeHtmlEntities } from '../utils'
 import ArtImage from '../components/ArtImage'
 
-export default function StatsView({ likedSongs, onSongClick }) {
+const relTime = (ts) => {
+  if (!ts) return ''
+  const m = Math.round((Date.now() - ts) / 60000)
+  if (m < 1) return 'just now'
+  if (m < 60) return `${m}m ago`
+  const h = Math.round(m / 60)
+  if (h < 24) return `${h}h ago`
+  return `${Math.round(h / 24)}d ago`
+}
+
+export default function StatsView({ likedSongs, onSongClick, showToast }) {
+  const [version, setVersion] = useState(0)
+  const [confirmClear, setConfirmClear] = useState(false)
   const history = useMemo(() => {
     try {
       const raw = JSON.parse(localStorage.getItem('playHistory') || '[]')
       return Array.isArray(raw) ? raw : []
     } catch { return [] }
-  }, [])
+  }, [version])
+
+  const clearHistory = () => {
+    try { localStorage.setItem('playHistory', '[]') } catch { /* quota */ }
+    setConfirmClear(false)
+    setVersion(v => v + 1)
+    showToast?.('Play history cleared')
+  }
 
   const stats = useMemo(() => {
     const songCounts = new Map()
@@ -101,6 +120,54 @@ export default function StatsView({ likedSongs, onSongClick }) {
               </div>
             </section>
           </div>
+
+          {/* Recently played — newest first, Spotify's "Recently played" feed */}
+          <section className="mt-10">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-bold text-white">Recently played</h2>
+              {confirmClear ? (
+                <div className="flex items-center gap-2">
+                  <button onClick={clearHistory} className="px-3 py-1.5 text-xs font-medium rounded-full bg-red-500/20 text-red-400 hover:bg-red-500/30 transition-colors">
+                    Clear history
+                  </button>
+                  <button onClick={() => setConfirmClear(false)} className="px-3 py-1.5 text-xs font-medium rounded-full bg-zinc-800 text-zinc-400 hover:text-white transition-colors">
+                    Cancel
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setConfirmClear(true)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-zinc-500 hover:text-white hover:bg-zinc-800 rounded-full transition-colors"
+                >
+                  <Trash2 size={13} /> Clear
+                </button>
+              )}
+            </div>
+            <div className="flex flex-col gap-1">
+              {history.slice(0, 20).map((song, i) => (
+                <div
+                  key={`${song.id}-${song.ts || i}`}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => onSongClick?.(song, history.slice(0, 20), i)}
+                  onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSongClick?.(song, history.slice(0, 20), i) } }}
+                  className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-zinc-800/60 transition-colors group cursor-pointer"
+                >
+                  <div className="relative shrink-0">
+                    <ArtImage image={song.image} alt="" className="w-9 h-9 rounded" iconSize={14} fallback={Music} />
+                    <div className="absolute inset-0 rounded bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                      <Play size={12} className="text-white" fill="currentColor" />
+                    </div>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-white truncate">{decodeHtmlEntities(song.name || song.title)}</p>
+                    <p className="text-xs text-zinc-500 truncate">{song.artist}</p>
+                  </div>
+                  <span className="text-xs text-zinc-600 shrink-0">{relTime(song.ts)}</span>
+                </div>
+              ))}
+            </div>
+          </section>
         </>
       )}
     </div>

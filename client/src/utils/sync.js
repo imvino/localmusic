@@ -52,15 +52,16 @@ export function mergePlaylists(local, server) {
   return merged
 }
 
-// History is append data — union by song id, newest entry wins, cap 200.
+// History is append data — union by id+ts so EVERY play survives (repeat
+// plays are what power Stats counts and the "On Repeat" rail — collapsing
+// them by id alone silently destroys personalization). Cap 200.
 export function mergeHistory(local, server) {
-  const byId = new Map()
+  const byKey = new Map()
   for (const s of [...(server || []), ...(local || [])]) {
     if (!s?.id) continue
-    const prev = byId.get(s.id)
-    if (!prev || (s.ts || 0) > (prev.ts || 0)) byId.set(s.id, s)
+    byKey.set(`${s.id}:${s.ts || 0}`, s)
   }
-  return [...byId.values()].sort((a, b) => (b.ts || 0) - (a.ts || 0)).slice(0, 200)
+  return [...byKey.values()].sort((a, b) => (b.ts || 0) - (a.ts || 0)).slice(0, 200)
 }
 
 // Collection merge (saved albums / followed artists) — union by id for the

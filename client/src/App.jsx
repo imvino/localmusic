@@ -122,6 +122,7 @@ function AppContent() {
   const [queueIndex, setQueueIndex] = useState(-1)
   const [currentTime, setCurrentTime] = useState(0)
   const [duration, setDuration] = useState(0)
+  const [historyVersion, setHistoryVersion] = useState(0) // bumps on each recorded play — feeds the sync push deps
   const [likedSongs, setLikedSongs] = useState(() => {
     try {
       const saved = localStorage.getItem('likedSongs')
@@ -190,7 +191,7 @@ function AppContent() {
   const serverStatus = healthError ? 'offline' : 'online'
 
   // Cross-device library sync — likes + playlists follow the signed-in user
-  useLibrarySync({ likedSongs, setLikedSongs, savedAlbums, setSavedAlbums, followedArtists, setFollowedArtists })
+  useLibrarySync({ likedSongs, setLikedSongs, savedAlbums, setSavedAlbums, followedArtists, setFollowedArtists, historyVersion })
 
   // Freemium gate — guests get search + play; personal features require sign-in
   const { requireAuth } = useAppAuth()
@@ -603,6 +604,7 @@ function AppContent() {
           duration: Math.round(audio.duration) || 0, ts: Date.now()
         }
         localStorage.setItem('playHistory', JSON.stringify([entry, ...prev].slice(0, 200)))
+        setHistoryVersion(v => v + 1) // triggers the debounced sync push
       } catch { /* history is best-effort */ }
     }
 
@@ -635,6 +637,7 @@ function AppContent() {
       if (e.code === 'Slash' || (e.code === 'KeyK' && (e.metaKey || e.ctrlKey))) {
         e.preventDefault()
         navigate('/search')
+        setTimeout(() => inputRef.current?.focus(), 50)
         return
       }
 
@@ -1813,7 +1816,7 @@ function AppContent() {
             <Route path="/playlists" element={<ProtectedRoute title="Your playlists"><PlaylistsView showToast={showToastMessage} /></ProtectedRoute>} />
             <Route path="/playlists/:id" element={<ProtectedRoute title="Your playlists"><PlaylistDetailView onSongClick={handleSongSelect} onShufflePlay={handleShufflePlay} onPlayNext={handlePlayNext} onAddToQueue={handleAddToQueue} onGoToAlbum={handleGoToAlbum} onSongRadio={handleSongRadio} likedSongs={likedSongs} onLikeToggle={handleLikeToggle} currentSong={currentSong} isPlaying={isPlaying} showToast={showToastMessage} /></ProtectedRoute>} />
             <Route path="/liked" element={<ProtectedRoute title="Liked songs"><LikedSongsView likedSongs={likedSongs} onLikeToggle={handleLikeToggle} onSongClick={handleSongSelect} onShufflePlay={handleShufflePlay} onPlayNext={handlePlayNext} onAddToQueue={handleAddToQueue} onGoToAlbum={handleGoToAlbum} onSongRadio={handleSongRadio} currentSong={currentSong} isPlaying={isPlaying} showToast={showToastMessage} /></ProtectedRoute>} />
-            <Route path="/stats" element={<ProtectedRoute title="Your listening stats"><StatsView likedSongs={likedSongs} onSongClick={handleSongSelect} /></ProtectedRoute>} />
+            <Route path="/stats" element={<ProtectedRoute title="Your listening stats"><StatsView likedSongs={likedSongs} onSongClick={handleSongSelect} showToast={showToastMessage} /></ProtectedRoute>} />
             <Route path="/library" element={<ProtectedRoute title="Your library"><LibraryView likedSongs={likedSongs} savedAlbums={savedAlbums} followedArtists={followedArtists} /></ProtectedRoute>} />
             <Route path="/library/album/:id" element={<ProtectedRoute title="Your library"><LocalAlbumView onSongClick={handleSongSelect} onShufflePlay={handleShufflePlay} onPlayNext={handlePlayNext} onAddToQueue={handleAddToQueue} onGoToAlbum={handleGoToAlbum} onSongRadio={handleSongRadio} likedSongs={likedSongs} onLikeToggle={handleLikeToggle} currentSong={currentSong} isPlaying={isPlaying} showToast={showToastMessage} /></ProtectedRoute>} />
             <Route path="/downloads" element={<ProtectedRoute title="Downloads"><DownloadsView onSongClick={handleSongSelect} showToast={showToastMessage} /></ProtectedRoute>} />
@@ -1827,6 +1830,7 @@ function AppContent() {
         
         {/* Desktop Player - Hidden on mobile */}
         <div className="hidden md:block">
+          <ErrorBoundary silent resetKey={location.pathname}>
           <PlayerBar
             currentSong={currentSong}
             isPlaying={isPlaying}
@@ -1857,12 +1861,14 @@ function AppContent() {
             onSongRadio={handleSongRadio}
             showToast={showToast}
           />
+          </ErrorBoundary>
         </div>
       </div>
-      
+
       {/* Mobile Mini Player - Visible only on mobile */}
       {!showFullScreenPlayer && (
         <div className="fixed bottom-16 left-0 right-0 md:hidden bg-zinc-900 z-30">
+          <ErrorBoundary silent resetKey={location.pathname}>
           <PlayerBar
             currentSong={currentSong}
             isPlaying={isPlaying}
@@ -1887,6 +1893,7 @@ function AppContent() {
             isMobileMiniplayer={true}
             onOpenFullScreen={() => setShowFullScreenPlayer(true)}
           />
+          </ErrorBoundary>
         </div>
       )}
       
@@ -1926,6 +1933,7 @@ function AppContent() {
       
       {/* Full Screen Player - Mobile Only */}
       {showFullScreenPlayer && (
+        <ErrorBoundary silent resetKey={location.pathname}>
         <FullScreenPlayer
           currentSong={currentSong}
           isPlaying={isPlaying}
@@ -1957,9 +1965,11 @@ function AppContent() {
           sleepTimer={sleepTimer}
           onSleepTimer={handleSleepTimer}
         />
+        </ErrorBoundary>
       )}
-      
+
       {/* Queue Drawer */}
+      <ErrorBoundary silent resetKey={location.pathname}>
       <QueueDrawer
         open={queueOpen}
         onClose={() => setQueueOpen(false)}
@@ -1975,15 +1985,18 @@ function AppContent() {
         onMoveTo={handleQueueMoveTo}
         onClear={handleQueueClear}
       />
+      </ErrorBoundary>
 
       {/* Desktop now-playing lyrics — the bar's Mic2 button opens this */}
       {desktopLyricsOpen && currentSong && (
+        <ErrorBoundary silent resetKey={location.pathname}>
         <LyricsModal
           song={currentSong}
           onClose={() => setDesktopLyricsOpen(false)}
           currentTime={currentTime}
           onSeek={handleSeek}
         />
+        </ErrorBoundary>
       )}
 
       {/* Download Manager - Only in development */}

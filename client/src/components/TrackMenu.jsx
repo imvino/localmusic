@@ -32,7 +32,7 @@ export default function TrackMenu({ song, likedSongs, onLikeToggle, onPlayNext, 
   useLayoutEffect(() => {
     if (!open || !triggerRef.current) return
     const rect = triggerRef.current.getBoundingClientRect()
-    const menuHeight = 360 // generous estimate incl. playlist picker
+    const menuHeight = menuRef.current?.offsetHeight || 360 // measure once mounted; guess on first paint
     const menuWidth = 224
     const flip = rect.bottom + menuHeight > window.innerHeight
     setPos({
@@ -127,6 +127,7 @@ export default function TrackMenu({ song, likedSongs, onLikeToggle, onPlayNext, 
         onClick={(e) => { e.stopPropagation(); setOpen(o => !o); setShowPlaylistPicker(false) }}
         className={triggerClass || "p-2 text-zinc-500 hover:text-white transition-colors touch-target"}
         title="More options"
+        aria-label="More options"
       >
         <MoreHorizontal size={18} />
       </button>

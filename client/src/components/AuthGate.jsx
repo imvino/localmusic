@@ -56,7 +56,7 @@ function ClerkAuthProvider({ children }) {
     const off = onPullDone(() => { pendingRef.current = null; fn() })
     const safety = setTimeout(() => {
       if (pendingRef.current === fn) { pendingRef.current = null; fn() }
-    }, 5000) // sync pull failed (offline) — still honor the user's intent
+    }, 20000) // pull fetch has a 10s AbortSignal timeout — this only fires on pathological hangs
     return () => { off(); clearTimeout(safety) }
   }, [isSignedIn])
 

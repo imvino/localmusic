@@ -31,12 +31,17 @@ describe('mergePlaylists (first-login union)', () => {
 })
 
 describe('mergeHistory', () => {
-  it('unions by song id, keeps the newest ts, sorts newest-first', () => {
+  it('unions by id+ts — every play survives so repeat counts work', () => {
     const local = [{ ...song('a'), ts: 50 }, { ...song('b'), ts: 10 }]
     const server = [{ ...song('a'), ts: 30 }, { ...song('c'), ts: 90 }]
     const merged = mergeHistory(local, server)
-    expect(merged.map(s => s.id)).toEqual(['c', 'a', 'b'])
-    expect(merged.find(s => s.id === 'a').ts).toBe(50)
+    // 'a' was played on BOTH devices at different times → 2 entries
+    expect(merged.map(s => `${s.id}:${s.ts}`)).toEqual(['c:90', 'a:50', 'a:30', 'b:10'])
+  })
+  it('dedupes the identical play seen on both devices', () => {
+    const local = [{ ...song('a'), ts: 50 }]
+    const server = [{ ...song('a'), ts: 50 }]
+    expect(mergeHistory(local, server)).toHaveLength(1)
   })
   it('caps at 200 entries', () => {
     const local = Array.from({ length: 300 }, (_, i) => ({ ...song(`s${i}`), ts: i }))
