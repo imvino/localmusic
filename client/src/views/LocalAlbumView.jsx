@@ -63,7 +63,6 @@ export default function LocalAlbumView({ onSongClick, onShufflePlay, showToast, 
     )
   }
 
-  const handlePlayAll = () => onShufflePlay ? undefined : onSongClick(songs[0], songs, 0)
   const handleShuffle = () => onShufflePlay?.(songs)
 
   return (

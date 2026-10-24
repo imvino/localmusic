@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useMemo } from 'react'
 import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import { ArrowLeft, Disc, Download, Loader2, ChevronDown, Play, Shuffle, Radio, Share2 } from 'lucide-react'
 import TrackMenu from '../components/TrackMenu'
+import BatchDownloadButton from '../components/BatchDownloadButton'
 import { useDownloadStore } from '../stores/downloadStore'
 import MetaTags from '../components/MetaTags'
 import { decodeHtmlEntities, getArtistImageUrl, getImageSrc } from '../utils'
@@ -591,7 +592,7 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
             <button
               onClick={(e) => handleDownloadAlbum(e)}
               disabled={downloadingAlbum[id] || songs.length === 0}
-              className="hidden md:flex items-center gap-2 px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-full text-sm font-medium transition-colors disabled:opacity-50"
+              className="md:hidden flex items-center gap-2 px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded-full text-sm font-medium transition-colors disabled:opacity-50"
             >
               {(() => {
                 const albumDl = Object.values(downloads).find(dl => dl.songId === id && dl.songName.startsWith('Album:'))
@@ -599,19 +600,24 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
                   <>
                     <Loader2 size={16} className="animate-spin" />
                     {albumDl.currentSong && albumDl.totalSongs ? (
-                      <span>{albumDl.currentSong}/{albumDl.totalSongs} songs ({albumDl.progress}%)</span>
+                      <span>{albumDl.currentSong}/{albumDl.totalSongs} ({albumDl.progress}%)</span>
                     ) : (
-                      <span>{albumDl.progress}% - {albumDl.current}</span>
+                      <span>{albumDl.progress}%</span>
                     )}
                   </>
                 ) : (
                   <>
                     <Download size={16} />
-                    Download Album
+                    Download
                   </>
                 )
               })()}
             </button>
+          )}
+          {isAlbum && (
+            <div className="md:hidden">
+              <BatchDownloadButton songs={songs} compact />
+            </div>
           )}
         </div>
       </div>
