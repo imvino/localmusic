@@ -20,6 +20,8 @@ export default function BackupControls({ onImportLibrary, showToast }) {
         exportedAt: new Date().toISOString(),
         likedSongs: read('likedSongs', '[]'),
         playlists: usePlaylistStore.getState().playlists,
+        folders: usePlaylistStore.getState().folders,
+        removedFolders: read('removedFolders', '[]'),
         playHistory: read('playHistory', '[]'),
         savedAlbums: read('savedAlbums', '[]'),
         followedArtists: read('followedArtists', '[]'),
@@ -55,7 +57,10 @@ export default function BackupControls({ onImportLibrary, showToast }) {
       if (backup?.app !== 'torsongs' || !backup.v) throw new Error('Not a Torsongs backup')
       // Write through to localStorage (source of truth) then refresh React state
       if (Array.isArray(backup.likedSongs)) localStorage.setItem('likedSongs', JSON.stringify(backup.likedSongs))
-      if (backup.playlists && typeof backup.playlists === 'object') localStorage.setItem('playlists', JSON.stringify({ state: { playlists: backup.playlists }, version: 0 }))
+      if (backup.playlists && typeof backup.playlists === 'object') {
+        localStorage.setItem('playlists', JSON.stringify({ state: { playlists: backup.playlists, folders: backup.folders || {} }, version: 0 }))
+      }
+      if (Array.isArray(backup.removedFolders)) localStorage.setItem('removedFolders', JSON.stringify(backup.removedFolders))
       if (Array.isArray(backup.playHistory)) localStorage.setItem('playHistory', JSON.stringify(backup.playHistory))
       if (Array.isArray(backup.savedAlbums)) localStorage.setItem('savedAlbums', JSON.stringify(backup.savedAlbums))
       if (Array.isArray(backup.followedArtists)) localStorage.setItem('followedArtists', JSON.stringify(backup.followedArtists))

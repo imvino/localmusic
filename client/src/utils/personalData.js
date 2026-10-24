@@ -26,6 +26,7 @@ const PERSONAL_KEYS = [
   'removedAlbums',
   'removedArtists',
   'removedPlaylists',
+  'removedFolders',
 ]
 
 export function clearPersonalData() {

@@ -1,4 +1,4 @@
-import { Compass, RefreshCw, Keyboard, X, Trash2, ListMusic, Settings, Heart, Music, Radio, Timer, SlidersHorizontal, BarChart3, Waves, Download, Lock, Pin } from 'lucide-react'
+import { Compass, RefreshCw, Keyboard, X, Trash2, ListMusic, Settings, Heart, Music, Radio, Timer, SlidersHorizontal, BarChart3, Waves, Download, Lock, Pin, EyeOff, Folder, FolderOpen, ChevronDown, ChevronRight } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 import { useState } from 'react'
 import { usePlaylistStore } from '../stores/playlistStore'
@@ -14,15 +14,17 @@ const NAV_ITEMS = [
   { id: 'discover', label: 'Discover', icon: Compass, path: '/discover' },
 ]
 
-export default function Sidebar({ showToast, onClose, qualityPreference, onQualityChange, autoplayEnabled, onAutoplayToggle, sleepTimer, onSleepTimer, eqSettings, onEqChange, smoothTransitions, onSmoothTransitionsToggle, installPrompt, onInstall, onImportLibrary }) {
+export default function Sidebar({ showToast, onClose, qualityPreference, onQualityChange, autoplayEnabled, onAutoplayToggle, sleepTimer, onSleepTimer, eqSettings, onEqChange, smoothTransitions, onSmoothTransitionsToggle, installPrompt, onInstall, onImportLibrary, likedCount, privateSession, onPrivateSessionToggle }) {
   const location = useLocation()
   const currentPath = location.pathname
   const playlists = usePlaylistStore(s => s.playlists)
+  const folders = usePlaylistStore(s => s.folders)
   const { isSignedIn, openSignIn } = useAppAuth()
   const [isScanning, setIsScanning] = useState(false)
   const [showShortcuts, setShowShortcuts] = useState(false)
   const [showQualitySettings, setShowQualitySettings] = useState(false)
   const [showEqSettings, setShowEqSettings] = useState(false)
+  const [collapsedFolders, setCollapsedFolders] = useState({})
 
   const sleepTimerValue = sleepTimer?.type === 'eot' ? 'eot'
     : sleepTimer?.type === 'timer' ? String(Math.max(1, Math.round((sleepTimer.endsAt - Date.now()) / 60000)))
@@ -264,6 +266,21 @@ export default function Sidebar({ showToast, onClose, qualityPreference, onQuali
             </span>
           </button>
 
+          {/* Private session — device-scoped; pauses history/count writes
+              so a shared listening session doesn't skew personalization */}
+          <button
+            onClick={() => onPrivateSessionToggle?.(!privateSession)}
+            className="flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-left w-full text-zinc-400 hover:text-white hover:bg-zinc-800/40"
+          >
+            <div className="flex items-center gap-3">
+              <EyeOff size={17} />
+              Private session
+            </div>
+            <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${privateSession ? 'bg-[#fc3c44] text-white' : 'bg-zinc-800 text-zinc-500'}`}>
+              {privateSession ? 'On' : 'Off'}
+            </span>
+          </button>
+
           {/* Stats — member-only surface */}
           {isSignedIn && (
           <Link
@@ -297,6 +314,7 @@ export default function Sidebar({ showToast, onClose, qualityPreference, onQuali
           >
             <Heart size={17} />
             Liked Songs
+            {likedCount > 0 && <span className="ml-auto text-[10px] px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-400">{likedCount}</span>}
           </Link>
 
           <Link
@@ -323,11 +341,19 @@ export default function Sidebar({ showToast, onClose, qualityPreference, onQuali
             Downloads
           </Link>
 
-          {/* Recent playlists inline */}
-          {Object.values(playlists)
-            .sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0) || b.createdAt - a.createdAt)
-            .slice(0, 5)
-            .map(p => (
+          {/* Recent playlists inline — pinned wins over folder grouping;
+              unpinned members nest under a collapsible folder row */}
+          {(() => {
+            const all = Object.values(playlists)
+            const pinned = all.filter(p => p.pinned)
+            const unfiled = all.filter(p => !p.pinned && (!p.folderId || !folders[p.folderId]))
+            const flat = [...pinned, ...unfiled].sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0) || b.createdAt - a.createdAt).slice(0, 5)
+            const byFolder = {}
+            for (const p of all) {
+              if (p.pinned || !p.folderId || !folders[p.folderId]) continue
+              ;(byFolder[p.folderId] ||= []).push(p)
+            }
+            const plLink = p => (
               <Link
                 key={p.id}
                 to={`/playlists/${p.id}`}
@@ -340,7 +366,43 @@ export default function Sidebar({ showToast, onClose, qualityPreference, onQuali
                 {p.pinned ? <Pin size={14} className="shrink-0 fill-[#fc3c44] text-[#fc3c44]" /> : <Music size={14} className="shrink-0" />}
                 <span className="truncate">{p.name}</span>
               </Link>
-            ))}
+            )
+            return (
+              <>
+                {flat.map(plLink)}
+                {Object.entries(byFolder).map(([fid, members]) => {
+                  const collapsed = !!collapsedFolders[fid]
+                  return (
+                    <div key={fid}>
+                      <button
+                        onClick={() => setCollapsedFolders(c => ({ ...c, [fid]: !collapsed }))}
+                        className="flex items-center gap-3 pl-6 pr-3 py-2 rounded-xl text-xs font-medium transition-all text-left w-full text-zinc-500 hover:text-white hover:bg-zinc-800/40"
+                      >
+                        {collapsed ? <ChevronRight size={14} className="shrink-0" /> : <ChevronDown size={14} className="shrink-0" />}
+                        {collapsed ? <Folder size={14} className="shrink-0" /> : <FolderOpen size={14} className="shrink-0" />}
+                        <span className="truncate">{folders[fid].name}</span>
+                        <span className="ml-auto text-[10px] text-zinc-600">{members.length}</span>
+                      </button>
+                      {!collapsed && members.sort((a, b) => b.createdAt - a.createdAt).map(p => (
+                        <Link
+                          key={p.id}
+                          to={`/playlists/${p.id}`}
+                          onClick={onClose}
+                          className={`flex items-center gap-3 pl-12 pr-3 py-2 rounded-xl text-xs font-medium transition-all text-left w-full truncate
+                            ${currentPath === `/playlists/${p.id}`
+                              ? 'bg-zinc-800 text-white'
+                              : 'text-zinc-500 hover:text-white hover:bg-zinc-800/40'}`}
+                        >
+                          <Music size={14} className="shrink-0" />
+                          <span className="truncate">{p.name}</span>
+                        </Link>
+                      ))}
+                    </div>
+                  )
+                })}
+              </>
+            )
+          })()}
         </div>
         ) : (
         <div className="flex flex-col gap-0.5">
@@ -410,6 +472,11 @@ export default function Sidebar({ showToast, onClose, qualityPreference, onQuali
 
         {/* Account — sign in / user menu (bottom of sidebar, Spotify style) */}
         <div className="mt-auto pt-4 border-t border-zinc-800/60">
+          {privateSession && (
+            <div className="flex items-center gap-1.5 px-3 mb-2 text-[10px] font-semibold uppercase tracking-widest text-amber-400">
+              <EyeOff size={12} /> Private
+            </div>
+          )}
           <UserMenu />
         </div>
       </div>

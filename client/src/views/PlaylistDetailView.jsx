@@ -5,6 +5,7 @@ import { usePlaylistStore } from '../stores/playlistStore'
 import { getImageSrc, formatDuration, encodePlaylistShare, haptic } from '../utils'
 import TrackMenu from '../components/TrackMenu'
 import BatchDownloadButton from '../components/BatchDownloadButton'
+import SwipeableRow from '../components/SwipeableRow'
 
 export default function PlaylistDetailView({ onSongClick, onShufflePlay, onPlayNext, onAddToQueue, onGoToAlbum, onSongRadio, likedSongs, onLikeToggle, currentSong, isPlaying, showToast }) {
   const { id } = useParams()
@@ -149,10 +150,12 @@ export default function PlaylistDetailView({ onSongClick, onShufflePlay, onPlayN
             const i = playlist.songs.indexOf(song)
             const isCurrent = currentSong?.id === song.id
             return (
-              <div
+              <SwipeableRow
                 key={`${i}-${song.id}`}
                 className="group flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-zinc-800/60 transition-colors cursor-pointer"
                 onClick={() => onSongClick(song, shown, shownIdx)} // plays the filtered subset, Spotify-style
+                onSwipeLeft={() => onAddToQueue?.(song)}
+                onSwipeRight={() => onLikeToggle?.(song.id, song)}
               >
                 <span className={`w-6 text-xs text-center shrink-0 ${isCurrent ? 'text-[#fc3c44] font-semibold' : 'text-zinc-600'}`}>
                   {isCurrent && isPlaying ? '▶' : i + 1}
@@ -197,7 +200,7 @@ export default function PlaylistDetailView({ onSongClick, onShufflePlay, onPlayN
                     showToast={showToast}
                   />
                 </div>
-              </div>
+              </SwipeableRow>
             )
             })
           })()}

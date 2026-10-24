@@ -29,11 +29,49 @@ export function slimPlaylists(playlists) {
       createdAt: p.createdAt || Date.now(),
       updatedAt: p.updatedAt || p.createdAt || Date.now(),
       pinned: !!p.pinned,
+      // folderId rides along — dropping it here would wipe folder
+      // assignments on every push (the server's stored copy wins ties).
+      ...(p.folderId ? { folderId: String(p.folderId) } : {}),
       removed: p.removed && typeof p.removed === 'object' ? p.removed : {},
       songs: (p.songs || []).map(slimSong).filter(Boolean)
     }
   }
   return out
+}
+
+export function slimFolders(folders) {
+  const out = {}
+  for (const [id, f] of Object.entries(folders || {})) {
+    if (!f) continue
+    out[id] = {
+      id: f.id || id,
+      name: String(f.name || 'Folder').slice(0, 200),
+      createdAt: f.createdAt || Date.now(),
+      updatedAt: f.updatedAt || f.createdAt || Date.now()
+    }
+  }
+  return out
+}
+
+// Folder merge — newest updatedAt wins scalars; tomb filter happens at the
+// call site (same shape as playlist merging, minus the song lists).
+export function mergeFolders(local, server) {
+  const merged = {}
+  const ids = new Set([...Object.keys(local || {}), ...Object.keys(server || {})])
+  for (const id of ids) {
+    const l = local[id]
+    const s = server[id]
+    if (!l) { merged[id] = s; continue }
+    if (!s) { merged[id] = l; continue }
+    merged[id] = (s.updatedAt || s.createdAt || 0) >= (l.updatedAt || l.createdAt || 0) ? s : l
+  }
+  return merged
+}
+
+// Artist-name normalizer — shared by the "New from artists you follow" rail
+// and daily-mix clustering. "A. R. Rahman" must match "AR Rahman".
+export function normalizeArtistName(name) {
+  return String(name || '').toLowerCase().replace(/[^a-z0-9]/g, '')
 }
 
 // Union playlists by id — used ONLY for the first-ever merge (importing a
@@ -74,6 +112,10 @@ export function mergePlaylists(local, server) {
     }
     merged[id] = {
       ...loser, ...winner,
+      // folderId defensive guard: a server copy that lacks the field
+      // entirely (un-migrated/rolled-back server) must NOT strip a local
+      // assignment — local wins when the winner never carried the field.
+      ...(winner.folderId === undefined && loser.folderId ? { folderId: loser.folderId } : {}),
       songs: songs.filter(x => (removed[x.id] || 0) <= (x.addedAt || 0)),
       removed
     }
@@ -110,7 +152,7 @@ export function mergeCollections(local, server) {
 // Tombstones — deletes must propagate through union merges, or an un-save /
 // un-follow / clear-history silently resurrects on the next pull. A tombstone
 // only kills items saved BEFORE it, so re-saving later still works.
-export const TOMB_KEYS = { albums: 'removedAlbums', artists: 'removedArtists', songs: 'removedSongs', playlists: 'removedPlaylists' }
+export const TOMB_KEYS = { albums: 'removedAlbums', artists: 'removedArtists', songs: 'removedSongs', playlists: 'removedPlaylists', folders: 'removedFolders' }
 export const HISTORY_CLEARED_KEY = 'historyClearedAt'
 
 export function getTombstones(key) {

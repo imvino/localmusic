@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
-import { BarChart3, Music, Mic2, Clock3, Heart, TrendingUp, Play, Trash2 } from 'lucide-react'
-import { decodeHtmlEntities } from '../utils'
+import { useNavigate } from 'react-router-dom'
+import { BarChart3, Music, Mic2, Clock3, Heart, TrendingUp, Play, Trash2, Users, Sparkles } from 'lucide-react'
+import { decodeHtmlEntities, encodeBlendShare } from '../utils'
 import { HISTORY_CLEARED_KEY } from '../utils/sync'
 import ArtImage from '../components/ArtImage'
 
@@ -15,8 +16,30 @@ const relTime = (ts) => {
 }
 
 export default function StatsView({ likedSongs, onSongClick, showToast }) {
+  const navigate = useNavigate()
   const [version, setVersion] = useState(0)
   const [confirmClear, setConfirmClear] = useState(false)
+
+  // "Create Blend" — encode the member's top-50 playCounts ids in a share
+  // link. Needs a minimum of listening data to mean anything; hidden under 5.
+  const playCountEntries = useMemo(() => {
+    try { return Object.values(JSON.parse(localStorage.getItem('playCounts') || '{}')).filter(e => e?.id) }
+    catch { return [] }
+  }, [version])
+
+  const createBlend = async () => {
+    const top = [...playCountEntries].sort((a, b) => (b.count || 0) - (a.count || 0)).slice(0, 50)
+    const url = `${window.location.origin}/blend/${encodeBlendShare('a friend', top)}`
+    try {
+      if (navigator.share) await navigator.share({ title: 'Blend with me on Torsongs', url })
+      else { await navigator.clipboard.writeText(url); showToast?.('Blend link copied — send it to family', 'success') }
+    } catch (e) {
+      if (e?.name !== 'AbortError') {
+        try { await navigator.clipboard.writeText(url); showToast?.('Blend link copied — send it to family', 'success') }
+        catch { showToast?.('Could not share', 'error') }
+      }
+    }
+  }
   const history = useMemo(() => {
     try {
       const raw = JSON.parse(localStorage.getItem('playHistory') || '[]')
@@ -76,9 +99,27 @@ export default function StatsView({ likedSongs, onSongClick, showToast }) {
 
   return (
     <div className="p-4 md:p-8 pb-32">
-      <h1 className="text-2xl font-bold text-white mb-6 flex items-center gap-2">
-        <BarChart3 className="text-[#fc3c44]" /> Your Stats
-      </h1>
+      <div className="flex items-center justify-between mb-6 gap-2 flex-wrap">
+        <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+          <BarChart3 className="text-[#fc3c44]" /> Your Stats
+        </h1>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => navigate('/wrapped')}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-full bg-gradient-to-r from-[#fc3c44] to-purple-700 text-white hover:opacity-90 transition-opacity"
+          >
+            <Sparkles size={13} /> Wrapped
+          </button>
+          {playCountEntries.length >= 5 && (
+            <button
+              onClick={createBlend}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-full bg-zinc-800 text-zinc-200 hover:bg-zinc-700 transition-colors"
+            >
+              <Users size={13} /> Create Blend
+            </button>
+          )}
+        </div>
+      </div>
 
       {history.length === 0 ? (
         <div className="flex flex-col items-center justify-center min-h-[40vh] text-center text-zinc-500 gap-3">

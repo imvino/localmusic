@@ -232,7 +232,7 @@ const slimLibrarySong = (s) => ({
 // history/savedAlbums/followedArtists are optional additive fields so older
 // clients keep working.
 app.put('/api/me/library', requireUser, (req, res) => {
-  const { v, ts, likedSongs, playlists, history, savedAlbums, followedArtists, removedAlbums, removedArtists, historyClearedAt, likedMeta } = req.body || {};
+  const { v, ts, likedSongs, playlists, folders, history, savedAlbums, followedArtists, removedAlbums, removedArtists, historyClearedAt, likedMeta } = req.body || {};
   if (!Array.isArray(likedSongs) || typeof playlists !== 'object' || playlists === null) {
     return res.status(400).json({ success: false, error: 'Bad payload' });
   }
@@ -245,9 +245,24 @@ app.put('/api/me/library', requireUser, (req, res) => {
       createdAt: Number(p.createdAt) || Date.now(),
       updatedAt: Number(p.updatedAt) || Number(p.createdAt) || Date.now(),
       pinned: !!p.pinned,
+      // folderId MUST round-trip — stripping it here would wipe the
+      // client's folder assignment on that same device's next pull.
+      ...(p.folderId ? { folderId: String(p.folderId).slice(0, 200) } : {}),
       removed: p.removed && typeof p.removed === 'object' ? p.removed : {},
       songs: Array.isArray(p.songs) ? p.songs.slice(0, 2000).map(slimLibrarySong).filter(s => s.id) : []
     };
+  }
+  const safeFolders = {};
+  if (folders && typeof folders === 'object') {
+    for (const [id, f] of Object.entries(folders).slice(0, 200)) {
+      if (!f || typeof f !== 'object') continue;
+      safeFolders[id] = {
+        id: f.id || id,
+        name: typeof f.name === 'string' ? f.name.slice(0, 200) : 'Folder',
+        createdAt: Number(f.createdAt) || Date.now(),
+        updatedAt: Number(f.updatedAt) || Number(f.createdAt) || Date.now()
+      };
+    }
   }
   const data = { v: v || 1, ts: Number(ts) || Date.now() };
   const existingDoc = loadUserData(req.userId) || {};
@@ -266,7 +281,8 @@ app.put('/api/me/library', requireUser, (req, res) => {
     albums: unionTombstones(existingDoc.tombstones?.albums, Array.isArray(removedAlbums) ? removedAlbums : []),
     artists: unionTombstones(existingDoc.tombstones?.artists, Array.isArray(removedArtists) ? removedArtists : []),
     songs: unionTombstones(existingDoc.tombstones?.songs, Array.isArray(req.body?.removedSongs) ? req.body.removedSongs : []),
-    playlists: unionTombstones(existingDoc.tombstones?.playlists, Array.isArray(req.body?.removedPlaylists) ? req.body.removedPlaylists : [])
+    playlists: unionTombstones(existingDoc.tombstones?.playlists, Array.isArray(req.body?.removedPlaylists) ? req.body.removedPlaylists : []),
+    folders: unionTombstones(existingDoc.tombstones?.folders, Array.isArray(req.body?.removedFolders) ? req.body.removedFolders : [])
   };
   data.historyClearedAt = Math.max(
     Number(existingDoc.historyClearedAt) || 0,
@@ -377,6 +393,26 @@ app.put('/api/me/library', requireUser, (req, res) => {
   data.playlists = Object.fromEntries(
     Object.entries(mergedPls).filter(([id, p]) => (plTombs.get(id) || 0) <= (p.createdAt || 0))
   );
+
+  // Folders: union by id (newest updatedAt wins), tombstone filter — then
+  // un-file member playlists ONLY for folders the tomb filter killed in
+  // this merge. An unconditional clear would strip membership from restored
+  // folders: server tombstones persist forever while a restamped folder
+  // legitimately survives the filter.
+  const flTombs = new Map(data.tombstones.folders.map(t => [t.id, t.ts]));
+  const mergedFolders = { ...(existingDoc.folders || {}) };
+  for (const [id, f] of Object.entries(safeFolders)) {
+    const prev = mergedFolders[id];
+    mergedFolders[id] = !prev || (f.updatedAt || 0) >= (prev.updatedAt || 0) ? f : prev;
+  }
+  data.folders = Object.fromEntries(
+    Object.entries(mergedFolders).filter(([id, f]) => (flTombs.get(id) || 0) <= (f.createdAt || 0))
+  );
+  for (const [id, p] of Object.entries(data.playlists)) {
+    if (!p.folderId) continue;
+    if (data.folders[p.folderId]) continue; // survived the tomb filter (or was restored)
+    data.playlists[id] = { ...p, folderId: undefined };
+  }
 
   // playCounts — durable per-song totals stored as { ...slimSong, count, ts };
   // max-merge undercounts split-device sessions but never regresses, which

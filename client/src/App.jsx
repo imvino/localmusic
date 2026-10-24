@@ -23,6 +23,8 @@ import LibraryView from './views/LibraryView'
 import LocalAlbumView from './views/LocalAlbumView'
 import DownloadsView from './views/DownloadsView'
 import SharedPlaylistView from './views/SharedPlaylistView'
+import BlendView from './views/BlendView'
+import WrappedView from './views/WrappedView'
 import QueueDrawer from './components/QueueDrawer'
 import ErrorBoundary from './components/ErrorBoundary'
 import UserMenu from './components/UserMenu'
@@ -176,6 +178,12 @@ function AppContent() {
   const [smoothTransitions, setSmoothTransitions] = useState(() => localStorage.getItem('smoothTransitions') === 'on')
   const fadingRef = useRef(false) // true while a volume ramp owns audio.volume
   const fadeRafRef = useRef(null)
+  // Private session — device-scoped, never synced; suppresses history/count
+  // writes so a shared listening session doesn't pollute personalization.
+  const [privateSession, setPrivateSession] = useState(() => localStorage.getItem('privateSession') === 'on')
+  const privateSessionRef = useRef(privateSession) // handlePlaying reads the live value
+  // Offline awareness — navigator.onLine + the health-check signal
+  const [isOnline, setIsOnline] = useState(() => navigator.onLine !== false)
 
   // Mirror live queue/shuffle state — post-await commits must not use
   // pre-await snapshots (user may toggle shuffle mid-fetch)
@@ -279,9 +287,15 @@ function AppContent() {
           ...p, createdAt: now, updatedAt: now,
           songs: (p.songs || []).map(s => ({ ...s, addedAt: now })) // restore = new save, per song
         }]))
+      // Restored folders get fresh timestamps + their tombstone cleared —
+      // playlist.folderId is preserved so membership returns with the folder.
+      const restampedFolders = Object.fromEntries(Object.entries(
+        (backup.folders && typeof backup.folders === 'object') ? backup.folders : {}
+      ).map(([id, f]) => [id, { ...f, createdAt: now, updatedAt: now }]))
       // setState triggers zustand-persist's own write — no manual LS needed
-      usePlaylistStore.setState({ playlists: restamped })
+      usePlaylistStore.setState({ playlists: restamped, folders: restampedFolders })
       Object.keys(restamped).forEach(id => clearTombstone('playlists', id))
+      Object.keys(restampedFolders).forEach(id => clearTombstone('folders', id))
     }
   }
 
@@ -401,6 +415,19 @@ function AppContent() {
   useEffect(() => {
     try { localStorage.setItem('smoothTransitions', smoothTransitions ? 'on' : 'off') } catch { /* quota */ }
   }, [smoothTransitions])
+
+  useEffect(() => {
+    privateSessionRef.current = privateSession
+    try { localStorage.setItem('privateSession', privateSession ? 'on' : 'off') } catch { /* quota */ }
+  }, [privateSession])
+
+  useEffect(() => {
+    const up = () => setIsOnline(true)
+    const down = () => setIsOnline(false)
+    window.addEventListener('online', up)
+    window.addEventListener('offline', down)
+    return () => { window.removeEventListener('online', up); window.removeEventListener('offline', down) }
+  }, [])
 
   // Volume ramp helper — own audio.volume while fading so the volume effect
   // doesn't stomp the animation
@@ -636,6 +663,7 @@ function AppContent() {
       }
       const s = currentSong
       if (!s) return
+      if (privateSessionRef.current) return // private session — record nothing
       try {
         // playCounts — durable per-song play totals that survive the 200-item
         // history cap; counts EVERY play including consecutive repeats, so
@@ -1710,6 +1738,9 @@ function AppContent() {
               installPrompt={installPrompt}
               onInstall={handleInstall}
               onImportLibrary={handleImportLibrary}
+              likedCount={likedSongs.size}
+              privateSession={privateSession}
+              onPrivateSessionToggle={setPrivateSession}
             />
           </div>
         </div>
@@ -1734,9 +1765,12 @@ function AppContent() {
           installPrompt={installPrompt}
           onInstall={handleInstall}
           onImportLibrary={handleImportLibrary}
+          likedCount={likedSongs.size}
+          privateSession={privateSession}
+          onPrivateSessionToggle={setPrivateSession}
         />
       </div>
-      
+
       <div className="flex-1 overflow-hidden flex flex-col min-w-0">
         {/* Header with search bar (Spotify-style) */}
         <div className="flex items-center justify-between px-4 md:px-6 py-3 bg-zinc-950 md:border-b md:border-zinc-900 sticky top-0 z-10">
@@ -1861,6 +1895,15 @@ function AppContent() {
           </div>
         </div>
         
+        {/* Offline banner — "No internet" vs "Server unreachable" */}
+        {(!isOnline || healthError) && (
+          <div className="px-4 py-2 bg-amber-500/15 border-b border-amber-500/30 text-amber-300 text-xs font-medium text-center">
+            {!isOnline
+              ? 'No internet — downloaded songs still play'
+              : 'Server unreachable — browsing may be limited'}
+          </div>
+        )}
+
         {/* Main Content - Add bottom padding on mobile for player and nav */}
         <div ref={scrollContainerRef} className="flex-1 overflow-y-auto bg-zinc-950 pb-32 md:pb-0">
           <ErrorBoundary resetKey={location.pathname}>
@@ -1878,6 +1921,8 @@ function AppContent() {
             <Route path="/library/album/:id" element={<ProtectedRoute title="Your library"><LocalAlbumView onSongClick={handleSongSelect} onShufflePlay={handleShufflePlay} onPlayNext={handlePlayNext} onAddToQueue={handleAddToQueue} onGoToAlbum={handleGoToAlbum} onSongRadio={handleSongRadio} likedSongs={likedSongs} onLikeToggle={handleLikeToggle} currentSong={currentSong} isPlaying={isPlaying} showToast={showToastMessage} /></ProtectedRoute>} />
             <Route path="/downloads" element={<ProtectedRoute title="Downloads"><DownloadsView onSongClick={handleSongSelect} showToast={showToastMessage} /></ProtectedRoute>} />
             <Route path="/shared/:data" element={<SharedPlaylistView onSongClick={handleSongSelect} showToast={showToastMessage} />} />
+            <Route path="/blend/:data" element={<BlendView onSongClick={handleSongSelect} showToast={showToastMessage} likedSongs={likedSongs} />} />
+            <Route path="/wrapped" element={<ProtectedRoute title="Your Wrapped"><WrappedView showToast={showToastMessage} /></ProtectedRoute>} />
             <Route path="/terms" element={<TermsOfService />} />
             <Route path="/privacy" element={<PrivacyPolicy />} />
             <Route path="/dmca" element={<DMCA />} />

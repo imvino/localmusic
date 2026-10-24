@@ -46,6 +46,42 @@ export function decodePlaylistShare(data) {
   } catch { return null }
 }
 
+// Family Blend links — just the creator's top song ids travel in the URL;
+// the recipient's client does the overlap math against its own library.
+// Local ids are excluded up front (they can't resolve on another device).
+export function encodeBlendShare(name, songs) {
+  const payload = {
+    v: 1, n: String(name || 'Blend').slice(0, 80),
+    s: (songs || []).filter(s => (s?.id || s?.i) && !s.isLocal && !s.audioPath).slice(0, 50)
+      .map(s => ({ i: s.id || s.i, n: String(s.name || s.title || '').slice(0, 120) }))
+      .filter(s => s.i)
+  }
+  return btoa(unescape(encodeURIComponent(JSON.stringify(payload))))
+    .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
+}
+
+export function decodeBlendShare(data) {
+  try {
+    const b64 = (data || '').replace(/-/g, '+').replace(/_/g, '/')
+    const payload = JSON.parse(decodeURIComponent(escape(atob(b64))))
+    if (payload?.v !== 1 || !Array.isArray(payload.s)) return null
+    return {
+      name: typeof payload.n === 'string' ? payload.n.slice(0, 80) : 'Blend',
+      songs: payload.s.slice(0, 50)
+        .map(s => ({ id: String(s.i || ''), name: String(s.n || '') }))
+        .filter(s => s.id)
+    }
+  } catch { return null }
+}
+
+// Compact K/M formatting for follower counts ("1.2M followers")
+export function formatCount(n) {
+  const num = Number(n) || 0
+  if (num >= 1e6) return (num / 1e6).toFixed(1).replace(/\.0$/, '') + 'M'
+  if (num >= 1e3) return (num / 1e3).toFixed(1).replace(/\.0$/, '') + 'K'
+  return String(num)
+}
+
 // Light haptic tick for touch actions (no-op on unsupported devices)
 export function haptic(ms = 8) {
   try { navigator.vibrate?.(ms) } catch { /* unsupported */ }

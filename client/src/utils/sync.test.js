@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { slimSong, mergePlaylists, mergeHistory, mergeCollections, addTombstone, clearTombstone, isTombstoned, applyTombstones, getTombstones, TOMB_KEYS } from './sync'
+import { slimSong, slimPlaylists, slimFolders, mergeFolders, normalizeArtistName, mergePlaylists, mergeHistory, mergeCollections, addTombstone, clearTombstone, isTombstoned, applyTombstones, getTombstones, TOMB_KEYS } from './sync'
 
 // Minimal localStorage stub — vitest runs node, not a browser
 const __store = new Map()
@@ -147,5 +147,114 @@ describe('tombstones', () => {
     const plTombs = new Map(getTombstones(TOMB_KEYS.playlists).map(t => [t.id, t.ts]))
     expect((plTombs.get(pl.id) || 0) <= pl.createdAt).toBe(false) // killed
     expect((plTombs.get(recreated.id) || 0) <= recreated.createdAt).toBe(true) // survives
+  })
+})
+
+describe('folders', () => {
+  beforeEach(() => localStorage.clear())
+
+  it('slimPlaylists carries folderId so assignments sync', () => {
+    const out = slimPlaylists({ p1: { id: 'p1', name: 'P', createdAt: 1, updatedAt: 2, folderId: 'f1', songs: [song('a')] } })
+    expect(out.p1.folderId).toBe('f1')
+  })
+
+  it('slimFolders serializes the map with timestamps', () => {
+    const out = slimFolders({ f1: { id: 'f1', name: 'Tamil', createdAt: 10, updatedAt: 20, junk: 'x' } })
+    expect(out.f1).toEqual({ id: 'f1', name: 'Tamil', createdAt: 10, updatedAt: 20 })
+    expect(out.f1.junk).toBeUndefined()
+  })
+
+  it('mergeFolders unions by id, newest updatedAt wins scalars', () => {
+    const local = { f1: { id: 'f1', name: 'Old', createdAt: 1, updatedAt: 5 }, f2: { id: 'f2', name: 'LocalOnly', createdAt: 2, updatedAt: 2 } }
+    const server = { f1: { id: 'f1', name: 'New', createdAt: 1, updatedAt: 10 }, f3: { id: 'f3', name: 'RemoteOnly', createdAt: 3, updatedAt: 3 } }
+    const merged = mergeFolders(local, server)
+    expect(merged.f1.name).toBe('New')
+    expect(merged.f2.name).toBe('LocalOnly')
+    expect(merged.f3.name).toBe('RemoteOnly')
+  })
+
+  it('cross-device deletion propagates: tomb newer than createdAt kills the folder', () => {
+    addTombstone('folders', 'f1')
+    const tombTs = getTombstones(TOMB_KEYS.folders)[0].ts
+    const folders = {
+      f1: { id: 'f1', name: 'Dead', createdAt: tombTs - 1000 },   // older than tomb → dead
+      f2: { id: 'f2', name: 'Alive', createdAt: tombTs - 500 }   // no tomb → survives
+    }
+    const flTombMap = new Map(getTombstones(TOMB_KEYS.folders).map(t => [t.id, t.ts]))
+    const merged = Object.fromEntries(Object.entries(folders)
+      .filter(([id, f]) => (flTombMap.get(id) || 0) <= (f.createdAt || 0)))
+    expect(Object.keys(merged)).toEqual(['f2'])
+  })
+
+  it('restored folders outlive their tomb: restamped createdAt survives the filter', () => {
+    addTombstone('folders', 'f1')
+    const tombTs = getTombstones(TOMB_KEYS.folders)[0].ts
+    // Backup restore restamps createdAt newer than the tomb → restored
+    const folders = { f1: { id: 'f1', name: 'Restored', createdAt: tombTs + 1000 } }
+    const flTombMap = new Map(getTombstones(TOMB_KEYS.folders).map(t => [t.id, t.ts]))
+    const merged = Object.fromEntries(Object.entries(folders)
+      .filter(([id, f]) => (flTombMap.get(id) || 0) <= (f.createdAt || 0)))
+    expect(merged.f1).toBeTruthy()
+  })
+
+  it('concurrent add-to-deleted-folder: playlist survives but is un-filed', () => {
+    addTombstone('folders', 'f1')
+    const tombTs = getTombstones(TOMB_KEYS.folders)[0].ts
+    // Folder killed by tomb filter (createdAt older than tomb)
+    const mergedFolders = {} // f1 didn't survive
+    const flTombMap = new Map(getTombstones(TOMB_KEYS.folders).map(t => [t.id, t.ts]))
+    const mergedPls = {
+      p1: { id: 'p1', name: 'P', createdAt: 1, folderId: 'f1', songs: [song('a')] }
+    }
+    for (const [pid, p] of Object.entries(mergedPls)) {
+      if (!p.folderId) continue
+      const f = mergedFolders[p.folderId]
+      if (!f || (flTombMap.get(p.folderId) || 0) > (f.createdAt || 0)) {
+        mergedPls[pid] = { ...p, folderId: undefined }
+      }
+    }
+    expect(mergedPls.p1).toBeTruthy()              // playlist NOT lost
+    expect(mergedPls.p1.folderId).toBeUndefined()  // just un-filed
+    expect(mergedPls.p1.songs).toHaveLength(1)
+  })
+
+  it('C1 regression: server copy lacking folderId never strips the local assignment', () => {
+    const local = { p1: { id: 'p1', name: 'P', createdAt: 1, updatedAt: 20, folderId: 'f1', songs: [] } }
+    const server = { p1: { id: 'p1', name: 'P', createdAt: 1, updatedAt: 10, songs: [] } } // no folderId field at all
+    const merged = mergePlaylists(local, server)
+    expect(merged.p1.folderId).toBe('f1')
+    // And when the server IS the scalar winner but still lacks the field
+    const serverNewer = { p1: { id: 'p1', name: 'P', createdAt: 1, updatedAt: 30, songs: [] } }
+    expect(mergePlaylists(local, serverNewer).p1.folderId).toBe('f1')
+  })
+})
+
+describe('swipe decisions (useSwipeAction core)', () => {
+  it('axis locks on the first >10px movement, ~45° split', async () => {
+    const { pickSwipeAxis } = await import('../hooks/useSwipeAction')
+    expect(pickSwipeAxis(5, 5)).toBeNull()   // under activation → undecided
+    expect(pickSwipeAxis(30, 15)).toBe('x')  // horizontal leads → swipe
+    expect(pickSwipeAxis(15, 30)).toBe('y')  // vertical leads → scroll wins
+    expect(pickSwipeAxis(-30, 15)).toBe('x') // direction-agnostic
+  })
+  it('fires only past the 70px threshold, direction by sign', async () => {
+    const { swipeDirection } = await import('../hooks/useSwipeAction')
+    expect(swipeDirection(-71)).toBe('left')   // → add to queue
+    expect(swipeDirection(71)).toBe('right')   // → like
+    expect(swipeDirection(-70)).toBeNull()     // exactly AT threshold → no fire
+    expect(swipeDirection(0)).toBeNull()
+  })
+})
+
+describe('normalizeArtistName', () => {
+  it('collapses case, spaces, and punctuation — "A. R. Rahman" ≡ "ar rahman"', () => {
+    expect(normalizeArtistName('A. R. Rahman')).toBe('arrahman')
+    expect(normalizeArtistName('ar rahman')).toBe('arrahman')
+    expect(normalizeArtistName('AR-RAHMAN')).toBe('arrahman')
+  })
+  it('handles empty/garbage input without throwing', () => {
+    expect(normalizeArtistName(null)).toBe('')
+    expect(normalizeArtistName(undefined)).toBe('')
+    expect(normalizeArtistName(42)).toBe('42')
   })
 })

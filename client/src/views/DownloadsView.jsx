@@ -7,9 +7,35 @@ import { decodeHtmlEntities, formatTime } from '../utils'
 export default function DownloadsView({ onSongClick, showToast }) {
   const navigate = useNavigate()
   const [songs, setSongs] = useState(() => getDownloads())
+  const [storage, setStorage] = useState(null) // {used, quota} | 'unavailable'
 
   // Self-heal: drop registry entries whose audio was evicted from the cache
   useEffect(() => { reconcileDownloads().then(setSongs) }, [])
+
+  // Storage meter — quota + summed audio-downloads cache blob sizes.
+  // Degrades to a song count where storage APIs are missing (older Safari).
+  useEffect(() => {
+    let live = true
+    ;(async () => {
+      try {
+        const [est, cache] = await Promise.all([
+          navigator.storage?.estimate?.().catch(() => null),
+          caches.open('audio-downloads')
+        ])
+        const keys = await cache.keys()
+        let used = 0
+        for (const req of keys) {
+          const res = await cache.match(req)
+          const blob = await res?.blob().catch(() => null)
+          used += blob?.size || 0
+        }
+        if (live) setStorage({ used, quota: est?.quota || 0 })
+      } catch { if (live) setStorage('unavailable') }
+    })()
+    return () => { live = false }
+  }, [songs.length])
+
+  const fmtMB = (b) => b >= 1e9 ? `${(b / 1e9).toFixed(1)} GB` : `${Math.max(1, Math.round(b / 1e6))} MB`
 
   const remove = async (id) => {
     await removeDownload(id)
@@ -41,6 +67,20 @@ export default function DownloadsView({ onSongClick, showToast }) {
             <WifiOff size={14} />
             These play with no network at all
           </div>
+          {storage && storage !== 'unavailable' && (
+            <div className="mb-4">
+              <div className="flex items-center justify-between text-xs text-zinc-500 mb-1.5">
+                <span>Offline storage</span>
+                <span>{fmtMB(storage.used)}{storage.quota ? ` of ${fmtMB(storage.quota)}` : ''} used</span>
+              </div>
+              <div className="w-full h-1.5 bg-zinc-800 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-emerald-500 rounded-full transition-all"
+                  style={{ width: `${Math.min(100, storage.quota ? (storage.used / storage.quota) * 100 : 2)}%` }}
+                />
+              </div>
+            </div>
+          )}
           <div className="divide-y divide-zinc-800/60">
             {songs.map(s => (
               <div key={s.id} className="flex items-center gap-3 py-2.5 group">

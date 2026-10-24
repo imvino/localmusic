@@ -1,10 +1,12 @@
-import { useState, useEffect } from 'react'
-import { Disc, ListMusic, Loader2, Download, Play, History, TrendingUp } from 'lucide-react'
+import { useState, useEffect, useMemo } from 'react'
+import { Disc, ListMusic, Loader2, Download, Play, History, TrendingUp, UserCheck, Sparkles } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 import MetaTags from '../components/MetaTags'
 import HorizontalScroll from '../components/HorizontalScroll'
 import TrackMenu from '../components/TrackMenu'
 import { decodeHtmlEntities, getBestImageUrl, getImageSrc } from '../utils'
+import { normalizeArtistName } from '../utils/sync'
 import { useJioFeaturedPlaylists, useJioNewReleases, useCharts, useTrending, useNewReleaseAlbums, useSongSuggestions } from '../hooks/useApi'
 import { useArtistConfig } from '../artist-config'
 import { useAppAuth } from '../components/AuthGate'
@@ -81,6 +83,76 @@ export default function DiscoverView({ onSongClick, showToast, likedSongs, onLik
   // "Because you listened to X" — suggestions seeded by the most recent play
   const seedSong = isSignedIn ? recentlyPlayed[0] : null
   const { data: becauseYouListened } = useSongSuggestions(seedSong?.id)
+
+  // "New from artists you follow" — trending items carry `artists` as an
+  // array of {name} objects; match normalized names against the synced
+  // followedArtists localStorage list (featured-artist noise accepted).
+  const followedRail = useMemo(() => {
+    if (!isSignedIn || !trending?.length) return []
+    try {
+      const followed = JSON.parse(localStorage.getItem('followedArtists') || '[]')
+      const names = new Set(followed.map(a => normalizeArtistName(a?.name)).filter(Boolean))
+      if (!names.size) return []
+      return trending.filter(item =>
+        (item.artists || []).some(a => names.has(normalizeArtistName(typeof a === 'object' ? a?.name : a)))
+      ).slice(0, 15)
+    } catch { return [] }
+  }, [isSignedIn, trending])
+
+  // Daily mixes — cluster playCounts by normalized artist → top-3 by total
+  // count. Each mix seeds from the user's OWN top-played songs for that
+  // artist, then tops up via ONE suggestions call per mix (never the heavy
+  // /api/artist/:id endpoint). Cache keyed by date → refreshes daily.
+  const mixClusters = useMemo(() => {
+    if (!isSignedIn) return []
+    try {
+      const pc = JSON.parse(localStorage.getItem('playCounts') || '{}')
+      const byArtist = new Map()
+      for (const e of Object.values(pc)) {
+        if (!e?.id || !e.artist) continue
+        const key = normalizeArtistName(e.artist)
+        if (!key) continue
+        if (!byArtist.has(key)) byArtist.set(key, { name: e.artist, songs: [], total: 0 })
+        const c = byArtist.get(key)
+        c.songs.push(e)
+        c.total += e.count || 1
+      }
+      return [...byArtist.values()]
+        .sort((a, b) => b.total - a.total)
+        .slice(0, 3)
+        .map(c => ({ name: c.name, seeds: c.songs.sort((x, y) => (y.count || 0) - (x.count || 0)).slice(0, 10) }))
+    } catch { return [] }
+  }, [isSignedIn])
+
+  const mixSeedIds = mixClusters.map(m => m.seeds[0]?.id).filter(Boolean)
+  const { data: mixSuggestions } = useQuery({
+    queryKey: ['daily-mixes', new Date().toISOString().slice(0, 10), mixSeedIds.join(',')],
+    queryFn: async () => {
+      const out = {}
+      for (const id of mixSeedIds.slice(0, 3)) {
+        try {
+          const res = await fetch(`${API_BASE}/api/songs/${id}/suggestions`)
+          const json = await res.json()
+          out[id] = json?.success ? (json.data || []) : []
+        } catch { out[id] = [] }
+      }
+      return out
+    },
+    enabled: isSignedIn && mixSeedIds.length > 0,
+    staleTime: 12 * 60 * 60 * 1000,
+    retry: 1
+  })
+
+  const dailyMixes = mixClusters.map((cluster, i) => {
+    const seen = new Set(cluster.seeds.map(s => s.id))
+    const fill = (mixSuggestions?.[cluster.seeds[0]?.id] || [])
+      .filter(s => s?.id && !seen.has(s.id) && seen.add(s.id))
+      .slice(0, Math.max(0, 20 - cluster.seeds.length))
+    return {
+      title: `Daily Mix ${i + 1} — ${cluster.name}`,
+      songs: [...cluster.seeds, ...fill]
+    }
+  }).filter(m => m.songs.length > 0)
 
   const loading = configLoading || playlistsLoading || songsLoading
 
@@ -228,6 +300,33 @@ export default function DiscoverView({ onSongClick, showToast, likedSongs, onLik
           emptyMessage=""
         />
       )}
+
+      {/* New from artists you follow — member-only personalized rail */}
+      {isSignedIn && followedRail.length > 0 && (
+        <HorizontalScroll
+          title="New from artists you follow"
+          icon={UserCheck}
+          items={followedRail}
+          renderItem={(album) => (
+            <EntityCard item={album} onClick={() => handleAlbumClick(album)} subtitle={album.year || 'Album'} />
+          )}
+          emptyMessage=""
+        />
+      )}
+
+      {/* Daily Mixes — artist-clustered from your own play counts */}
+      {isSignedIn && dailyMixes.map(mix => (
+        <HorizontalScroll
+          key={mix.title}
+          title={mix.title}
+          icon={Sparkles}
+          items={mix.songs}
+          renderItem={(song) => (
+            <SongCard song={{ ...song, name: decodeHtmlEntities(song.name || song.title || ''), artist: decodeHtmlEntities(song.artists?.primary?.[0]?.name || song.artist || ''), image: song.image }} onSongClick={onSongClick} downloadProgress={downloadProgress} setDownloadProgress={setDownloadProgress} likedSongs={likedSongs} onLikeToggle={onLikeToggle} onPlayNext={onPlayNext} onAddToQueue={onAddToQueue} onGoToAlbum={onGoToAlbum} onSongRadio={onSongRadio} showToast={showToast} />
+          )}
+          emptyMessage=""
+        />
+      ))}
 
       {/* Top Artists */}
       <HorizontalScroll

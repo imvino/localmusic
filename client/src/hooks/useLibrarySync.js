@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useAuth } from '@clerk/clerk-react'
 import { usePlaylistStore } from '../stores/playlistStore'
 import { clearPersonalData, getLastUserId, setLastUserId } from '../utils/personalData'
-import { slimSong, slimPlaylists, mergePlaylists, mergeHistory, mergeCollections, markPullDone, resetPullDone, isPullDone, onPullDone, getTombstones, isTombstoned, applyTombstones, TOMB_KEYS, HISTORY_CLEARED_KEY } from '../utils/sync'
+import { slimSong, slimPlaylists, slimFolders, mergePlaylists, mergeFolders, mergeHistory, mergeCollections, markPullDone, resetPullDone, isPullDone, onPullDone, getTombstones, isTombstoned, applyTombstones, TOMB_KEYS, HISTORY_CLEARED_KEY } from '../utils/sync'
 
 const API_BASE = import.meta.env.VITE_API_URL
 const LAST_SYNC_KEY = 'libraryLastSync'
@@ -24,6 +24,7 @@ async function pushSnapshot(getToken, likedSongs, playlists, collections) {
         ts,
         likedSongs: [...likedSongs],
         playlists: slimPlaylists(playlists),
+        folders: slimFolders(usePlaylistStore.getState().folders),
         history,
         savedAlbums: collections?.savedAlbums?.slice(0, 2000) || [],
         followedArtists: collections?.followedArtists?.slice(0, 2000) || [],
@@ -33,6 +34,7 @@ async function pushSnapshot(getToken, likedSongs, playlists, collections) {
         removedArtists: getTombstones(TOMB_KEYS.artists),
         removedSongs: getTombstones(TOMB_KEYS.songs),
         removedPlaylists: getTombstones(TOMB_KEYS.playlists),
+        removedFolders: getTombstones(TOMB_KEYS.folders),
         historyClearedAt: Number(localStorage.getItem(HISTORY_CLEARED_KEY)) || 0,
         // Cap the payload — keep the 3000 most recently played ids
         playCounts: Object.fromEntries(
@@ -67,6 +69,7 @@ async function pushSnapshot(getToken, likedSongs, playlists, collections) {
 export function useLibrarySync({ likedSongs, setLikedSongs, savedAlbums, setSavedAlbums, followedArtists, setFollowedArtists, historyVersion }) {
   const { isSignedIn, userId, getToken } = useAuth()
   const playlists = usePlaylistStore(s => s.playlists)
+  const folders = usePlaylistStore(s => s.folders)
   // Re-pull when the network comes back — otherwise a device that was
   // offline while another device changed the library pushes STALE
   // likes/playlists and resurrects deletes (the post-offline race)
@@ -106,7 +109,7 @@ export function useLibrarySync({ likedSongs, setLikedSongs, savedAlbums, setSave
         setLikedSongs(new Set())
         setSavedAlbums?.(new Set())
         setFollowedArtists?.(new Set())
-        usePlaylistStore.setState({ playlists: {} })
+        usePlaylistStore.setState({ playlists: {}, folders: {} })
       }
 
       // A failed pull must NOT release deferred pushes (they'd push stale
@@ -174,7 +177,24 @@ export function useLibrarySync({ likedSongs, setLikedSongs, savedAlbums, setSave
         const mergedPls = Object.fromEntries(Object.entries(
           mergePlaylists(usePlaylistStore.getState().playlists, server.playlists || {})
         ).filter(([id, p]) => (plTombMap.get(id) || 0) <= (p.createdAt || 0)))
-        usePlaylistStore.setState({ playlists: mergedPls })
+
+        // 4b. Folders — same merge shape as playlists. A folder tombstone
+        // kills the folder ONLY when newer than its createdAt (restored
+        // folders legitimately outlive their tomb). Member playlists are
+        // un-filed ONLY for folders the tomb filter actually killed here —
+        // an unconditional un-file would strip membership from restores.
+        const flTombMap = new Map(getTombstones(TOMB_KEYS.folders).map(t => [t.id, t.ts]))
+        const mergedFolders = Object.fromEntries(Object.entries(
+          mergeFolders(usePlaylistStore.getState().folders, server.folders || {})
+        ).filter(([id, f]) => (flTombMap.get(id) || 0) <= (f.createdAt || 0)))
+        for (const [pid, p] of Object.entries(mergedPls)) {
+          if (!p.folderId) continue
+          const f = mergedFolders[p.folderId]
+          if (!f || (flTombMap.get(p.folderId) || 0) > (f.createdAt || 0)) {
+            mergedPls[pid] = { ...p, folderId: undefined }
+          }
+        }
+        usePlaylistStore.setState({ playlists: mergedPls, folders: mergedFolders })
 
         // 5. Collections — union + tombstone filter (server tombs are local now)
         const applyCollection = (serverArr, localKey, setState, kind, tsKey) => {
@@ -248,5 +268,5 @@ export function useLibrarySync({ likedSongs, setLikedSongs, savedAlbums, setSave
       off = onPullDone(() => { off(); off = null; push() })
     }, 2500)
     return () => { clearTimeout(t); off?.() }
-  }, [likedSongs, playlists, savedAlbums, followedArtists, historyVersion, changedBump, isSignedIn, userId]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [likedSongs, playlists, folders, savedAlbums, followedArtists, historyVersion, changedBump, isSignedIn, userId]) // eslint-disable-line react-hooks/exhaustive-deps
 }

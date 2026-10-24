@@ -3,9 +3,10 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import { ArrowLeft, Disc, Download, Loader2, ChevronDown, Play, Shuffle, Radio, Share2, Heart, UserPlus, UserCheck } from 'lucide-react'
 import TrackMenu from '../components/TrackMenu'
 import BatchDownloadButton from '../components/BatchDownloadButton'
+import SwipeableRow from '../components/SwipeableRow'
 import { useDownloadStore } from '../stores/downloadStore'
 import MetaTags from '../components/MetaTags'
-import { decodeHtmlEntities, getArtistImageUrl, getImageSrc } from '../utils'
+import { decodeHtmlEntities, getArtistImageUrl, getImageSrc, formatCount } from '../utils'
 import { useAlbum, useArtist, usePlaylist } from '../hooks/useApi'
 import { queryClient } from '../App'
 import { useArtistConfig, hasCustomAlbums, getAlbumsTabLabel } from '../artist-config'
@@ -34,6 +35,7 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
   const artistInfo = artistConfig.customAlbums[id]
   const [albumsSortBy, setAlbumsSortBy] = useState('date')
   const [albumsSortDirection, setAlbumsSortDirection] = useState('desc')
+  const [showAllAlbums, setShowAllAlbums] = useState(false)
   const [customAlbums, setCustomAlbums] = useState(null)
   const [apiAlbums, setApiAlbums] = useState(null)
   const meta = location.state?.[isAlbum ? 'album' : isArtist ? 'artist' : 'playlist']
@@ -385,6 +387,9 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
 
   const sortedSongs = sortSongs(songs, songsSortBy)
   const sortedAlbums = sortAlbums(albums, albumsSortBy, albumsSortDirection)
+  // "Show all" expands the already-fetched discography — the heavy artist
+  // call returns everything at once, so this is purely a render cap
+  const shownAlbums = showAllAlbums ? sortedAlbums : sortedAlbums.slice(0, 50)
 
   if (loading) {
     return (
@@ -489,7 +494,12 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
             <h1 className="text-2xl md:text-3xl font-bold text-white">{data?.name || meta?.name}</h1>
             
           </div>
-          <p className="text-zinc-400 mb-2">{isAlbum ? 'Album' : isArtist ? 'Artist' : 'Playlist'}</p>
+          <p className="text-zinc-400 mb-2">
+            {isAlbum ? 'Album' : isArtist ? 'Artist' : 'Playlist'}
+            {isArtist && Number(data?.followerCount) > 0 && (
+              <span className="text-zinc-500"> · {formatCount(data.followerCount)} followers</span>
+            )}
+          </p>
 
           {/* Play / Shuffle */}
           <div className="flex items-center justify-center md:justify-start gap-3 mb-4">
@@ -722,9 +732,11 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
               {/* Songs List */}
               <div className="space-y-2">
                 {sortedSongs.map((song, index) => (
-                  <div
+                  <SwipeableRow
                     key={song.id}
                     onClick={() => handlePlay(song, index, sortedSongs)}
+                    onSwipeLeft={() => onAddToQueue?.(song)}
+                    onSwipeRight={() => onLikeToggle?.(song.id, song)}
                     className={`flex items-center gap-4 p-3 rounded-lg transition-colors cursor-pointer group ${
                       currentSong?.id === song.id && isPlaying
                         ? 'bg-zinc-800/80 border border-[#fc3c44]/30'
@@ -814,7 +826,7 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
                         showToast={showToast}
                       />
                     </div>
-                  </div>
+                  </SwipeableRow>
                 ))}
               </div>
 
@@ -875,7 +887,7 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
 
               {/* Albums Grid */}
               <div className={`grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 ${sidebarOpen ? 'lg:grid-cols-6' : 'lg:grid-cols-8'}`}>
-                {sortedAlbums.map(album => (
+                {shownAlbums.map(album => (
                   <button
                     key={album.id}
                     onClick={() => {
@@ -909,6 +921,14 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
                   </button>
                 ))}
               </div>
+              {!showAllAlbums && sortedAlbums.length > 50 && (
+                <button
+                  onClick={() => setShowAllAlbums(true)}
+                  className="w-full py-3 text-sm font-medium text-zinc-400 hover:text-white bg-zinc-900/60 hover:bg-zinc-800/60 rounded-xl transition-colors"
+                >
+                  Show all {sortedAlbums.length} albums
+                </button>
+              )}
             </div>
           )}
 
@@ -957,7 +977,7 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
 
               {/* Albums Grid */}
               <div className={`grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 ${sidebarOpen ? 'lg:grid-cols-6' : 'lg:grid-cols-8'}`}>
-                {sortedAlbums.map(album => (
+                {shownAlbums.map(album => (
                   <button
                     key={album.id}
                     onClick={() => {
@@ -998,9 +1018,11 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
         /* Original songs list for albums and playlists */
         <div className="space-y-2">
           {songs.map((song, index) => (
-            <div
+            <SwipeableRow
               key={song.id}
               onClick={() => handlePlay(song)}
+              onSwipeLeft={() => onAddToQueue?.(song)}
+              onSwipeRight={() => onLikeToggle?.(song.id, song)}
               className={`flex items-center gap-4 p-3 rounded-lg transition-colors cursor-pointer group ${
                 currentSong?.id === song.id && isPlaying
                   ? 'bg-zinc-800/80 border border-[#fc3c44]/30'
@@ -1090,7 +1112,7 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
                   showToast={showToast}
                 />
               </div>
-            </div>
+            </SwipeableRow>
           ))}
         </div>
       )}

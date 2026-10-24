@@ -4,7 +4,8 @@ import { addTombstone } from '../utils/sync'
 
 export const usePlaylistStore = create(persist(
   (set, get) => ({
-    playlists: {}, // { [id]: { id, name, songs: [], createdAt } }
+    playlists: {}, // { [id]: { id, name, songs: [], createdAt, folderId? } }
+    folders: {},   // { [id]: { id, name, createdAt, updatedAt } }
 
     createPlaylist: (name) => {
       const id = `pl_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
@@ -90,6 +91,52 @@ export const usePlaylistStore = create(persist(
         }
       }))
       return id
+    },
+
+    // ─── Folders — Spotify-style playlist grouping ───
+    createFolder: (name) => {
+      const id = `fl_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
+      set(state => ({
+        folders: {
+          ...state.folders,
+          [id]: { id, name: name.trim() || 'New Folder', createdAt: Date.now(), updatedAt: Date.now() }
+        }
+      }))
+      return id
+    },
+
+    renameFolder: (id, name) => {
+      set(state => state.folders[id] ? {
+        folders: { ...state.folders, [id]: { ...state.folders[id], name: name.trim() || state.folders[id].name, updatedAt: Date.now() } }
+      } : state)
+    },
+
+    // Deleting a folder un-files its playlists — they're never deleted with
+    // it — and writes a tombstone so the delete propagates cross-device.
+    deleteFolder: (id) => {
+      addTombstone('folders', id)
+      set(state => {
+        const folders = { ...state.folders }
+        delete folders[id]
+        const playlists = { ...state.playlists }
+        const now = Date.now()
+        for (const [pid, p] of Object.entries(playlists)) {
+          if (p.folderId === id) playlists[pid] = { ...p, folderId: undefined, updatedAt: now }
+        }
+        return { folders, playlists }
+      })
+    },
+
+    // Assign/clear a playlist's folder (folderId undefined = un-filed)
+    setPlaylistFolder: (playlistId, folderId) => {
+      set(state => {
+        const p = state.playlists[playlistId]
+        if (!p) return state
+        if (folderId && !state.folders[folderId]) return state
+        return {
+          playlists: { ...state.playlists, [playlistId]: { ...p, folderId: folderId || undefined, updatedAt: Date.now() } }
+        }
+      })
     },
 
     moveSong: (id, from, to) => {

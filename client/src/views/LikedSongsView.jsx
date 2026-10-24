@@ -4,6 +4,7 @@ import { Heart, Play, Shuffle, Music, ArrowDownWideNarrow, Search, X } from 'luc
 import { getImageSrc, formatDuration } from '../utils'
 import TrackMenu from '../components/TrackMenu'
 import BatchDownloadButton from '../components/BatchDownloadButton'
+import SwipeableRow from '../components/SwipeableRow'
 
 const API_BASE = import.meta.env.VITE_API_URL
 const CHUNK = 50
@@ -166,10 +167,12 @@ export default function LikedSongsView({ likedSongs, onLikeToggle, onSongClick, 
           {sortedSongs.map((song, i) => {
             const isCurrent = currentSong?.id === song.id
             return (
-              <div
+              <SwipeableRow
                 key={song.id}
                 className="group flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-zinc-800/60 transition-colors cursor-pointer"
                 onClick={() => onSongClick(song, sortedSongs, i)}
+                onSwipeLeft={() => onAddToQueue?.(song)}
+                onSwipeRight={() => onLikeToggle?.(song.id, song)}
               >
                 <span className={`w-6 text-xs text-center shrink-0 ${isCurrent ? 'text-[#fc3c44] font-semibold' : 'text-zinc-600'}`}>
                   {isCurrent && isPlaying ? '▶' : i + 1}
@@ -206,7 +209,7 @@ export default function LikedSongsView({ likedSongs, onLikeToggle, onSongClick, 
                     showToast={showToast}
                   />
                 </div>
-              </div>
+              </SwipeableRow>
             )
           })}
           {sortedSongs.length === 0 && songs.length > 0 && (
