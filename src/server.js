@@ -1764,48 +1764,80 @@ app.get('/api/lyrics/:id', async (req, res) => {
   try {
     const { id } = req.params;
 
-    // 1) Official JioSaavn lyrics endpoint
+    // 1) Official JioSaavn lyrics endpoint — plain text only, held while we
+    // check LRCLIB for a synced (karaoke) match to attach
+    let jioLyrics = null;
     try {
       const official = await fetchFromMusicServiceOfficial('lyrics.getLyricsById', { lyrics_id: id });
-      let lyrics = official?.lyrics || official?.data?.lyrics;
+      const lyrics = official?.lyrics || official?.data?.lyrics;
       if (lyrics && typeof lyrics === 'string' && lyrics.trim()) {
         // Official API returns <br>-delimited, entity-encoded text
-        lyrics = decodeHtmlEntities(lyrics.replace(/<br\s*\/?>/gi, '\n'));
-        return res.json({ success: true, data: { lyrics, source: 'jiosaavn' } });
+        jioLyrics = decodeHtmlEntities(lyrics.replace(/<br\s*\/?>/gi, '\n'));
       }
     } catch (e) {
       console.log('Official lyrics failed:', e.message);
     }
 
-    // 2) LRCLIB fallback — needs title/artist/duration, so resolve the song
+    // 2) LRCLIB — needs title/artist/duration, so resolve the song
     const songResult = await fetchWithFallback('songs', { ids: id }, 'songs');
     const song = Array.isArray(songResult?.data) ? songResult.data[0] : null;
     // JioSaavn metadata is entity-encoded — LRCLIB matches on clean strings
     const trackName = decodeHtmlEntities(song?.name || song?.title || '');
     const artistName = decodeHtmlEntities(song?.artists?.primary?.[0]?.name || song?.primaryArtists || '');
-    const duration = parseInt(song?.duration) || undefined;
+    const duration = parseInt(song?.duration) || 0;
 
     if (trackName) {
       try {
-        const params = { track_name: trackName };
-        if (artistName) params.artist_name = artistName;
-        if (duration) params.duration = duration;
-        const lrclib = await axios.get('https://lrclib.net/api/get', {
-          params,
-          headers: { 'User-Agent': 'Torsongs/1.0 (https://torsongs.vercel.app)' },
-          timeout: 8000
-        });
-        const syncedLyrics = lrclib.data?.syncedLyrics || null;
-        // Strip [mm:ss.xx] tags when only synced lyrics exist, so `lyrics`
-        // is always clean plain text for non-karaoke renderers
-        const lyrics = lrclib.data?.plainLyrics
+        const headers = { 'User-Agent': 'Torsongs/1.0 (https://torsongs.vercel.app)' };
+        // /api/search returns every submission — /api/get picks one and
+        // often lands on a plain-only entry even when synced versions exist
+        // (verified on "Jai Balayya": get → plain-only, search → 3 synced).
+        // Artist filtering is a second pass: JioSaavn's primary artist is
+        // frequently a singer while LRCLIB files the song under the composer
+        // ("Geetha Madhuri" = plain-only; "Thaman S" = synced), so an
+        // artist-scoped query would hide every synced submission.
+        const durDiff = (e) => duration && e.duration ? Math.abs(e.duration - duration) : 0;
+        const fetchResults = async (withArtist) => {
+          const params = { track_name: trackName };
+          if (withArtist && artistName) params.artist_name = artistName;
+          const r = await axios.get('https://lrclib.net/api/search', {
+            params, headers, timeout: 8000
+          });
+          return (Array.isArray(r.data) ? r.data : [])
+            .filter(e => e?.syncedLyrics || e?.plainLyrics);
+        };
+        let results = await fetchResults(true);
+        let synced = results.filter(e => e.syncedLyrics && durDiff(e) <= 10)
+          .sort((a, b) => durDiff(a) - durDiff(b));
+        if (!synced.length) {
+          const wide = await fetchResults(false);
+          synced = wide.filter(e => e.syncedLyrics && durDiff(e) <= 10)
+            .sort((a, b) => durDiff(a) - durDiff(b));
+          if (wide.length > results.length) results = wide;
+        }
+        const plain = results.filter(e => e.plainLyrics)
+          .sort((a, b) => durDiff(a) - durDiff(b));
+        const pick = synced[0] || null;
+        const syncedLyrics = pick?.syncedLyrics || null;
+        const lrcPlain = (pick || plain[0])?.plainLyrics
           || syncedLyrics?.split('\n').map(l => l.replace(/\[[^\]]*\]/g, '').trim()).filter(Boolean).join('\n');
-        if (lyrics && lyrics.trim()) {
-          return res.json({ success: true, data: { lyrics, syncedLyrics, source: 'lrclib' } });
+        if (syncedLyrics || lrcPlain || jioLyrics) {
+          return res.json({
+            success: true,
+            data: {
+              lyrics: lrcPlain || jioLyrics,
+              syncedLyrics,
+              source: syncedLyrics ? 'lrclib' : (jioLyrics && !lrcPlain ? 'jiosaavn' : 'lrclib')
+            }
+          });
         }
       } catch (e) {
         console.log('LRCLIB failed:', e.message);
       }
+    }
+
+    if (jioLyrics) {
+      return res.json({ success: true, data: { lyrics: jioLyrics, source: 'jiosaavn' } });
     }
 
     res.json({ success: true, data: null });

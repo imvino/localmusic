@@ -64,7 +64,7 @@ export default function LyricsModal({ song, onClose, currentTime, onSeek }) {
   }, [onClose])
 
   const toggleTranslate = async (next) => {
-    if (mode === next) {
+    if (next === null || mode === next) {
       setMode(null)
       return
     }
@@ -121,33 +121,24 @@ export default function LyricsModal({ song, onClose, currentTime, onSeek }) {
             <div className="text-sm font-semibold text-white truncate">{decodeHtmlEntities(song.name || song.title)}</div>
             <div className="text-xs text-zinc-500 truncate">{song.artist || song.artists?.primary?.[0]?.name || ''}</div>
           </div>
-          {/* Lyrics modes — Tanglish romanization (sing along without
-              reading the script) and English translation, line-synced */}
+          {/* Lyrics mode — one button cycles Original → Tanglish → English.
+              Tanglish = romanized sing-along script; English = meaning. */}
           {!isLoading && (karaoke || data?.lyrics) && (
-            <div className="flex items-center gap-1.5">
-              <button
-                onClick={() => toggleTranslate('rm')}
-                disabled={translating}
-                title={mode === 'rm' ? 'Show original' : 'Romanize — sing-along script (e.g. oruvan oruvan)'}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors touch-target ${
-                  mode === 'rm' ? 'bg-[#fc3c44] text-white' : 'bg-zinc-800 text-zinc-300 hover:text-white'
-                }`}
-              >
-                {translating && mode !== 'en' ? <Loader2 size={14} className="animate-spin" /> : <Languages size={14} />}
-                {mode === 'rm' ? 'Original' : 'Tanglish'}
-              </button>
-              <button
-                onClick={() => toggleTranslate('en')}
-                disabled={translating}
-                title={mode === 'en' ? 'Show original' : 'Translate to English'}
-                className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-colors touch-target ${
-                  mode === 'en' ? 'bg-[#fc3c44] text-white' : 'bg-zinc-800 text-zinc-300 hover:text-white'
-                }`}
-              >
-                {translating && mode !== 'rm' ? <Loader2 size={14} className="animate-spin" /> : null}
-                {mode === 'en' ? 'Original' : 'English'}
-              </button>
-            </div>
+            <button
+              onClick={() => toggleTranslate(mode === null ? 'rm' : mode === 'rm' ? 'en' : null)}
+              disabled={translating}
+              title={
+                mode === null ? 'Tanglish — sing-along script (e.g. oruvan oruvan)'
+                  : mode === 'rm' ? 'Tanglish on — tap for English'
+                  : 'English on — tap for Original'
+              }
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors touch-target ${
+                mode ? 'bg-[#fc3c44] text-white' : 'bg-zinc-800 text-zinc-300 hover:text-white'
+              }`}
+            >
+              {translating ? <Loader2 size={14} className="animate-spin" /> : <Languages size={14} />}
+              {mode === 'rm' ? 'Tanglish' : mode === 'en' ? 'English' : 'Tanglish'}
+            </button>
           )}
           <button onClick={onClose} className="p-1.5 text-zinc-400 hover:text-white transition-colors touch-target">
             <X size={20} />
