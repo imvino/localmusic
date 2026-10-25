@@ -30,6 +30,13 @@ function isoWeekId(d = new Date()) {
 const API_BASE = import.meta.env.VITE_API_URL
 const isProduction = import.meta.env.MODE === 'production'
 
+// Language-specific editorial moods — JioSaavn's channel list is
+// pan-Indian and a few only make sense inside one catalog (probed:
+// Carvaan ≈ 14/15 Hindi, Superstars ≈ Bhojpuri/English). When the
+// member's content-language pref excludes that catalog the chip sinks
+// to the end of the row — still reachable, just not leading.
+const MOOD_LANG_AFFINITY = { carvaan: 'hindi', superstars: 'hindi' }
+
 // Helper to format play counts
 function formatPlayCount(count) {
   const num = parseInt(count) || 0
@@ -134,8 +141,19 @@ export default function DiscoverView({ onSongClick, showToast, likedSongs, onLik
     retry: 1
   })
   const [moodSel, setMoodSel] = useState(null)
-  const activeMoodQuery = (moodSel ?? moods?.[0])?.query
-  const activeMoodName = (moodSel ?? moods?.[0])?.name
+  // Reorder: moods affinity-bound to a catalog the member's pref excludes
+  // sink to the end; no pref → upstream order untouched.
+  const orderedMoods = useMemo(() => {
+    if (!moods?.length || !langPrefs.size) return moods || []
+    const lead = [], sink = []
+    for (const m of moods) {
+      const aff = MOOD_LANG_AFFINITY[String(m.name || '').toLowerCase()]
+      ;(aff && !langPrefs.has(aff) ? sink : lead).push(m)
+    }
+    return [...lead, ...sink]
+  }, [moods, langPrefs])
+  const activeMoodQuery = (moodSel ?? orderedMoods?.[0])?.query
+  const activeMoodName = (moodSel ?? orderedMoods?.[0])?.name
   // Upstream mood queries are bare concepts ("Romance") that resolve
   // Hindi-heavy — bias the search with the member's first content-language
   // pref so the rail returns songs they'd actually play. No pref = generic.
@@ -508,16 +526,16 @@ export default function DiscoverView({ onSongClick, showToast, likedSongs, onLik
       ))}
 
       {/* Moods — editorial channels; chip row + selected mood's rail */}
-      {moods?.length > 0 && (
+      {orderedMoods.length > 0 && (
         <div className="mb-6">
           <div className="flex items-center gap-2 mb-3 overflow-x-auto scrollbar-hide">
             <Sparkles size={16} className="text-[#fc3c44] shrink-0" />
-            {moods.map(m => (
+            {orderedMoods.map(m => (
               <button
                 key={m.id}
                 onClick={() => setMoodSel(m)}
                 className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
-                  (moodSel ?? moods[0])?.id === m.id
+                  (moodSel ?? orderedMoods[0])?.id === m.id
                     ? 'bg-[#fc3c44] text-white'
                     : 'bg-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-700'
                 }`}
