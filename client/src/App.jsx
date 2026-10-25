@@ -805,7 +805,7 @@ function AppContent() {
     if (!isSignedIn) return // guests emit nothing — no call is made
     const bufKey = 'playEventBuffer'
     const buf = readKey(bufKey, []).map(e => ({ ...e, buffered: true }))
-    const events = [...buf, { songId: String(s.id), artist: s.artist || '', sessionId: playSessionIdRef.current }].slice(0, 200)
+    const events = [...buf, { songId: String(s.id), artist: s.artist || s.artists?.primary?.[0]?.name || s.primaryArtists || '', sessionId: playSessionIdRef.current }].slice(0, 200)
     ;(async () => {
       try {
         const token = await getToken()
@@ -835,12 +835,23 @@ function AppContent() {
       const prevPc = pc[s.id] || {}
       pc[s.id] = { ...(slimSong(s) || { id: s.id, name: s.name }), count: (prevPc.count || 0) + 1, ts: Date.now() }
       localStorage.setItem('playCounts', JSON.stringify(pc))
-      const prev = readKey('playHistory', [])
-      if (prev[0]?.id === s.id) { setHistoryVersion(v => v + 1); return }
+      // slimSong canonicalizes every upstream shape (artists.primary,
+      // album object, image array → URL) and keeps isLocal — hand-picked
+      // fields wrote undefined art/artist and dropped isLocal, so local
+      // songs replayed from Recently Played got ?bitrate= appended and
+      // the server resolved a local id upstream → dead card.
       const entry = {
-        id: s.id, name: s.name, artist: s.artist, album: s.album,
-        albumId: s.albumId, image: s.imageUrl || s.artworkUrl,
+        ...(slimSong(s) || { id: s.id, name: s.name || s.title || '' }),
         duration: Math.round(dur) || 0, ts: Date.now()
+      }
+      const prev = readKey('playHistory', [])
+      if (prev[0]?.id === s.id) {
+        // Same song replayed — refresh fields in place (heals entries
+        // written before this normalization) keeping the original ts so
+        // history merge keys don't churn.
+        prev[0] = { ...entry, ts: prev[0].ts }
+        localStorage.setItem('playHistory', JSON.stringify(prev))
+        setHistoryVersion(v => v + 1); return
       }
       localStorage.setItem('playHistory', JSON.stringify([entry, ...prev].slice(0, 200)))
       setHistoryVersion(v => v + 1) // triggers the debounced sync push
