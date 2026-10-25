@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useAuth } from '@clerk/clerk-react'
 import { usePlaylistStore } from '../stores/playlistStore'
 import { clearPersonalData, getLastUserId, setLastUserId } from '../utils/personalData'
-import { slimSong, slimPlaylists, slimFolders, mergePlaylists, mergeFolders, mergeHistory, mergeCollections, markPullDone, resetPullDone, isPullDone, onPullDone, getTombstones, isTombstoned, applyTombstones, TOMB_KEYS, HISTORY_CLEARED_KEY, mergeHiddenMap } from '../utils/sync'
+import { slimSong, slimPlaylists, slimFolders, mergePlaylists, mergeFolders, mergeHistory, mergeCollections, markPullDone, resetPullDone, isPullDone, onPullDone, getTombstones, isTombstoned, applyTombstones, TOMB_KEYS, HISTORY_CLEARED_KEY, mergeHiddenMap, isRealSongEntry } from '../utils/sync'
 
 const API_BASE = import.meta.env.VITE_API_URL
 const LAST_SYNC_KEY = 'libraryLastSync'
@@ -47,9 +47,11 @@ async function pushSnapshot(getToken, likedSongs, playlists, collections) {
         removedHiddenSongs: getTombstones(TOMB_KEYS.hiddenSongs),
         removedHiddenArtists: getTombstones(TOMB_KEYS.hiddenArtists),
         historyClearedAt: Number(localStorage.getItem(HISTORY_CLEARED_KEY)) || 0,
-        // Cap the payload — keep the 3000 most recently played ids
+        // Cap the payload — keep the 3000 most recently played ids;
+        // never upload fixture/corrupt entries back to the server doc
         playCounts: Object.fromEntries(
           Object.entries(readLS('playCounts', {}))
+            .filter(([id, e]) => isRealSongEntry(typeof e === 'object' && e ? e : { id }))
             .sort((a, b) => (b[1]?.ts || 0) - (a[1]?.ts || 0)).slice(0, 3000)
         )
       })
@@ -231,12 +233,11 @@ export function useLibrarySync({ likedSongs, setLikedSongs, savedAlbums, setSave
             }
           }
           // Cap local bloat — keep the 3000 most recently played ids.
-          // Numeric-only ids can never resolve to a stream (upstream ids
-          // are base64-ish, local ids too) — filter them out so seeded or
-          // corrupted entries can't survive merges forever.
+          // Fixture/corrupt entries can never resolve to a stream — drop
+          // them so seeded junk can't survive merges forever on either side.
           const capped = Object.fromEntries(
             Object.entries(merged)
-              .filter(([id]) => !/^\d+$/.test(id))
+              .filter(([id, e]) => isRealSongEntry(typeof e === 'object' && e ? e : { id }))
               .sort((a, b) => (b[1]?.ts || 0) - (a[1]?.ts || 0)).slice(0, 3000)
           )
           writeLS('playCounts', capped)

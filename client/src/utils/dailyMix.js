@@ -1,7 +1,7 @@
 // Daily-mix construction — pure functions extracted from DiscoverView so the
 // bucketing/capping math is unit-testable (spec: a broad seeded history must
 // not produce a single-artist echo).
-import { normalizeArtistName, isContentBlocked, slimSong } from './sync'
+import { normalizeArtistName, isContentBlocked, slimSong, isRealSongEntry } from './sync'
 
 // Max N songs per artist — keeps a mix varied instead of one artist's discography.
 export const capPerArtist = (songs, max = 3) => {
@@ -23,7 +23,7 @@ export function buildMixBuckets(playCounts, skipCounts = {}) {
     const net = (e) => (e.count || 1) - 2 * (skipCounts[e.id]?.count || 0)
     const byArtist = new Map()
     for (const e of Object.values(playCounts || {})) {
-      if (!e?.id || !e.artist) continue
+      if (!isRealSongEntry(e) || !e.artist) continue
       const key = normalizeArtistName(e.artist)
       if (!key) continue
       if (!byArtist.has(key)) byArtist.set(key, { name: e.artist, songs: [], total: 0 })

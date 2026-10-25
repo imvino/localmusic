@@ -6,7 +6,7 @@ import MetaTags from '../components/MetaTags'
 import HorizontalScroll from '../components/HorizontalScroll'
 import TrackMenu from '../components/TrackMenu'
 import { decodeHtmlEntities, getBestImageUrl, getImageSrc } from '../utils'
-import { normalizeArtistName, isContentBlocked, slimSong } from '../utils/sync'
+import { normalizeArtistName, isContentBlocked, slimSong, isRealSongEntry } from '../utils/sync'
 import { capPerArtist, buildMixBuckets, assembleDailyMix } from '../utils/dailyMix'
 import { useJioFeaturedPlaylists, useJioNewReleases, useCharts, useTrending, useNewReleaseAlbums, useSongSuggestions } from '../hooks/useApi'
 import { useArtistConfig } from '../artist-config'
@@ -90,7 +90,7 @@ export default function DiscoverView({ onSongClick, showToast, likedSongs, onLik
       const counts = new Map()
       const oldest = new Map()
       for (const [id, e] of Object.entries(pc)) {
-        if (!e?.id) continue
+        if (!isRealSongEntry(e)) continue // fixture/corrupt entries never surface
         counts.set(id, { ...e, count: e.count || 1 })
       }
       const raw = JSON.parse(localStorage.getItem('playHistory') || '[]')
@@ -237,14 +237,16 @@ export default function DiscoverView({ onSongClick, showToast, likedSongs, onLik
   useEffect(() => {
     if (!isSignedIn || weeklyGenRef.current) return
     const existing = usePlaylistStore.getState().playlists[weeklyMixId]
-    if (existing?.weeklyMixWeek === weekId && existing.songs?.length) return
+    // A mix whose songs are all unresolvable (fixtures/corruption) counts
+    // as absent — regenerate rather than riding out the week on dead cards.
+    if (existing?.weeklyMixWeek === weekId && existing.songs?.length && existing.songs.some(isRealSongEntry)) return
     let pc, sk = {}
     try {
       pc = JSON.parse(localStorage.getItem('playCounts') || '{}')
       sk = JSON.parse(localStorage.getItem('skipCounts') || '{}')
     } catch { return }
     const net = (e) => (e.count || 0) - 2 * (sk[e.id]?.count || 0)
-    const entries = Object.values(pc).filter(e => e?.id && net(e) >= 2)
+    const entries = Object.values(pc).filter(e => isRealSongEntry(e) && net(e) >= 2)
     if (entries.length < 3) return // not enough listening history to mix
     weeklyGenRef.current = true
     ;(async () => {
@@ -468,7 +470,7 @@ export default function DiscoverView({ onSongClick, showToast, likedSongs, onLik
         <HorizontalScroll
           title="Weekly Mix"
           icon={Sparkles}
-          items={weeklyMix.songs.filter(railPass).slice(0, 15)}
+          items={weeklyMix.songs.filter(isRealSongEntry).filter(railPass).slice(0, 15)}
           renderItem={(song) => (
             <SongCard song={{ ...song, name: decodeHtmlEntities(song.name || song.title || ''), artist: decodeHtmlEntities(song.artists?.primary?.[0]?.name || song.artist || ''), image: song.image }} onSongClick={onSongClick} downloadProgress={downloadProgress} setDownloadProgress={setDownloadProgress} likedSongs={likedSongs} onLikeToggle={onLikeToggle} onPlayNext={onPlayNext} onAddToQueue={onAddToQueue} onGoToAlbum={onGoToAlbum} onSongRadio={onSongRadio} onHideSong={onHideSong} onHideArtist={onHideArtist} showToast={showToast} />
           )}

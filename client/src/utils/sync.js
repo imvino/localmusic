@@ -72,6 +72,17 @@ export function mergeFolders(local, server) {
   return merged
 }
 
+// Rejects test-fixture/corrupt song entries: ids that can never resolve
+// to a stream (pure digits, or the seedNN test shape — real upstream and
+// local ids are base64-style) and fixture names ("Song 1000", "Seed 00")
+// no real catalog item carries. Seeded playCounts poisoned On Repeat and
+// the mixes with dead cards that union merges could never evict.
+export const isRealSongEntry = (e) => {
+  const id = String(e?.id || '')
+  if (!id || /^\d+$/.test(id) || /^seed\d+$/i.test(id)) return false
+  return !/^(song|seed)\s*\d+$/i.test(String(e?.name || ''))
+}
+
 // Artist-name normalizer — shared by the "New from artists you follow" rail
 // and daily-mix clustering. "A. R. Rahman" must match "AR Rahman".
 export function normalizeArtistName(name) {
