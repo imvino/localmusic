@@ -100,6 +100,10 @@ export default function Sidebar({ showToast, onClose, qualityPreference, onQuali
         key.toLowerCase().includes('react') || key.toLowerCase().includes('query')
       )
       reactQueryKeys.forEach(key => localStorage.removeItem(key))
+      // Drop the saved playback session too — an explicit cache purge
+      // shouldn't reload into a "Resume <song>?" banner for stale state
+      // (sessionStorage.clear() also wipes the once-per-session flag).
+      localStorage.removeItem('playerSession')
 
       // Clear sessionStorage
       sessionStorage.clear()
