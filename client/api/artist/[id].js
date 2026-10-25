@@ -127,8 +127,8 @@ async function fetchWithFallback(endpoint, params, type = 'songs') {
 export default async function handler(req) {
   const url = new URL(req.url);
   const pathParts = url.pathname.split('/');
-  const id = pathParts[pathParts.length - 1];
-  
+  let id = pathParts[pathParts.length - 1];
+
   const limit = parseInt(url.searchParams.get('limit')) || 50;
   const language = url.searchParams.get('language') || 'all';
   const sort = url.searchParams.get('sort') || 'popular';
@@ -138,8 +138,35 @@ export default async function handler(req) {
   const isEncodedName = isNaN(id) && id !== decodedId;
   const isArtistName = isNaN(id) && !id.match(/^\d+$/);
 
-  // If it's an encoded name or just an artist name (not numeric ID), use fallback API
+  // Non-numeric ids (artist names, perma tokens like "634AK8t6tAU_") —
+  // resolve to the canonical numeric artist id via ARTIST search first.
+  // The fallback below guesses a profile from the first matching song's
+  // singer list, which lands on combo/featured-artist entities.
   if (isEncodedName || isArtistName) {
+    try {
+      const byToken = await fetchFromMusicServiceOfficial('webapi.get', { token: id, type: 'artist', p: 1, n_song: 1, n_album: 1 }).catch(() => null);
+      const tokenId = byToken?.artistId || byToken?.id;
+      if (tokenId && /^\d+$/.test(String(tokenId))) id = String(tokenId);
+    } catch {}
+    try {
+      const cleanName = decodedId.replace(/[-_+]/g, ' ').trim();
+      const data = /^\d+$/.test(id) ? null
+        : await fetchFromMusicServiceOfficial('search.getArtistResults', { q: cleanName, p: 1, n: 10 });
+      const results = data?.results ? (Array.isArray(data.results) ? data.results : Object.values(data.results)) : [];
+      const norm = s => String(s || '').toLowerCase().replace(/&amp;/g, '&').replace(/[^a-z0-9]/g, '');
+      const target = norm(cleanName);
+      const numeric = r => /^\d+$/.test(String(r?.id || ''));
+      const hit = results.find(r => numeric(r) && norm(r.name || r.title) === target)
+               || results.find(r => numeric(r) && (norm(r.name || r.title).startsWith(target) || target.startsWith(norm(r.name || r.title))))
+               || results.find(numeric);
+      if (hit) id = String(hit.id);
+    } catch (e) {
+      console.error('artist name→id resolve failed:', e.message);
+    }
+  }
+
+  // Still non-numeric — build a basic profile from song search (last resort)
+  if (!/^\d+$/.test(id)) {
     try {
       const searchResponse = await fetch(`${FALLBACK_API}/search?query=${encodeURIComponent(decodedId)}`);
       const searchResults = await searchResponse.json();
@@ -267,7 +294,7 @@ export default async function handler(req) {
     let similarArtists = [];
     if (artistData.similarArtists && Array.isArray(artistData.similarArtists)) {
       similarArtists = artistData.similarArtists.map(a => ({
-        id: a.perma_url ? a.perma_url.split('/').filter(Boolean).pop() : a.id,
+        id: a.id || (a.perma_url ? a.perma_url.split('/').filter(Boolean).pop() : null),
         name: a.name,
         image: [{ quality: '500x500', url: a.image_url || a.image }]
       }));

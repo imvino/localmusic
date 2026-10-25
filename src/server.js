@@ -2778,8 +2778,16 @@ app.get('/api/artist/:id', async (req, res) => {
   // singer list, which lands on combo/featured-artist entities — wrong page.
   if (isEncodedName || isArtistName) {
     try {
+      // Perma-token path first — webapi.get resolves the token to the
+      // canonical entity with zero name ambiguity
+      const byToken = await fetchFromMusicServiceOfficial('webapi.get', { token: id, type: 'artist', p: 1, n_song: 1, n_album: 1 }).catch(() => null);
+      const tokenId = byToken?.artistId || byToken?.id;
+      if (tokenId && /^\d+$/.test(String(tokenId))) id = String(tokenId);
+    } catch {}
+    try {
       const cleanName = decodedId.replace(/[-_+]/g, ' ').trim();
-      const data = await fetchFromMusicServiceOfficial('search.getArtistResults', { q: cleanName, p: 1, n: 10 });
+      const data = /^\d+$/.test(id) ? null
+        : await fetchFromMusicServiceOfficial('search.getArtistResults', { q: cleanName, p: 1, n: 10 });
       const results = data?.results ? (Array.isArray(data.results) ? data.results : Object.values(data.results)) : [];
       const norm = s => String(s || '').toLowerCase().replace(/&amp;/g, '&').replace(/[^a-z0-9]/g, '');
       const target = norm(cleanName);
