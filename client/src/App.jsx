@@ -323,6 +323,22 @@ function AppContent() {
     }
   }
 
+  // Content-language preference applied to PLAYBACK surfaces (radio,
+  // autoplay, smart-shuffle injections). Same semantics as the rail filter:
+  // unclassified songs pass, empty pref disables filtering. Callers use it
+  // as a prefer-filter — drop known non-matching languages only when at
+  // least one match exists, so a foreign-language suggestion list never
+  // starves the queue to silence.
+  const matchSongLang = (s) => {
+    if (!contentLanguages?.length) return true
+    const l = (s?.language || s?.more_info?.language || '').toLowerCase()
+    return !l || contentLanguages.some(p => p.toLowerCase() === l)
+  }
+  const preferLang = (songs) => {
+    const pref = songs.filter(matchSongLang)
+    return pref.length ? pref : songs
+  }
+
   const handleHideSong = (song) => {
     if (!song?.id) return
     const keys = blocklistKeys(isSignedIn)
@@ -1923,7 +1939,8 @@ function AppContent() {
     try { history = JSON.parse(localStorage.getItem('playHistory') || '[]').slice(0, 20) } catch {}
     const seen = new Set([...baseQueue.map(s => s.id), ...history.map(h => h.id)])
     const ctx = blockedCtx()
-    return candidates.filter(s => s?.id && !seen.has(s.id) && !isContentBlocked(s, ctx)).slice(0, 20)
+    const eligible = candidates.filter(s => s?.id && !seen.has(s.id) && !isContentBlocked(s, ctx))
+    return preferLang(eligible).slice(0, 20)
   }
 
   // Append similar songs at queue end and keep playing. Returns true on success.
@@ -2018,10 +2035,11 @@ function AppContent() {
       const seen = new Set(pool.map(s => s.id))
       const merged = []
       results.flat().forEach(s => { if (s?.id && !seen.has(s.id) && !isContentBlocked(s, ctx)) { seen.add(s.id); merged.push(s) } })
-      if (merged.length === 0) return
+      const picked = preferLang(merged)
+      if (picked.length === 0) return
       // The closure's `queue` is stale — after handleSongSelect it IS `pool`
-      const newQueue = [...pool, ...merged]
-      const newIndices = merged.map((_, i) => pool.length + i)
+      const newQueue = [...pool, ...picked]
+      const newIndices = picked.map((_, i) => pool.length + i)
       queueEpochRef.current++
       setQueue(newQueue)
       setShuffleOrder(prev => [...prev, ...newIndices])
