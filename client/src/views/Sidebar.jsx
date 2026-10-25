@@ -25,6 +25,7 @@ export default function Sidebar({ showToast, onClose, qualityPreference, onQuali
   const [showQualitySettings, setShowQualitySettings] = useState(false)
   const [showEqSettings, setShowEqSettings] = useState(false)
   const [collapsedFolders, setCollapsedFolders] = useState({})
+  const [sleepMenuOpen, setSleepMenuOpen] = useState(false)
 
   const sleepTimerValue = sleepTimer?.type === 'eot' ? 'eot'
     : sleepTimer?.type === 'timer' ? String(Math.max(1, Math.round((sleepTimer.endsAt - Date.now()) / 60000)))
@@ -217,23 +218,43 @@ export default function Sidebar({ showToast, onClose, qualityPreference, onQuali
             </span>
           </button>
 
-          {/* Sleep timer */}
-          <div className="flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium text-zinc-400">
-            <div className="flex items-center gap-3 whitespace-nowrap">
-              <Timer size={17} className={sleepTimer ? 'text-[#fc3c44]' : ''} />
-              <span className={sleepTimer ? 'text-white' : ''}>Sleep timer</span>
-            </div>
-            <select
-              value={sleepTimerValue}
-              onChange={e => onSleepTimer?.(e.target.value)}
-              className="bg-zinc-800 text-zinc-200 text-xs rounded-lg px-2 py-1.5 outline-none border border-zinc-700 focus:border-zinc-500 cursor-pointer"
+          {/* Sleep timer — compact chip + preset popover (native <select>
+              chrome was oversized on mobile). Chip shows the live value:
+              Off / 32m / EOT */}
+          <div className="relative">
+            <button
+              onClick={() => setSleepMenuOpen(o => !o)}
+              className="flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-left w-full text-zinc-400 hover:text-white hover:bg-zinc-800/40"
             >
-              <option value="off">Off</option>
-              <option value="15">15 min</option>
-              <option value="30">30 min</option>
-              <option value="60">60 min</option>
-              <option value="eot">End of track</option>
-            </select>
+              <div className="flex items-center gap-3 whitespace-nowrap">
+                <Timer size={17} className={sleepTimer ? 'text-[#fc3c44]' : ''} />
+                <span className={sleepTimer ? 'text-white' : ''}>Sleep timer</span>
+              </div>
+              <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${sleepTimer ? 'bg-[#fc3c44] text-white' : 'bg-zinc-800 text-zinc-500'}`}>
+                {sleepTimerValue === 'eot' ? 'EOT' : sleepTimerValue === 'off' ? 'Off' : `${sleepTimerValue}m`}
+              </span>
+            </button>
+            {sleepMenuOpen && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setSleepMenuOpen(false)} />
+                <div className="absolute right-2 top-full mt-1 z-50 bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden shadow-xl min-w-[150px]">
+                  {[['off', 'Off'], ['15', '15 min'], ['30', '30 min'], ['60', '60 min'], ['eot', 'End of track']].map(([v, label]) => {
+                    const active = v === 'off' ? !sleepTimer
+                      : v === 'eot' ? sleepTimer?.type === 'eot'
+                      : sleepTimer?.type === 'timer' && String(Math.max(1, Math.round((sleepTimer.endsAt - Date.now()) / 60000))) === v
+                    return (
+                      <button
+                        key={v}
+                        onClick={() => { onSleepTimer?.(v); setSleepMenuOpen(false) }}
+                        className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${active ? 'text-[#fc3c44] font-semibold bg-zinc-800/60' : 'text-zinc-300 hover:bg-zinc-800'}`}
+                      >
+                        {label}
+                      </button>
+                    )
+                  })}
+                </div>
+              </>
+            )}
           </div>
 
           {/* EQ */}
