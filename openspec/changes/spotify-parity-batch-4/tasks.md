@@ -75,4 +75,4 @@
 - [x] 8.1 `pnpm test` all pass; client build clean; server syntax + boot clean — 68/68 vitest, vite build + PWA generated, node --check clean, sqlite tables live
 - [x] 8.2 Browser pass — VERIFIED signed-in + guest: 3 multi-artist Daily Mixes, mood chips+language-biased rail, share POST→/s/:code og card→art proxy→revoke 404 (real auth, real saavncdn bytes), smart shuffle inject/strip, ZERO console errors; also fixed verifyToken 3.x breakage (all auth was 401) + railPass artists-object crash found in-browser
 - [x] 8.3 `openspec validate spotify-parity-batch-4 --strict` clean
-- [ ] 8.4 Commit; notify user
+- [x] 8.4 Commit — done, notified
