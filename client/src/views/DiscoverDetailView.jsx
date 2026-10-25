@@ -15,7 +15,7 @@ import { useArtistConfig, hasCustomAlbums, getAlbumsTabLabel } from '../artist-c
 const API_BASE = import.meta.env.VITE_API_URL
 const isProduction = import.meta.env.MODE === 'production'
 
-export default function DiscoverDetailView({ onSongClick, showToast, currentSong, isPlaying, sidebarOpen, likedSongs, onLikeToggle, onPlayNext, onAddToQueue, onGoToAlbum, onSongRadio, onShufflePlay, onArtistRadio, savedAlbums, onSaveAlbumToggle, followedArtists, onFollowArtistToggle }) {
+export default function DiscoverDetailView({ onSongClick, showToast, currentSong, isPlaying, sidebarOpen, likedSongs, onLikeToggle, onPlayNext, onAddToQueue, onGoToAlbum, onSongRadio, onShufflePlay, onArtistRadio, savedAlbums, onSaveAlbumToggle, followedArtists, onFollowArtistToggle, contentLanguages }) {
   const { id, slug } = useParams()
   const navigate = useNavigate()
   const location = useLocation()
@@ -134,6 +134,24 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
     if (!albumLanguage) return true
     return albumLanguage.toLowerCase() === albumsLanguageFilter.toLowerCase()
   })
+
+  // Seed each tab's language filter once from the global content-language
+  // preference — only when exactly one language is preferred AND this artist
+  // actually has content in it. Runs once per list; manual picks win after.
+  const songsLangDefaulted = useRef(false)
+  const albumsLangDefaulted = useRef(false)
+  useEffect(() => {
+    if (songsLangDefaulted.current || !distinctLanguages.length || contentLanguages?.length !== 1) return
+    const pref = contentLanguages[0]
+    if (distinctLanguages.some(l => l.toLowerCase() === pref.toLowerCase())) setLanguageFilter(pref)
+    songsLangDefaulted.current = true
+  }, [distinctLanguages, contentLanguages])
+  useEffect(() => {
+    if (albumsLangDefaulted.current || !distinctAlbumLanguages.length || contentLanguages?.length !== 1) return
+    const pref = contentLanguages[0]
+    if (distinctAlbumLanguages.some(l => l.toLowerCase() === pref.toLowerCase())) setAlbumsLanguageFilter(pref)
+    albumsLangDefaulted.current = true
+  }, [distinctAlbumLanguages, contentLanguages])
 
 
 
