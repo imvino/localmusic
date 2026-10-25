@@ -15,7 +15,7 @@ import { useArtistConfig, hasCustomAlbums, getAlbumsTabLabel } from '../artist-c
 const API_BASE = import.meta.env.VITE_API_URL
 const isProduction = import.meta.env.MODE === 'production'
 
-export default function DiscoverDetailView({ onSongClick, showToast, currentSong, isPlaying, sidebarOpen, likedSongs, onLikeToggle, onPlayNext, onAddToQueue, onGoToAlbum, onSongRadio, onShufflePlay, onArtistRadio, savedAlbums, onSaveAlbumToggle, followedArtists, onFollowArtistToggle, contentLanguages }) {
+export default function DiscoverDetailView({ onSongClick, showToast, currentSong, isPlaying, sidebarOpen, likedSongs, onLikeToggle, onPlayNext, onAddToQueue, onGoToAlbum, onSongRadio, onHideSong, onHideArtist, onShufflePlay, onArtistRadio, savedAlbums, onSaveAlbumToggle, followedArtists, onFollowArtistToggle, contentLanguages }) {
   const { id, slug } = useParams()
   const navigate = useNavigate()
   const location = useLocation()
@@ -837,7 +837,7 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
                         onLikeToggle={onLikeToggle}
                         onPlayNext={onPlayNext}
                         onAddToQueue={onAddToQueue}
-                        onGoToAlbum={onGoToAlbum} onSongRadio={onSongRadio}
+                        onGoToAlbum={onGoToAlbum} onSongRadio={onSongRadio} onHideSong={onHideSong} onHideArtist={onHideArtist}
                         showToast={showToast}
                       />
                     </div>
@@ -1094,7 +1094,7 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
                   onLikeToggle={onLikeToggle}
                   onPlayNext={onPlayNext}
                   onAddToQueue={onAddToQueue}
-                  onGoToAlbum={onGoToAlbum} onSongRadio={onSongRadio}
+                  onGoToAlbum={onGoToAlbum} onSongRadio={onSongRadio} onHideSong={onHideSong} onHideArtist={onHideArtist}
                   showToast={showToast}
                 />
               </div>

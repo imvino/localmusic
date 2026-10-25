@@ -1,11 +1,12 @@
 import { Search, Mic2, Disc3, Music, ListMusic, ChevronDown, Clock3 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import MetaTags from '../components/MetaTags'
 import TrackMenu from '../components/TrackMenu'
 import ArtImage from '../components/ArtImage'
 import { useSearch } from '../hooks/useApi'
 import { decodeHtmlEntities, formatDuration, getImageSrc } from '../utils'
+import { isContentBlocked, normalizeArtistName } from '../utils/sync'
 
 // Browse tiles on the search landing — quick genre/mood jumps, Spotify style
 const BROWSE_TILES = [
@@ -20,7 +21,7 @@ const BROWSE_TILES = [
   { label: 'Anirudh', query: 'anirudh', classes: 'bg-gradient-to-br from-purple-500 to-indigo-800' },
 ]
 
-export default function SearchView({ query, onSongClick, onAlbumClick, onArtistClick, showToast, likedSongs, onLikeToggle, onPlayNext, onAddToQueue, onGoToAlbum, onSongRadio }) {
+export default function SearchView({ query, onSongClick, onAlbumClick, onArtistClick, showToast, likedSongs, onLikeToggle, onPlayNext, onAddToQueue, onGoToAlbum, onSongRadio, onHideSong, onHideArtist, blockCtx }) {
   const navigate = useNavigate()
   const appUrl = import.meta.env.VITE_APP_URL
   const [visibleSongs, setVisibleSongs] = useState(5)
@@ -77,6 +78,23 @@ export default function SearchView({ query, onSongClick, onAlbumClick, onArtistC
 
   // Use TanStack Query for search (debounced — input stays instant)
   const { data: onlineResults, isLoading: loading, error } = useSearch(debouncedQuery)
+
+  // Strip hidden songs/artists + explicit tracks (when filtered) from every
+  // result group — local lists stay untouched (they're the member's own
+  // uploads; hiding targets catalog content).
+  const results = useMemo(() => {
+    if (!onlineResults) return onlineResults
+    const ctx = blockCtx || {}
+    const isBlockedArtist = (name) => !!ctx.hiddenArtists?.[normalizeArtistName(name)]
+    return {
+      ...onlineResults,
+      songs: (onlineResults.songs || []).filter(s => !isContentBlocked(s, ctx)),
+      artists: (onlineResults.artists || []).filter(a => !isBlockedArtist(a.name || a.title)),
+      topResult: onlineResults.topResult && !isContentBlocked(
+        { ...onlineResults.topResult, artist: onlineResults.topResult.artists?.primary?.[0]?.name }, ctx)
+        ? onlineResults.topResult : null
+    }
+  }, [onlineResults, blockCtx])
 
 
   if (!query.trim()) {
@@ -135,13 +153,13 @@ export default function SearchView({ query, onSongClick, onAlbumClick, onArtistC
 
   // Determine if we have results
   const hasResults = onlineResults && (
-    onlineResults.topResult ||
-    onlineResults.songs?.length ||
-    onlineResults.albums?.length ||
-    onlineResults.artists?.length ||
-    onlineResults.playlists?.length ||
-    onlineResults.localAlbums?.length ||
-    onlineResults.localSongs?.length
+    results.topResult ||
+    results.songs?.length ||
+    results.albums?.length ||
+    results.artists?.length ||
+    results.playlists?.length ||
+    results.localAlbums?.length ||
+    results.localSongs?.length
   )
 
   if (!loading && !hasResults && !error) {
@@ -208,14 +226,14 @@ export default function SearchView({ query, onSongClick, onAlbumClick, onArtistC
       {onlineResults && !loading && (
         <>
           {/* FROM YOUR LIBRARY — local collection matches ride on top */}
-          {(tab === 'all' || tab === 'songs' || tab === 'albums') && (onlineResults.localAlbums?.length > 0 || onlineResults.localSongs?.length > 0) && (
+          {(tab === 'all' || tab === 'songs' || tab === 'albums') && (results.localAlbums?.length > 0 || results.localSongs?.length > 0) && (
             <section className="mb-8">
               <h2 className="flex items-center gap-2 text-lg font-bold text-white mb-4">
                 <Disc3 size={18} className="text-[#fc3c44]" /> From your library
               </h2>
-              {onlineResults.localAlbums?.length > 0 && (
+              {results.localAlbums?.length > 0 && (
                 <div className="flex gap-3 md:gap-4 flex-wrap mb-4">
-                  {onlineResults.localAlbums.map(album => (
+                  {results.localAlbums.map(album => (
                     <button
                       key={album.id}
                       onClick={() => navigate(`/library/album/${album.id}`)}
@@ -236,15 +254,15 @@ export default function SearchView({ query, onSongClick, onAlbumClick, onArtistC
                   ))}
                 </div>
               )}
-              {onlineResults.localSongs?.length > 0 && (
+              {results.localSongs?.length > 0 && (
                 <div className="flex flex-col gap-0.5">
-                  {onlineResults.localSongs.map((song, index) => (
+                  {results.localSongs.map((song, index) => (
                     <div
                       key={song.id}
                       role="button"
                       tabIndex={0}
-                      onClick={() => onSongClick({ ...song, isLocal: true }, onlineResults.localSongs, index)}
-                      onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSongClick({ ...song, isLocal: true }, onlineResults.localSongs, index) } }}
+                      onClick={() => onSongClick({ ...song, isLocal: true }, results.localSongs, index)}
+                      onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSongClick({ ...song, isLocal: true }, results.localSongs, index) } }}
                       className="flex items-center gap-2 md:gap-3 px-2 md:px-3 py-2 md:py-2.5 rounded-xl hover:bg-zinc-800/60 transition-colors text-left w-full group cursor-pointer"
                     >
                       <ArtImage
@@ -266,7 +284,7 @@ export default function SearchView({ query, onSongClick, onAlbumClick, onArtistC
           )}
 
           {/* TOP RESULT */}
-          {tab === 'all' && onlineResults.topResult && (
+          {tab === 'all' && results.topResult && (
             <section className="mb-8">
               <h2 className="flex items-center gap-2 text-lg font-bold text-white mb-4">
                 <Music size={18} className="text-[#fc3c44]" /> Top Result
@@ -275,25 +293,25 @@ export default function SearchView({ query, onSongClick, onAlbumClick, onArtistC
                 className="flex flex-col md:flex-row items-center md:items-start gap-4 p-4 bg-zinc-900 rounded-xl hover:bg-zinc-800 transition-colors w-full group overflow-hidden"
                 onClick={() => {
                   recordSearch(query)
-                  if (onlineResults.topResult.type === 'song') {
+                  if (results.topResult.type === 'song') {
                     onSongClick({
-                      ...onlineResults.topResult,
+                      ...results.topResult,
                       isStream: true,
-                      streamUrl: onlineResults.topResult.downloadUrl?.[0]?.url
+                      streamUrl: results.topResult.downloadUrl?.[0]?.url
                     })
-                  } else if (onlineResults.topResult.type === 'album') {
-                    onAlbumClick(onlineResults.topResult)
-                  } else if (onlineResults.topResult.type === 'artist') {
-                    onArtistClick?.(onlineResults.topResult)
-                  } else if (onlineResults.topResult.type === 'playlist') {
-                    navigate(`/discover/playlist/${onlineResults.topResult.id}`, { state: { playlist: onlineResults.topResult } })
+                  } else if (results.topResult.type === 'album') {
+                    onAlbumClick(results.topResult)
+                  } else if (results.topResult.type === 'artist') {
+                    onArtistClick?.(results.topResult)
+                  } else if (results.topResult.type === 'playlist') {
+                    navigate(`/discover/playlist/${results.topResult.id}`, { state: { playlist: results.topResult } })
                   }
                 }}
               >
                 <div className="w-16 h-16 md:w-20 md:h-20 rounded-lg overflow-hidden bg-zinc-800 shadow flex-shrink-0">
                   <ArtImage
-                    image={onlineResults.topResult.image}
-                    alt={onlineResults.topResult.name}
+                    image={results.topResult.image}
+                    alt={results.topResult.name}
                     className="w-16 h-16 md:w-20 md:h-20"
                     iconSize={24}
                     fallback={Music}
@@ -301,16 +319,16 @@ export default function SearchView({ query, onSongClick, onAlbumClick, onArtistC
                 </div>
                 <div className="flex-1 min-w-0 text-left w-full">
                   <p className="text-base font-medium text-white truncate">
-                    {decodeHtmlEntities(onlineResults.topResult.name)}
+                    {decodeHtmlEntities(results.topResult.name)}
                   </p>
                   <p className="text-sm text-zinc-500 truncate">
-                    {onlineResults.topResult.type === 'song'
-                      ? `${onlineResults.topResult.artists?.primary?.map(a => a.name).join(', ')} · ${decodeHtmlEntities(onlineResults.topResult.album?.name)}`
-                      : `${onlineResults.topResult.artists?.primary?.map(a => a.name).join(', ')} · ${onlineResults.topResult.year}`
+                    {results.topResult.type === 'song'
+                      ? `${results.topResult.artists?.primary?.map(a => a.name).join(', ')} · ${decodeHtmlEntities(results.topResult.album?.name)}`
+                      : `${results.topResult.artists?.primary?.map(a => a.name).join(', ')} · ${results.topResult.year}`
                     }
                   </p>
                   <p className="text-xs text-zinc-600 mt-1 capitalize">
-                    {onlineResults.topResult.type}
+                    {results.topResult.type}
                   </p>
                 </div>
               </button>
@@ -324,7 +342,7 @@ export default function SearchView({ query, onSongClick, onAlbumClick, onArtistC
                 <Music size={18} className="text-[#fc3c44]" /> Songs
               </h2>
               <div className="flex flex-col gap-0.5">
-                {onlineResults.songs.slice(0, visibleSongs).map((song, index) => (
+                {results.songs.slice(0, visibleSongs).map((song, index) => (
                   <div
                     key={song.id}
                     role="button"
@@ -333,13 +351,13 @@ export default function SearchView({ query, onSongClick, onAlbumClick, onArtistC
                       recordSearch(query)
                       onSongClick({
                         ...song
-                      }, onlineResults.songs, index)
+                      }, results.songs, index)
                     }}
                     onKeyDown={e => {
                       if (e.key === 'Enter' || e.key === ' ') {
                         e.preventDefault()
                         recordSearch(query)
-                        onSongClick({ ...song }, onlineResults.songs, index)
+                        onSongClick({ ...song }, results.songs, index)
                       }
                     }}
                     className="flex items-center gap-2 md:gap-3 px-2 md:px-3 py-2 md:py-2.5 rounded-xl hover:bg-zinc-800/60 transition-colors text-left w-full group cursor-pointer"
@@ -365,16 +383,16 @@ export default function SearchView({ query, onSongClick, onAlbumClick, onArtistC
                         onLikeToggle={onLikeToggle}
                         onPlayNext={onPlayNext}
                         onAddToQueue={onAddToQueue}
-                        onGoToAlbum={onGoToAlbum} onSongRadio={onSongRadio}
+                        onGoToAlbum={onGoToAlbum} onSongRadio={onSongRadio} onHideSong={onHideSong} onHideArtist={onHideArtist}
                         showToast={showToast}
                       />
                     </div>
                   </div>
                 ))}
               </div>
-              {onlineResults.songs.length > visibleSongs && (
+              {results.songs.length > visibleSongs && (
                 <button
-                  onClick={() => setVisibleSongs(prev => Math.min(prev + 5, onlineResults.songs.length))}
+                  onClick={() => setVisibleSongs(prev => Math.min(prev + 5, results.songs.length))}
                   className="mt-3 text-sm text-zinc-400 hover:text-white transition-colors flex items-center gap-1"
                 >
                   Load more
@@ -391,7 +409,7 @@ export default function SearchView({ query, onSongClick, onAlbumClick, onArtistC
                 <Disc3 size={18} className="text-[#fc3c44]" /> Albums
               </h2>
               <div className="flex gap-3 md:gap-4 flex-wrap">
-                {onlineResults.albums.slice(0, visibleAlbums).map(album => (
+                {results.albums.slice(0, visibleAlbums).map(album => (
                   <button
                     key={album.id}
                     onClick={() => {
@@ -417,9 +435,9 @@ export default function SearchView({ query, onSongClick, onAlbumClick, onArtistC
                   </button>
                 ))}
               </div>
-              {onlineResults.albums.length > visibleAlbums && (
+              {results.albums.length > visibleAlbums && (
                 <button
-                  onClick={() => setVisibleAlbums(prev => Math.min(prev + (isMobile ? 4 : 12), onlineResults.albums.length))}
+                  onClick={() => setVisibleAlbums(prev => Math.min(prev + (isMobile ? 4 : 12), results.albums.length))}
                   className="mt-3 text-sm text-zinc-400 hover:text-white transition-colors flex items-center gap-1"
                 >
                   Load more
@@ -436,7 +454,7 @@ export default function SearchView({ query, onSongClick, onAlbumClick, onArtistC
                 <Mic2 size={18} className="text-[#fc3c44]" /> Artists
               </h2>
               <div className="flex gap-3 md:gap-5 flex-wrap">
-                {onlineResults.artists.slice(0, visibleArtists).map(artist => (
+                {results.artists.slice(0, visibleArtists).map(artist => (
                   <button
                     key={artist.id}
                     onClick={() => { recordSearch(query); onArtistClick(artist) }}
@@ -458,9 +476,9 @@ export default function SearchView({ query, onSongClick, onAlbumClick, onArtistC
                   </button>
                 ))}
               </div>
-              {onlineResults.artists.length > visibleArtists && (
+              {results.artists.length > visibleArtists && (
                 <button
-                  onClick={() => setVisibleArtists(prev => Math.min(prev + (isMobile ? 5 : 13), onlineResults.artists.length))}
+                  onClick={() => setVisibleArtists(prev => Math.min(prev + (isMobile ? 5 : 13), results.artists.length))}
                   className="mt-3 text-sm text-zinc-400 hover:text-white transition-colors flex items-center gap-1"
                 >
                   Load more
@@ -477,7 +495,7 @@ export default function SearchView({ query, onSongClick, onAlbumClick, onArtistC
                 <ListMusic size={18} className="text-[#fc3c44]" /> Playlists
               </h2>
               <div className="flex gap-3 md:gap-4 flex-wrap">
-                {onlineResults.playlists.slice(0, visiblePlaylists).map(playlist => (
+                {results.playlists.slice(0, visiblePlaylists).map(playlist => (
                   <button
                     key={playlist.id}
                     onClick={() => { recordSearch(query); navigate(`/discover/playlist/${playlist.id}`, { state: { playlist } }) }}
@@ -499,9 +517,9 @@ export default function SearchView({ query, onSongClick, onAlbumClick, onArtistC
                   </button>
                 ))}
               </div>
-              {onlineResults.playlists.length > visiblePlaylists && (
+              {results.playlists.length > visiblePlaylists && (
                 <button
-                  onClick={() => setVisiblePlaylists(prev => Math.min(prev + 5, onlineResults.playlists.length))}
+                  onClick={() => setVisiblePlaylists(prev => Math.min(prev + 5, results.playlists.length))}
                   className="mt-3 text-sm text-zinc-400 hover:text-white transition-colors flex items-center gap-1"
                 >
                   Load more

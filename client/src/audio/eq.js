@@ -23,26 +23,30 @@ export const EQ_PRESETS = {
 function ensureGraph(audioEl) {
   if (attachedElement === audioEl && ctx) return true
   if (!audioEl) return false
-  if (attachedElement && attachedElement !== audioEl) return false // already bound to another element — refuse
   try {
     const Ctor = window.AudioContext || window.webkitAudioContext
     if (!Ctor) return false
-    ctx = new Ctor()
+    if (!ctx) ctx = new Ctor()
+    // Filter chain is built once; each playback ELEMENT gets its own
+    // MediaElementSource feeding it — required for the dual-element
+    // crossfade (the old source stays connected; its element is paused).
+    if (!lowFilter) {
+      lowFilter = ctx.createBiquadFilter()
+      lowFilter.type = 'lowshelf'
+      lowFilter.frequency.value = 200
+      midFilter = ctx.createBiquadFilter()
+      midFilter.type = 'peaking'
+      midFilter.frequency.value = 1000
+      midFilter.Q.value = 1
+      highFilter = ctx.createBiquadFilter()
+      highFilter.type = 'highshelf'
+      highFilter.frequency.value = 3000
+      lowFilter.connect(midFilter)
+      midFilter.connect(highFilter)
+      highFilter.connect(ctx.destination)
+    }
     source = ctx.createMediaElementSource(audioEl)
-    lowFilter = ctx.createBiquadFilter()
-    lowFilter.type = 'lowshelf'
-    lowFilter.frequency.value = 200
-    midFilter = ctx.createBiquadFilter()
-    midFilter.type = 'peaking'
-    midFilter.frequency.value = 1000
-    midFilter.Q.value = 1
-    highFilter = ctx.createBiquadFilter()
-    highFilter.type = 'highshelf'
-    highFilter.frequency.value = 3000
     source.connect(lowFilter)
-    lowFilter.connect(midFilter)
-    midFilter.connect(highFilter)
-    highFilter.connect(ctx.destination)
     attachedElement = audioEl
     return true
   } catch {

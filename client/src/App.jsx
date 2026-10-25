@@ -35,7 +35,7 @@ import { usePlaylistStore } from './stores/playlistStore'
 import { enableEq, warmEq, setEqGains } from './audio/eq'
 import { isDownloaded, downloadUrlFor, reconcileDownloads } from './utils/downloads'
 import { getSongArtwork, decodeHtmlEntities, readContentLanguages } from './utils'
-import { addTombstone, clearTombstone, slimSong } from './utils/sync'
+import { addTombstone, clearTombstone, slimSong, normalizeArtistName, isContentBlocked, blocklistKeys } from './utils/sync'
 import TermsOfService from './pages/TermsOfService'
 import PrivacyPolicy from './pages/PrivacyPolicy'
 import DMCA from './pages/DMCA'
@@ -153,7 +153,17 @@ function AppContent() {
     return saved || 'auto'
   })
   const [currentBitrate, setCurrentBitrate] = useState(96)
+  // Dual audio elements — crossfade plays the incoming track on the idle
+  // element while the audible one fades out. `audible()` ALWAYS resolves the
+  // element currently producing sound; every playback mutation must go
+  // through it (never `audioRef.current` directly).
   const audioRef = useRef(null)
+  const audioBRef = useRef(null)
+  const activeElRef = useRef(0) // 0 = audioRef, 1 = audioBRef — mirrors state for handler reads
+  const [activeEl, setActiveEl] = useState(0)
+  const audible = () => activeElRef.current === 0 ? audioRef.current : audioBRef.current
+  const idleEl = () => activeElRef.current === 0 ? audioBRef.current : audioRef.current
+  const xfadeRef = useRef(null) // { raf, outEl, inEl, nextIdx, song, bitrate } while a crossfade owns both
   const scrollContainerRef = useRef(null)
   const previousBitrateRef = useRef(96) // last-APPLIED bitrate (updated only inside the switch effect)
   const bitrateSwitchTimeoutRef = useRef(null)
@@ -175,7 +185,6 @@ function AppContent() {
     try { return { enabled: false, low: 0, mid: 0, high: 0, preset: 'flat', ...JSON.parse(localStorage.getItem('eq') || '{}') } }
     catch { return { enabled: false, low: 0, mid: 0, high: 0, preset: 'flat' } }
   })
-  const [smoothTransitions, setSmoothTransitions] = useState(() => localStorage.getItem('smoothTransitions') === 'on')
   const fadingRef = useRef(false) // true while a volume ramp owns audio.volume
   const fadeRafRef = useRef(null)
   // Private session — device-scoped, never synced; suppresses history/count
@@ -212,7 +221,155 @@ function AppContent() {
   useLibrarySync({ likedSongs, setLikedSongs, savedAlbums, setSavedAlbums, followedArtists, setFollowedArtists, historyVersion })
 
   // Freemium gate — guests get search + play; personal features require sign-in
-  const { requireAuth } = useAppAuth()
+  const { requireAuth, isSignedIn } = useAppAuth()
+
+  // ─── Content controls (member- or guest-scoped blocklists) ───
+  // Keys switch scope with auth state so member data never leaks into the
+  // guest view on a shared device (and vice versa).
+  const readKey = (k, fb) => { try { const v = JSON.parse(localStorage.getItem(k)); return v ?? fb } catch { return fb } }
+  const [hiddenSongs, setHiddenSongs] = useState(() => readKey(blocklistKeys(isSignedIn).hiddenSongs, {}))
+  const [hiddenArtists, setHiddenArtists] = useState(() => readKey(blocklistKeys(isSignedIn).hiddenArtists, {}))
+  const [explicitFilter, setExplicitFilter] = useState(() => !!readKey(blocklistKeys(isSignedIn).explicitFilter, false))
+  const [dataSaver, setDataSaver] = useState(() => !!readKey(blocklistKeys(isSignedIn).dataSaver, false))
+  const dataSaverRef = useRef(dataSaver) // bitrate reads inside async handlers need the live value
+
+  // Re-read scope on sign-in/out and when a sync pull rewrote the keys.
+  useEffect(() => {
+    const refresh = () => {
+      const keys = blocklistKeys(isSignedIn)
+      setHiddenSongs(readKey(keys.hiddenSongs, {}))
+      setHiddenArtists(readKey(keys.hiddenArtists, {}))
+      setExplicitFilter(!!readKey(keys.explicitFilter, false))
+      setDataSaver(readKey(keys.dataSaver, false))
+      setShareActivity(!!readKey('shareActivity', false))
+      setDisplayName(String(readKey('displayName', '') || ''))
+    }
+    refresh()
+    window.addEventListener('library:changed', refresh)
+    return () => window.removeEventListener('library:changed', refresh)
+  }, [isSignedIn])
+
+  // Always-fresh block context for filters (localStorage is the source of
+  // truth — a sync pull may rewrite it between renders).
+  const blockedCtx = () => {
+    const keys = blocklistKeys(isSignedIn)
+    return {
+      hiddenSongs: readKey(keys.hiddenSongs, {}),
+      hiddenArtists: readKey(keys.hiddenArtists, {}),
+      explicitFilter: !!readKey(keys.explicitFilter, false)
+    }
+  }
+
+  const handleHideSong = (song) => {
+    if (!song?.id) return
+    const keys = blocklistKeys(isSignedIn)
+    const map = readKey(keys.hiddenSongs, {})
+    map[song.id] = { ...(slimSong(song) || { id: song.id, name: song.name || song.title }), hiddenAt: Date.now() }
+    try { localStorage.setItem(keys.hiddenSongs, JSON.stringify(map)) } catch { /* quota */ }
+    if (isSignedIn) clearTombstone('hiddenSongs', song.id)
+    setHiddenSongs(map)
+    window.dispatchEvent(new Event('library:changed'))
+    showToastMessage(`Hidden "${decodeHtmlEntities(song.name || song.title || 'song')}"`, 'success')
+  }
+
+  const handleHideArtist = (song) => {
+    const raw = song?.artist || song?.artists?.primary?.[0]?.name || song?.primaryArtists || ''
+    const key = normalizeArtistName(raw)
+    if (!key) return
+    const keys = blocklistKeys(isSignedIn)
+    const map = readKey(keys.hiddenArtists, {})
+    map[key] = { id: key, name: String(raw).split(',')[0], hiddenAt: Date.now() }
+    try { localStorage.setItem(keys.hiddenArtists, JSON.stringify(map)) } catch { /* quota */ }
+    if (isSignedIn) clearTombstone('hiddenArtists', key)
+    setHiddenArtists(map)
+    window.dispatchEvent(new Event('library:changed'))
+    showToastMessage(`Hidden ${decodeHtmlEntities(String(raw).split(',')[0])}`, 'success')
+  }
+
+  const handleUnhideSong = (id) => {
+    const keys = blocklistKeys(isSignedIn)
+    const map = { ...readKey(keys.hiddenSongs, {}) }
+    delete map[id]
+    try { localStorage.setItem(keys.hiddenSongs, JSON.stringify(map)) } catch { /* quota */ }
+    if (isSignedIn) addTombstone('hiddenSongs', id)
+    setHiddenSongs(map)
+    window.dispatchEvent(new Event('library:changed'))
+  }
+
+  const handleUnhideArtist = (key) => {
+    const keys = blocklistKeys(isSignedIn)
+    const map = { ...readKey(keys.hiddenArtists, {}) }
+    delete map[key]
+    try { localStorage.setItem(keys.hiddenArtists, JSON.stringify(map)) } catch { /* quota */ }
+    if (isSignedIn) addTombstone('hiddenArtists', key)
+    setHiddenArtists(map)
+    window.dispatchEvent(new Event('library:changed'))
+  }
+
+  const handleExplicitFilterToggle = () => {
+    const keys = blocklistKeys(isSignedIn)
+    const next = !explicitFilter
+    try { localStorage.setItem(keys.explicitFilter, JSON.stringify(next)) } catch { /* quota */ }
+    setExplicitFilter(next)
+    window.dispatchEvent(new Event('library:changed'))
+    showToastMessage(next ? 'Explicit content hidden' : 'Explicit content allowed', 'success')
+  }
+
+  const handleDataSaverToggle = () => {
+    const keys = blocklistKeys(isSignedIn)
+    const next = !dataSaver
+    try { localStorage.setItem(keys.dataSaver, JSON.stringify(next)) } catch { /* quota */ }
+    dataSaverRef.current = next
+    setDataSaver(next)
+    // Apply to the ACTIVE song immediately — pin currentBitrate to 96 so the
+    // bitrate-switch effect swaps the stream right now, and cap maxBitrate
+    // so adaptive upgrades stop until it's toggled off.
+    setCurrentSong(prev => {
+      if (!prev?.isStream || isLocalSong(prev)) return prev
+      const cap = next ? 96 : getMaxBitrate(getConnectionType(), dataSaverRef.current ? 'low-data' : qualityPreference)
+      return { ...prev, maxBitrate: cap }
+    })
+    if (next && currentBitrate > 96) setCurrentBitrate(96)
+    showToastMessage(next ? 'Data saver on — streaming at 96kbps' : 'Data saver off', 'success')
+  }
+
+  // Crossfade — seconds; 0 = off. `crossfade` key is the duration source of
+  // truth; `smoothTransitions` stays synced for backward-compat reads.
+  const [crossfadeSec, setCrossfadeSec] = useState(() => {
+    const v = localStorage.getItem('crossfade')
+    if (v !== null) return Number(v) || 0
+    return localStorage.getItem('smoothTransitions') === 'on' ? 4 : 0 // migrate
+  })
+  const xfadeSecRef = useRef(crossfadeSec)
+  const smoothTransitions = crossfadeSec > 0
+  const handleCrossfadeChange = (sec) => {
+    setCrossfadeSec(sec)
+    xfadeSecRef.current = sec
+    try {
+      localStorage.setItem('crossfade', String(sec))
+      localStorage.setItem('smoothTransitions', sec > 0 ? 'on' : 'off')
+    } catch { /* quota */ }
+  }
+
+  // Family activity — opt-in; member-scoped scalars synced via library doc
+  const [shareActivity, setShareActivity] = useState(() => !!readKey('shareActivity', false))
+  const [displayName, setDisplayName] = useState(() => String(readKey('displayName', '') || ''))
+  const handleShareActivityToggle = () => {
+    const next = !shareActivity
+    try {
+      localStorage.setItem('shareActivity', JSON.stringify(next))
+      localStorage.setItem('shareActivityAt', JSON.stringify(Date.now())) // LWW anchor for the merge
+    } catch { /* quota */ }
+    setShareActivity(next)
+    window.dispatchEvent(new Event('library:changed'))
+    showToastMessage(next ? 'Sharing your activity with family' : 'Activity sharing off', 'success')
+  }
+  const handleDisplayNameChange = (name) => {
+    const v = String(name || '').slice(0, 50)
+    try { localStorage.setItem('displayName', JSON.stringify(v)) } catch { /* quota */ }
+    setDisplayName(v)
+    window.dispatchEvent(new Event('library:changed'))
+  }
 
   // Save/unsave an album (Spotify's "Save to Your Library")
   const handleSaveAlbumToggle = (album) => {
@@ -382,7 +539,7 @@ function AppContent() {
     const iv = setInterval(() => {
       if (Date.now() >= sleepTimer.endsAt) {
         setSleepTimer(null)
-        audioRef.current?.pause()
+        audible()?.pause()
         setIsPlaying(false)
         showToastMessage('Sleep timer — playback stopped', 'success')
       }
@@ -409,7 +566,7 @@ function AppContent() {
   // so "off" = flat gains; never disconnect.
   useEffect(() => {
     try { localStorage.setItem('eq', JSON.stringify(eqSettings)) } catch { /* quota */ }
-    const el = audioRef.current
+    const el = audible()
     if (!el) return
     if (!eqSettings.enabled) {
       setEqGains({ low: 0, mid: 0, high: 0 }) // no-op if graph was never built
@@ -441,7 +598,7 @@ function AppContent() {
   // Volume ramp helper — own audio.volume while fading so the volume effect
   // doesn't stomp the animation
   const fadeVolume = (to, ms) => new Promise(resolve => {
-    const audio = audioRef.current
+    const audio = audible()
     if (!audio) return resolve()
     // Resolve the superseded fade too — a stranded promise would leave
     // fadingRef stuck true and permanently freeze the volume control
@@ -464,7 +621,7 @@ function AppContent() {
   const settleVolume = () => {
     if (fadeRafRef.current) { cancelAnimationFrame(fadeRafRef.current.raf); fadeRafRef.current.resolve(); fadeRafRef.current = null }
     fadingRef.current = false
-    if (audioRef.current) audioRef.current.volume = muted ? 0 : volume
+    if (audible()) audible().volume = muted ? 0 : volume
   }
 
   // Redirect to discover if on root
@@ -481,11 +638,134 @@ function AppContent() {
     }
   }, [serverStatus, healthError])
 
+  // Record play history + counts — shared by the primary 'playing' handler
+  // and the crossfade commit (the incoming element's 'playing' fires before
+  // listeners rebind to it, so the commit must record the play itself).
+  const recordPlayStats = (s, dur) => {
+    if (!s?.id) return
+    if (privateSessionRef.current) return // private session — record nothing
+    try {
+      const pc = readKey('playCounts', {})
+      const prevPc = pc[s.id] || {}
+      pc[s.id] = { ...(slimSong(s) || { id: s.id, name: s.name }), count: (prevPc.count || 0) + 1, ts: Date.now() }
+      localStorage.setItem('playCounts', JSON.stringify(pc))
+      const prev = readKey('playHistory', [])
+      if (prev[0]?.id === s.id) { setHistoryVersion(v => v + 1); return }
+      const entry = {
+        id: s.id, name: s.name, artist: s.artist, album: s.album,
+        albumId: s.albumId, image: s.imageUrl || s.artworkUrl,
+        duration: Math.round(dur) || 0, ts: Date.now()
+      }
+      localStorage.setItem('playHistory', JSON.stringify([entry, ...prev].slice(0, 200)))
+      setHistoryVersion(v => v + 1) // triggers the debounced sync push
+    } catch { /* history is best-effort */ }
+  }
+
+  // ─── Dual-element crossfade ───
+  // Ownership: while xfadeRef is set, ONLY the ramp writes volumes and the
+  // commit/abort paths touch the elements — the playback effect's volume
+  // line is fenced off via fadingRef so a dep-change can't stomp the fade.
+
+  const startCrossfade = () => {
+    const sec = xfadeSecRef.current
+    if (!sec || xfadeRef.current) return
+    const nextIdx = getNextQueueIndex()
+    if (nextIdx === null) return // queue end → autoplay/ended path owns it
+    const nextSong = queue[nextIdx]
+    if (!nextSong?.id || isLocalSong(nextSong)) return
+    const outEl = audible()
+    const inEl = idleEl()
+    if (!outEl || !inEl) return
+    if (eqSettings.enabled) enableEq(inEl)
+    const bitrate = currentBitrate
+    inEl.src = streamUrlFor(nextSong, bitrate)
+    inEl.volume = 0
+    const epoch = queueEpochRef.current
+    const target = muted ? 0 : volume
+    const base = outEl.volume
+    inEl.play().then(() => {
+      // User replaced the queue while the stream spun up — drop the element
+      if (queueEpochRef.current !== epoch) { inEl.pause(); try { inEl.removeAttribute('src') } catch {} return }
+      xfadeRef.current = { outEl, inEl, nextIdx, song: nextSong, bitrate, epoch, raf: 0 }
+      fadingRef.current = true // fence the playback effect's volume writes
+      const start = performance.now()
+      const durMs = sec * 1000
+      const tick = now => {
+        const x = xfadeRef.current
+        if (!x) return
+        // Any queue mutation during the fade (skip, tap, clear) aborts it —
+        // the epoch contract already covers every mutation path.
+        if (queueEpochRef.current !== epoch) { abortXfade(); return }
+        const t = Math.min(1, (now - start) / durMs)
+        outEl.volume = Math.max(0, base * (1 - t))
+        inEl.volume = target * t
+        if (t < 1 && !outEl.ended) x.raf = requestAnimationFrame(tick)
+        else commitXfade()
+      }
+      xfadeRef.current.raf = requestAnimationFrame(tick)
+    }).catch(() => {
+      // Autoplay policy / decode failure — degrade to a hard cut; the normal
+      // `ended` listener still advances the queue when outEl finishes.
+      xfadeRef.current = null
+      try { inEl.pause(); inEl.removeAttribute('src'); inEl.load() } catch {}
+    })
+  }
+
+  const commitXfade = () => {
+    const x = xfadeRef.current
+    if (!x) return
+    xfadeRef.current = null
+    if (x.raf) cancelAnimationFrame(x.raf)
+    const { outEl, inEl, nextIdx, song, bitrate } = x
+    outEl.pause()
+    try { outEl.currentTime = 0; outEl.removeAttribute('src'); outEl.load() } catch {}
+    // Swap roles BEFORE state updates — listeners/handlers rebound on this
+    // render must target the element that's actually producing sound.
+    activeElRef.current = 1 - activeElRef.current
+    setActiveEl(activeElRef.current)
+    fadingRef.current = false
+    inEl.volume = muted ? 0 : volume
+    // Advance queue state — mirrors handleNext's bookkeeping minus the
+    // src-load (the incoming element is already playing the next track).
+    if (shuffle && shuffleOrder.length > 0) setShufflePos(p => Math.min(p + 1, shuffleOrder.length - 1))
+    setQueueIndex(nextIdx)
+    autoplayAttemptedRef.current = false
+    previousBitrateRef.current = bitrate
+    setCurrentBitrate(bitrate)
+    setCurrentTime(0)
+    setDuration(inEl.duration || Number(song.duration) || 0)
+    setCurrentSong({
+      ...song,
+      album: typeof song.album === 'object' ? song.album.name : song.album,
+      artist: song.artist || song.artists?.primary?.[0]?.name,
+      albumId: song.album?.id || song.albumId,
+      streamUrl: streamUrlFor(song, bitrate),
+      downloadUrl: song.downloadUrl,
+      imageUrl: song.imageUrl || getSongArtwork(song),
+      maxBitrate: getMaxBitrate(getConnectionType(), dataSaverRef.current ? 'low-data' : qualityPreference),
+      isLocal: isLocalSong(song),
+      isStream: true
+    })
+    setIsPlaying(true)
+    recordPlayStats(song, inEl.duration || song.duration)
+  }
+
+  const abortXfade = () => {
+    const x = xfadeRef.current
+    if (!x) return
+    xfadeRef.current = null
+    if (x.raf) cancelAnimationFrame(x.raf)
+    try { x.inEl.pause(); x.inEl.removeAttribute('src'); x.inEl.load() } catch {}
+    // Restore the outgoing element — it stays the audible one
+    if (!x.outEl.paused) x.outEl.volume = muted ? 0 : volume
+    fadingRef.current = false
+  }
+
   // Handle audio playback
   useEffect(() => {
-    if (!audioRef.current) return
+    if (!audible()) return
 
-    const audio = audioRef.current
+    const audio = audible()
 
     // Configure audio for iOS background playback
     audio.preload = 'auto'
@@ -533,17 +813,17 @@ function AppContent() {
         navigator.mediaSession.setActionHandler('previoustrack', handlePrev)
         navigator.mediaSession.setActionHandler('nexttrack', handleNext)
         navigator.mediaSession.setActionHandler('seekto', (details) => {
-          if (details.seekTime != null && audioRef.current) {
-            audioRef.current.currentTime = details.seekTime
+          if (details.seekTime != null && audible()) {
+            audible().currentTime = details.seekTime
             setCurrentTime(details.seekTime)
           }
         })
         try {
           navigator.mediaSession.setActionHandler('seekbackward', (d) => {
-            if (audioRef.current) audioRef.current.currentTime = Math.max(0, audioRef.current.currentTime - (d.seekOffset || 10))
+            if (audible()) audible().currentTime = Math.max(0, audible().currentTime - (d.seekOffset || 10))
           })
           navigator.mediaSession.setActionHandler('seekforward', (d) => {
-            if (audioRef.current) audioRef.current.currentTime = Math.min(audioRef.current.duration || 0, audioRef.current.currentTime + (d.seekOffset || 10))
+            if (audible()) audible().currentTime = Math.min(audible().duration || 0, audible().currentTime + (d.seekOffset || 10))
           })
         } catch { /* older browsers lack these actions */ }
       }
@@ -626,9 +906,10 @@ function AppContent() {
 
       // Warm the next track's stream endpoint near song end (gapless handoff).
       // Skipped on metered/slow connections — the SW turns this Range probe
-      // into a full-file download, which wastes mobile data.
+      // into a full-file download, which wastes mobile data. Data-saver mode
+      // suppresses it entirely (that's the point of the mode).
       const conn = navigator.connection
-      const metered = conn?.saveData || conn?.effectiveType === '2g' || conn?.effectiveType === '3g'
+      const metered = conn?.saveData || conn?.effectiveType === '2g' || conn?.effectiveType === '3g' || dataSaverRef.current
       if (currentSong && audio.duration > 0 && audio.duration - audio.currentTime < 15 && !metered) {
         const nextIdx = getNextQueueIndex()
         if (nextIdx !== null && warmedNextRef.current !== queue[nextIdx]?.id) {
@@ -644,6 +925,15 @@ function AppContent() {
             if (songs.length) pendingSuggestionsRef.current = { seedId: currentSong.id, songs }
           })
         }
+      }
+
+      // Crossfade handoff — start the next track on the idle element while
+      // this one fades out. Natural advances only: queue-end stays with the
+      // ended/autoplay path, repeat-one replays itself, local files skip.
+      if (xfadeSecRef.current > 0 && !xfadeRef.current && !fadingRef.current &&
+          audio.duration > xfadeSecRef.current + 2 &&
+          audio.duration - audio.currentTime <= xfadeSecRef.current) {
+        startCrossfade()
       }
     }
 
@@ -670,27 +960,7 @@ function AppContent() {
           audio.volume = muted ? 0 : volume
         })
       }
-      const s = currentSong
-      if (!s) return
-      if (privateSessionRef.current) return // private session — record nothing
-      try {
-        // playCounts — durable per-song play totals that survive the 200-item
-        // history cap; counts EVERY play including consecutive repeats, so
-        // repeat-one sessions still feed Stats + "On Repeat"
-        const pc = (() => { try { return JSON.parse(localStorage.getItem('playCounts') || '{}') } catch { return {} } })()
-        const prevPc = pc[s.id] || {}
-        pc[s.id] = { ...(slimSong(s) || { id: s.id, name: s.name }), count: (prevPc.count || 0) + 1, ts: Date.now() }
-        localStorage.setItem('playCounts', JSON.stringify(pc))
-        const prev = JSON.parse(localStorage.getItem('playHistory') || '[]')
-        if (prev[0]?.id === s.id) { setHistoryVersion(v => v + 1); return }
-        const entry = {
-          id: s.id, name: s.name, artist: s.artist, album: s.album,
-          albumId: s.albumId, image: s.imageUrl || s.artworkUrl,
-          duration: Math.round(audio.duration) || 0, ts: Date.now()
-        }
-        localStorage.setItem('playHistory', JSON.stringify([entry, ...prev].slice(0, 200)))
-        setHistoryVersion(v => v + 1) // triggers the debounced sync push
-      } catch { /* history is best-effort */ }
+      recordPlayStats(currentSong, audio.duration)
     }
 
     audio.addEventListener('error', handleError)
@@ -704,7 +974,7 @@ function AppContent() {
       audio.removeEventListener('loadedmetadata', handleLoadedMetadata)
       audio.removeEventListener('playing', handlePlaying)
     }
-  }, [currentSong, isPlaying, volume, muted, currentBitrate, queue, queueIndex, shuffle, shuffleOrder, shufflePos, repeat, autoplayEnabled, smoothTransitions])
+  }, [currentSong, isPlaying, volume, muted, currentBitrate, queue, queueIndex, shuffle, shuffleOrder, shufflePos, repeat, autoplayEnabled, smoothTransitions, activeEl])
 
   // Handle shortcuts
   useEffect(() => {
@@ -800,9 +1070,10 @@ function AppContent() {
 
   // Handle song end / repeat
   useEffect(() => {
-    if (!audioRef.current) return
-    const el = audioRef.current
+    if (!audible()) return
+    const el = audible()
     const onEnded = () => {
+      if (xfadeRef.current) { commitXfade(); return } // outgoing ended mid-fade — the crossfade owns the advance
       if (sleepTimerRef.current?.type === 'eot') {
         setSleepTimer(null)
         setIsPlaying(false)
@@ -818,13 +1089,13 @@ function AppContent() {
     }
     el.addEventListener('ended', onEnded)
     return () => el.removeEventListener('ended', onEnded)
-  }, [repeat, currentSong, queue, queueIndex, shuffle, shuffleOrder, shufflePos, autoplayEnabled])
+  }, [repeat, currentSong, queue, queueIndex, shuffle, shuffleOrder, shufflePos, autoplayEnabled, activeEl])
 
   // Handle visibility change - resume playback when app returns from background (iOS/Android)
   useEffect(() => {
     const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible' && isPlaying && audioRef.current) {
-        audioRef.current.play().catch(e => console.error('Resume play error:', e))
+      if (document.visibilityState === 'visible' && isPlaying && audible()) {
+        audible().play().catch(e => console.error('Resume play error:', e))
       }
     }
 
@@ -838,7 +1109,7 @@ function AppContent() {
     if (connection) {
       const handleConnectionChange = () => {
         const connType = getConnectionType()
-        const maxBitrate = getMaxBitrate(connType, qualityPreference)
+        const maxBitrate = getMaxBitrate(connType, dataSaverRef.current ? 'low-data' : qualityPreference)
         console.log('Connection changed:', connType, 'Max bitrate:', maxBitrate)
       }
 
@@ -865,7 +1136,7 @@ function AppContent() {
           queue: windowedQueue,
           queueIndex: queueIndex - start,
           currentSong,
-          currentTime: audioRef.current?.currentTime ?? currentTime,
+          currentTime: audible()?.currentTime ?? currentTime,
           repeat, shuffle, ts: Date.now()
         }))
       } catch { /* quota — session resume is best-effort */ }
@@ -915,7 +1186,7 @@ function AppContent() {
     setResumeSession(null)
     if (!session?.currentSong) return
     // Resume inside a click gesture — wake the EQ context or playback is silent
-    if (eqSettings.enabled) enableEq(audioRef.current)
+    if (eqSettings.enabled) enableEq(audible())
 
     // Replace of the whole queue — abort any in-flight autoplay/radio fetch
     queueEpochRef.current++
@@ -935,7 +1206,7 @@ function AppContent() {
 
     // Rebuild the stream URL deterministically — never trust persisted URLs
     const song = session.currentSong
-    const maxBitrate = getMaxBitrate(getConnectionType(), qualityPreference)
+    const maxBitrate = getMaxBitrate(getConnectionType(), dataSaverRef.current ? 'low-data' : qualityPreference)
     const startBitrate = startBitrateFor(maxBitrate, getConnectionType())
     pendingSeekRef.current = session.currentTime || 0
     previousBitrateRef.current = startBitrate
@@ -1018,11 +1289,11 @@ function AppContent() {
   // Handle bitrate switching - swap audio.src directly, restore position
   // (local songs skip: the endpoint ignores bitrate for local files)
   useEffect(() => {
-    if (!audioRef.current || !currentSong?.id || !currentSong.isStream) return
+    if (!audible() || !currentSong?.id || !currentSong.isStream) return
     if (isLocalSong(currentSong)) return
     if (currentBitrate === previousBitrateRef.current) return
 
-    const audio = audioRef.current
+    const audio = audible()
     const pos = audio.currentTime
     const wasPlaying = !audio.paused
     const target = streamUrlFor(currentSong, currentBitrate)
@@ -1137,6 +1408,7 @@ function AppContent() {
 
   const handleQueuePlayAt = (displayPos) => {
     queueEpochRef.current++ // user took over — abort any in-flight autoplay/radio commit
+    abortXfade()
     const order = shuffle && shuffleOrder.length > 0 ? shuffleOrder : queue.map((_, i) => i)
     const queueIdx = order[displayPos]
     if (queueIdx === undefined) return
@@ -1274,9 +1546,15 @@ function AppContent() {
 
   const handleShufflePlay = (songs) => {
     if (!songs || songs.length === 0) return
-    const startIdx = Math.floor(Math.random() * songs.length)
+    const ctx = blockedCtx()
+    const playable = songs.filter(s => !isContentBlocked(s, ctx))
+    if (playable.length === 0) {
+      showToastMessage('Nothing playable — hidden content filtered', 'warning')
+      return
+    }
+    const startIdx = Math.floor(Math.random() * playable.length)
     setShuffle(true)
-    handleSongSelect(songs[startIdx], songs, startIdx, true)
+    handleSongSelect(playable[startIdx], playable, startIdx, true)
   }
 
   const handleGoToAlbum = (song) => {
@@ -1297,12 +1575,15 @@ function AppContent() {
     }
   }
 
-  // Dedup suggestions against queue + recent history
+  // Dedup suggestions against queue + recent history, and drop blocked
+  // content — autoplay/radio are passive surfaces so hidden songs/artists
+  // and (when enabled) explicit tracks must never enter the queue here.
   const pickSuggestions = (candidates, baseQueue) => {
     let history = []
     try { history = JSON.parse(localStorage.getItem('playHistory') || '[]').slice(0, 20) } catch {}
     const seen = new Set([...baseQueue.map(s => s.id), ...history.map(h => h.id)])
-    return candidates.filter(s => s?.id && !seen.has(s.id)).slice(0, 20)
+    const ctx = blockedCtx()
+    return candidates.filter(s => s?.id && !seen.has(s.id) && !isContentBlocked(s, ctx)).slice(0, 20)
   }
 
   // Append similar songs at queue end and keep playing. Returns true on success.
@@ -1378,7 +1659,15 @@ function AppContent() {
 
   const handleArtistRadio = (songs) => {
     if (!songs?.length) return
-    const pool = songs.slice(0, 25)
+    // Filter the BASE pool too, not just merged suggestions — the first
+    // audible song comes from `pool`, so a hidden artist would otherwise
+    // start playing before the suggestion merge ever runs.
+    const ctx = blockedCtx()
+    const pool = songs.filter(s => !isContentBlocked(s, ctx)).slice(0, 25)
+    if (!pool.length) {
+      showToastMessage('Nothing playable — hidden content filtered', 'warning')
+      return
+    }
     const startIdx = Math.floor(Math.random() * pool.length)
     setShuffle(true)
     handleSongSelect(pool[startIdx], pool, startIdx, true)
@@ -1388,7 +1677,7 @@ function AppContent() {
       if (queueEpochRef.current !== epoch) return
       const seen = new Set(pool.map(s => s.id))
       const merged = []
-      results.flat().forEach(s => { if (s?.id && !seen.has(s.id)) { seen.add(s.id); merged.push(s) } })
+      results.flat().forEach(s => { if (s?.id && !seen.has(s.id) && !isContentBlocked(s, ctx)) { seen.add(s.id); merged.push(s) } })
       if (merged.length === 0) return
       // The closure's `queue` is stale — after handleSongSelect it IS `pool`
       const newQueue = [...pool, ...merged]
@@ -1407,10 +1696,22 @@ function AppContent() {
     autoplayAttemptedRef.current = false
     autoplayToastShownRef.current = false
     pendingSuggestionsRef.current = null
+    abortXfade()
+
+    // Filter blocked content out of queue builds (play-all, album taps,
+    // shuffle). An explicit tap on a hidden row DOES play — but it plays
+    // alone rather than dragging the rest of the hidden context along.
+    if (songQueue) {
+      const ctx = blockedCtx()
+      const filtered = songQueue.filter(s => !isContentBlocked(s, ctx))
+      const fi = filtered.findIndex(s => s.id === song.id)
+      if (fi >= 0) { songQueue = filtered; songIndex = fi }
+      else { songQueue = [song]; songIndex = 0 }
+    }
 
     // Determine appropriate bitrate based on connection and preference
     const connType = getConnectionType()
-    const maxBitrate = getMaxBitrate(connType, qualityPreference)
+    const maxBitrate = getMaxBitrate(connType, dataSaverRef.current ? 'low-data' : qualityPreference)
     const startBitrate = startBitrateFor(maxBitrate, connType)
 
     // Reset bitrate tracking for new song; start at 160 on fast connections
@@ -1449,7 +1750,7 @@ function AppContent() {
         setShufflePos(0)
       }
     }
-    if (eqSettings.enabled) enableEq(audioRef.current)
+    if (eqSettings.enabled) enableEq(audible())
     setIsPlaying(true)
     setCurrentTime(0)
 
@@ -1475,8 +1776,9 @@ function AppContent() {
   }
 
   const handlePrev = async () => {
-    if (audioRef.current && audioRef.current.currentTime > 3) {
-      audioRef.current.currentTime = 0
+    abortXfade()
+    if (audible() && audible().currentTime > 3) {
+      audible().currentTime = 0
       return
     }
     if (shuffle && shuffleOrder.length > 0) {
@@ -1487,7 +1789,7 @@ function AppContent() {
         setQueueIndex(newIndex)
         await playQueueSong(newIndex)
       } else {
-        audioRef.current.currentTime = 0
+        audible().currentTime = 0
       }
       return
     }
@@ -1496,11 +1798,12 @@ function AppContent() {
       setQueueIndex(newIndex)
       await playQueueSong(newIndex)
     } else if (queue.length > 0) {
-      audioRef.current.currentTime = 0
+      audible().currentTime = 0
     }
   }
 
   const handleNext = async () => {
+    abortXfade()
     if (queue.length === 0) {
       setIsPlaying(false)
       return
@@ -1565,18 +1868,20 @@ function AppContent() {
   }
 
   const handleTogglePlay = () => {
-    if (eqSettings.enabled) enableEq(audioRef.current) // user gesture — resume AudioContext
+    abortXfade() // pausing mid-fade must silence BOTH elements
+    if (eqSettings.enabled) enableEq(audible()) // user gesture — resume AudioContext
     // Restart from the beginning when resuming after playback stopped at the end
-    if (!isPlaying && audioRef.current && duration > 0 &&
-        audioRef.current.currentTime >= duration - 0.5) {
-      audioRef.current.currentTime = 0
+    if (!isPlaying && audible() && duration > 0 &&
+        audible().currentTime >= duration - 0.5) {
+      audible().currentTime = 0
     }
     setIsPlaying(p => !p)
   }
 
   const handleSeek = (time) => {
-    if (audioRef.current) {
-      audioRef.current.currentTime = time
+    abortXfade()
+    if (audible()) {
+      audible().currentTime = time
       setCurrentTime(time)
     }
   }
@@ -1589,16 +1894,16 @@ function AppContent() {
     autoplayAttemptedRef.current = false // re-arm before the guard — a track change resets the one-shot
     const song = list[index]
     if (!song) return
-    if (eqSettings.enabled) enableEq(audioRef.current)
+    if (eqSettings.enabled) enableEq(audible())
     // Fade out the current track before swapping (smooth transitions)
-    if (smoothTransitions && isPlaying && audioRef.current && !audioRef.current.paused) {
+    if (smoothTransitions && isPlaying && audible() && !audible().paused) {
       fadingRef.current = true
       await fadeVolume(0, 400)
       fadingRef.current = false
     }
 
     const connType = getConnectionType()
-    const maxBitrate = getMaxBitrate(connType, qualityPreference)
+    const maxBitrate = getMaxBitrate(connType, dataSaverRef.current ? 'low-data' : qualityPreference)
     const startBitrate = startBitrateFor(maxBitrate, connType)
 
     previousBitrateRef.current = startBitrate
@@ -1729,10 +2034,118 @@ function AppContent() {
     setLocalSearchQuery(searchQuery)
   }, [searchQuery])
 
+  // ─── Search typeahead ───
+  const [suggestions, setSuggestions] = useState(null) // flat item list | null = closed
+  const [suggestIndex, setSuggestIndex] = useState(-1)
+  const suggestSeqRef = useRef(0) // stale-response guard
+  const suggestBlurRef = useRef(null)
+
+  useEffect(() => {
+    const q = localSearchQuery.trim()
+    if (q.length < 2) { setSuggestions(null); setSuggestIndex(-1); return }
+    const seq = ++suggestSeqRef.current
+    const t = setTimeout(async () => {
+      try {
+        const res = await fetch(`${API_BASE}/api/search/suggestions?q=${encodeURIComponent(q)}`)
+        const json = await res.json()
+        if (suggestSeqRef.current !== seq) return
+        const d = json?.data || {}
+        const ctx = blockedCtx()
+        // Songs carry enough metadata for the full block check; artist
+        // entities check the hidden-artist map by normalized name.
+        const songs = (d.songs || []).filter(s => !isContentBlocked(
+          { id: s.id, artist: s.primaryArtist, explicitContent: s.explicitContent }, ctx))
+        const artists = (d.artists || []).filter(a => !ctx.hiddenArtists[normalizeArtistName(a.name)])
+        const flat = [
+          ...songs.map(s => ({ ...s, _kind: 'song' })),
+          ...artists.map(a => ({ ...a, _kind: 'artist' })),
+          ...(d.albums || []).map(a => ({ ...a, _kind: 'album' })),
+          ...(d.playlists || []).map(p => ({ ...p, _kind: 'playlist' }))
+        ]
+        setSuggestions(flat.length ? flat : null)
+        setSuggestIndex(-1)
+      } catch {
+        if (suggestSeqRef.current === seq) setSuggestions(null)
+      }
+    }, 250)
+    return () => clearTimeout(t)
+  }, [localSearchQuery])
+
+  const pickSuggestion = (item) => {
+    setSuggestions(null)
+    setSuggestIndex(-1)
+    if (item._kind === 'song') {
+      handleSongSelect({
+        id: item.id, name: item.name,
+        artist: item.primaryArtist, imageUrl: item.image,
+        explicitContent: item.explicitContent
+      })
+    } else if (item._kind === 'artist') {
+      navigate(`/discover/artist/${item.id}`)
+    } else if (item._kind === 'album') {
+      const slug = (item.name || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+      navigate(`/discover/album/${item.id}/${slug}`)
+    } else if (item._kind === 'playlist') {
+      navigate(`/discover/playlist/${item.id}`)
+    }
+  }
+
+  const handleSearchKeyDown = (e) => {
+    if (!suggestions?.length) return
+    if (e.key === 'ArrowDown') { e.preventDefault(); setSuggestIndex(i => (i + 1) % suggestions.length) }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); setSuggestIndex(i => (i - 1 + suggestions.length) % suggestions.length) }
+    else if (e.key === 'Enter' && suggestIndex >= 0) { e.preventDefault(); pickSuggestion(suggestions[suggestIndex]) }
+    else if (e.key === 'Escape') { setSuggestions(null); setSuggestIndex(-1) }
+  }
+
+  const renderSuggestDropdown = () => {
+    if (!suggestions?.length) return null
+    let idx = -1
+    return (
+      <div className="absolute left-0 right-0 top-full mt-2 bg-zinc-900 border border-zinc-800 rounded-xl shadow-2xl overflow-hidden z-50 max-h-80 overflow-y-auto">
+        {suggestions.map((item) => {
+          idx++
+          const i = idx
+          return (
+            <button
+              key={`${item._kind}-${item.id}`}
+              onMouseDown={(e) => { e.preventDefault(); pickSuggestion(item) }} // mousedown beats input blur
+              onMouseEnter={() => setSuggestIndex(i)}
+              className={`w-full flex items-center gap-3 px-3 py-2 text-left transition-colors ${i === suggestIndex ? 'bg-zinc-800' : ''}`}
+            >
+              {item.image ? (
+                <img src={item.image} alt="" className={`w-8 h-8 object-cover flex-shrink-0 ${item._kind === 'artist' ? 'rounded-full' : 'rounded'}`} />
+              ) : (
+                <div className={`w-8 h-8 bg-zinc-800 flex items-center justify-center flex-shrink-0 ${item._kind === 'artist' ? 'rounded-full' : 'rounded'}`}>
+                  <Search size={12} className="text-zinc-500" />
+                </div>
+              )}
+              <div className="min-w-0 flex-1">
+                <div className="text-sm text-white truncate">{decodeHtmlEntities(item.name)}</div>
+                <div className="text-xs text-zinc-500 truncate capitalize">
+                  {item._kind}{item.primaryArtist ? ` · ${decodeHtmlEntities(item.primaryArtist)}` : ''}
+                  {item.explicitContent ? ' · E' : ''}
+                </div>
+              </div>
+            </button>
+          )
+        })}
+      </div>
+    )
+  }
+
   return (
     <div className="flex h-screen bg-black text-white overflow-hidden flex-col md:flex-row">
       <audio
         ref={audioRef}
+        className="hidden"
+        playsInline
+        crossOrigin="anonymous"
+      />
+      {/* Second element — the incoming track during a crossfade. Inert the
+          rest of the time; `audible()` always resolves whichever is live. */}
+      <audio
+        ref={audioBRef}
         className="hidden"
         playsInline
         crossOrigin="anonymous"
@@ -1756,8 +2169,21 @@ function AppContent() {
               onSleepTimer={handleSleepTimer}
               eqSettings={eqSettings}
               onEqChange={setEqSettings}
-              smoothTransitions={smoothTransitions}
-              onSmoothTransitionsToggle={setSmoothTransitions}
+              crossfadeSec={crossfadeSec}
+              onCrossfadeChange={handleCrossfadeChange}
+              dataSaver={dataSaver}
+              onDataSaverToggle={handleDataSaverToggle}
+              explicitFilter={explicitFilter}
+              onExplicitFilterToggle={handleExplicitFilterToggle}
+              hiddenSongs={hiddenSongs}
+              hiddenArtists={hiddenArtists}
+              onUnhideSong={handleUnhideSong}
+              onUnhideArtist={handleUnhideArtist}
+              shareActivity={shareActivity}
+              onShareActivityToggle={handleShareActivityToggle}
+              displayName={displayName}
+              onDisplayNameChange={handleDisplayNameChange}
+              isSignedIn={isSignedIn}
               installPrompt={installPrompt}
               onInstall={handleInstall}
               onImportLibrary={handleImportLibrary}
@@ -1785,8 +2211,21 @@ function AppContent() {
           onSleepTimer={handleSleepTimer}
           eqSettings={eqSettings}
           onEqChange={setEqSettings}
-          smoothTransitions={smoothTransitions}
-          onSmoothTransitionsToggle={setSmoothTransitions}
+          crossfadeSec={crossfadeSec}
+          onCrossfadeChange={handleCrossfadeChange}
+          dataSaver={dataSaver}
+          onDataSaverToggle={handleDataSaverToggle}
+          explicitFilter={explicitFilter}
+          onExplicitFilterToggle={handleExplicitFilterToggle}
+          hiddenSongs={hiddenSongs}
+          hiddenArtists={hiddenArtists}
+          onUnhideSong={handleUnhideSong}
+          onUnhideArtist={handleUnhideArtist}
+          shareActivity={shareActivity}
+          onShareActivityToggle={handleShareActivityToggle}
+          displayName={displayName}
+          onDisplayNameChange={handleDisplayNameChange}
+          isSignedIn={isSignedIn}
           installPrompt={installPrompt}
           onInstall={handleInstall}
           onImportLibrary={handleImportLibrary}
@@ -1878,7 +2317,11 @@ function AppContent() {
                   }
                 }}
                 className="w-80 bg-zinc-800/70 text-sm text-white placeholder-zinc-500 rounded-full pl-10 pr-4 py-2 outline-none border border-transparent focus:border-zinc-600 transition-colors"
+                onKeyDown={handleSearchKeyDown}
+                onBlur={() => { suggestBlurRef.current = setTimeout(() => setSuggestions(null), 150) }}
+                onFocus={() => { clearTimeout(suggestBlurRef.current) }}
               />
+              {renderSuggestDropdown()}
             </div>
             <div className="hidden md:flex items-center gap-2 ml-auto">
               <UserMenu />
@@ -1916,7 +2359,11 @@ function AppContent() {
                     }
                   }}
                   className="w-full bg-zinc-800/70 text-sm text-white placeholder-zinc-500 rounded-full pl-10 pr-4 py-2 outline-none border border-transparent focus:border-zinc-600 transition-colors"
+                  onKeyDown={handleSearchKeyDown}
+                  onBlur={() => { suggestBlurRef.current = setTimeout(() => setSuggestions(null), 150) }}
+                  onFocus={() => { clearTimeout(suggestBlurRef.current) }}
                 />
+                {renderSuggestDropdown()}
               </div>
             )}
           </div>
@@ -1935,17 +2382,17 @@ function AppContent() {
         <div ref={scrollContainerRef} className="flex-1 overflow-y-auto bg-zinc-950 pb-32 md:pb-0">
           <ErrorBoundary resetKey={location.pathname}>
           <Routes>
-            <Route path="/discover" element={<DiscoverView onSongClick={handleSongSelect} showToast={showToastMessage} likedSongs={likedSongs} onLikeToggle={handleLikeToggle} onPlayNext={handlePlayNext} onAddToQueue={handleAddToQueue} onGoToAlbum={handleGoToAlbum} onSongRadio={handleSongRadio} contentLanguages={contentLanguages} />} />
-            <Route path="/discover/album/:id/:slug?" element={<DiscoverDetailView onSongClick={handleSongSelect} showToast={showToastMessage} currentSong={currentSong} isPlaying={isPlaying} sidebarOpen={sidebarOpen} likedSongs={likedSongs} onLikeToggle={handleLikeToggle} onPlayNext={handlePlayNext} onAddToQueue={handleAddToQueue} onGoToAlbum={handleGoToAlbum} onSongRadio={handleSongRadio} onShufflePlay={handleShufflePlay} onArtistRadio={handleArtistRadio} savedAlbums={savedAlbums} onSaveAlbumToggle={handleSaveAlbumToggle} followedArtists={followedArtists} onFollowArtistToggle={handleFollowArtistToggle} contentLanguages={contentLanguages} />} />
-            <Route path="/discover/playlist/:id" element={<DiscoverDetailView onSongClick={handleSongSelect} showToast={showToastMessage} currentSong={currentSong} isPlaying={isPlaying} sidebarOpen={sidebarOpen} likedSongs={likedSongs} onLikeToggle={handleLikeToggle} onPlayNext={handlePlayNext} onAddToQueue={handleAddToQueue} onGoToAlbum={handleGoToAlbum} onSongRadio={handleSongRadio} onShufflePlay={handleShufflePlay} onArtistRadio={handleArtistRadio} savedAlbums={savedAlbums} onSaveAlbumToggle={handleSaveAlbumToggle} followedArtists={followedArtists} onFollowArtistToggle={handleFollowArtistToggle} contentLanguages={contentLanguages} />} />
-            <Route path="/discover/artist/:id" element={<DiscoverDetailView onSongClick={handleSongSelect} showToast={showToastMessage} currentSong={currentSong} isPlaying={isPlaying} sidebarOpen={sidebarOpen} likedSongs={likedSongs} onLikeToggle={handleLikeToggle} onPlayNext={handlePlayNext} onAddToQueue={handleAddToQueue} onGoToAlbum={handleGoToAlbum} onSongRadio={handleSongRadio} onShufflePlay={handleShufflePlay} onArtistRadio={handleArtistRadio} savedAlbums={savedAlbums} onSaveAlbumToggle={handleSaveAlbumToggle} followedArtists={followedArtists} onFollowArtistToggle={handleFollowArtistToggle} contentLanguages={contentLanguages} />} />
-            <Route path="/search" element={<SearchView query={searchQuery} onSongClick={handleSongSelect} onAlbumClick={a => navigateToView('album', a)} onArtistClick={a => navigateToView('artist', a)} showToast={showToastMessage} likedSongs={likedSongs} onLikeToggle={handleLikeToggle} onPlayNext={handlePlayNext} onAddToQueue={handleAddToQueue} onGoToAlbum={handleGoToAlbum} onSongRadio={handleSongRadio} />} />
+            <Route path="/discover" element={<DiscoverView onSongClick={handleSongSelect} blockCtx={blockedCtx()} showToast={showToastMessage} likedSongs={likedSongs} onLikeToggle={handleLikeToggle} onPlayNext={handlePlayNext} onAddToQueue={handleAddToQueue} onGoToAlbum={handleGoToAlbum} onSongRadio={handleSongRadio} onHideSong={handleHideSong} onHideArtist={handleHideArtist} contentLanguages={contentLanguages} />} />
+            <Route path="/discover/album/:id/:slug?" element={<DiscoverDetailView onSongClick={handleSongSelect} showToast={showToastMessage} currentSong={currentSong} isPlaying={isPlaying} sidebarOpen={sidebarOpen} likedSongs={likedSongs} onLikeToggle={handleLikeToggle} onPlayNext={handlePlayNext} onAddToQueue={handleAddToQueue} onGoToAlbum={handleGoToAlbum} onSongRadio={handleSongRadio} onHideSong={handleHideSong} onHideArtist={handleHideArtist} onShufflePlay={handleShufflePlay} onArtistRadio={handleArtistRadio} savedAlbums={savedAlbums} onSaveAlbumToggle={handleSaveAlbumToggle} followedArtists={followedArtists} onFollowArtistToggle={handleFollowArtistToggle} contentLanguages={contentLanguages} />} />
+            <Route path="/discover/playlist/:id" element={<DiscoverDetailView onSongClick={handleSongSelect} showToast={showToastMessage} currentSong={currentSong} isPlaying={isPlaying} sidebarOpen={sidebarOpen} likedSongs={likedSongs} onLikeToggle={handleLikeToggle} onPlayNext={handlePlayNext} onAddToQueue={handleAddToQueue} onGoToAlbum={handleGoToAlbum} onSongRadio={handleSongRadio} onHideSong={handleHideSong} onHideArtist={handleHideArtist} onShufflePlay={handleShufflePlay} onArtistRadio={handleArtistRadio} savedAlbums={savedAlbums} onSaveAlbumToggle={handleSaveAlbumToggle} followedArtists={followedArtists} onFollowArtistToggle={handleFollowArtistToggle} contentLanguages={contentLanguages} />} />
+            <Route path="/discover/artist/:id" element={<DiscoverDetailView onSongClick={handleSongSelect} showToast={showToastMessage} currentSong={currentSong} isPlaying={isPlaying} sidebarOpen={sidebarOpen} likedSongs={likedSongs} onLikeToggle={handleLikeToggle} onPlayNext={handlePlayNext} onAddToQueue={handleAddToQueue} onGoToAlbum={handleGoToAlbum} onSongRadio={handleSongRadio} onHideSong={handleHideSong} onHideArtist={handleHideArtist} onShufflePlay={handleShufflePlay} onArtistRadio={handleArtistRadio} savedAlbums={savedAlbums} onSaveAlbumToggle={handleSaveAlbumToggle} followedArtists={followedArtists} onFollowArtistToggle={handleFollowArtistToggle} contentLanguages={contentLanguages} />} />
+            <Route path="/search" element={<SearchView query={searchQuery} blockCtx={blockedCtx()} onSongClick={handleSongSelect} onAlbumClick={a => navigateToView('album', a)} onArtistClick={a => navigateToView('artist', a)} showToast={showToastMessage} likedSongs={likedSongs} onLikeToggle={handleLikeToggle} onPlayNext={handlePlayNext} onAddToQueue={handleAddToQueue} onGoToAlbum={handleGoToAlbum} onSongRadio={handleSongRadio} onHideSong={handleHideSong} onHideArtist={handleHideArtist} />} />
             <Route path="/playlists" element={<ProtectedRoute title="Your playlists"><PlaylistsView showToast={showToastMessage} /></ProtectedRoute>} />
-            <Route path="/playlists/:id" element={<ProtectedRoute title="Your playlists"><PlaylistDetailView onSongClick={handleSongSelect} onShufflePlay={handleShufflePlay} onPlayNext={handlePlayNext} onAddToQueue={handleAddToQueue} onGoToAlbum={handleGoToAlbum} onSongRadio={handleSongRadio} likedSongs={likedSongs} onLikeToggle={handleLikeToggle} currentSong={currentSong} isPlaying={isPlaying} showToast={showToastMessage} /></ProtectedRoute>} />
-            <Route path="/liked" element={<ProtectedRoute title="Liked songs"><LikedSongsView likedSongs={likedSongs} onLikeToggle={handleLikeToggle} onSongClick={handleSongSelect} onShufflePlay={handleShufflePlay} onPlayNext={handlePlayNext} onAddToQueue={handleAddToQueue} onGoToAlbum={handleGoToAlbum} onSongRadio={handleSongRadio} currentSong={currentSong} isPlaying={isPlaying} showToast={showToastMessage} /></ProtectedRoute>} />
+            <Route path="/playlists/:id" element={<ProtectedRoute title="Your playlists"><PlaylistDetailView onSongClick={handleSongSelect} onShufflePlay={handleShufflePlay} onPlayNext={handlePlayNext} onAddToQueue={handleAddToQueue} onGoToAlbum={handleGoToAlbum} onSongRadio={handleSongRadio} onHideSong={handleHideSong} onHideArtist={handleHideArtist} likedSongs={likedSongs} onLikeToggle={handleLikeToggle} currentSong={currentSong} isPlaying={isPlaying} showToast={showToastMessage} /></ProtectedRoute>} />
+            <Route path="/liked" element={<ProtectedRoute title="Liked songs"><LikedSongsView likedSongs={likedSongs} onLikeToggle={handleLikeToggle} onSongClick={handleSongSelect} onShufflePlay={handleShufflePlay} onPlayNext={handlePlayNext} onAddToQueue={handleAddToQueue} onGoToAlbum={handleGoToAlbum} onSongRadio={handleSongRadio} onHideSong={handleHideSong} onHideArtist={handleHideArtist} currentSong={currentSong} isPlaying={isPlaying} showToast={showToastMessage} /></ProtectedRoute>} />
             <Route path="/stats" element={<ProtectedRoute title="Your listening stats"><StatsView likedSongs={likedSongs} onSongClick={handleSongSelect} showToast={showToastMessage} /></ProtectedRoute>} />
             <Route path="/library" element={<ProtectedRoute title="Your library"><LibraryView likedSongs={likedSongs} savedAlbums={savedAlbums} followedArtists={followedArtists} /></ProtectedRoute>} />
-            <Route path="/library/album/:id" element={<ProtectedRoute title="Your library"><LocalAlbumView onSongClick={handleSongSelect} onShufflePlay={handleShufflePlay} onPlayNext={handlePlayNext} onAddToQueue={handleAddToQueue} onGoToAlbum={handleGoToAlbum} onSongRadio={handleSongRadio} likedSongs={likedSongs} onLikeToggle={handleLikeToggle} currentSong={currentSong} isPlaying={isPlaying} showToast={showToastMessage} /></ProtectedRoute>} />
+            <Route path="/library/album/:id" element={<ProtectedRoute title="Your library"><LocalAlbumView onSongClick={handleSongSelect} onShufflePlay={handleShufflePlay} onPlayNext={handlePlayNext} onAddToQueue={handleAddToQueue} onGoToAlbum={handleGoToAlbum} onSongRadio={handleSongRadio} onHideSong={handleHideSong} onHideArtist={handleHideArtist} likedSongs={likedSongs} onLikeToggle={handleLikeToggle} currentSong={currentSong} isPlaying={isPlaying} showToast={showToastMessage} /></ProtectedRoute>} />
             <Route path="/downloads" element={<ProtectedRoute title="Downloads"><DownloadsView onSongClick={handleSongSelect} showToast={showToastMessage} /></ProtectedRoute>} />
             <Route path="/shared/:data" element={<SharedPlaylistView onSongClick={handleSongSelect} showToast={showToastMessage} />} />
             <Route path="/blend/:data" element={<BlendView onSongClick={handleSongSelect} showToast={showToastMessage} likedSongs={likedSongs} />} />
@@ -1987,7 +2434,7 @@ function AppContent() {
             onPlayNext={handlePlayNext}
             onAddToQueue={handleAddToQueue}
             onGoToAlbum={handleGoToAlbum}
-            onSongRadio={handleSongRadio}
+            onSongRadio={handleSongRadio} onHideSong={handleHideSong} onHideArtist={handleHideArtist}
             showToast={showToast}
             onOpenFullScreen={() => setShowFullScreenPlayer(true)}
           />
@@ -2090,7 +2537,7 @@ function AppContent() {
           onPlayNext={handlePlayNext}
           onAddToQueue={handleAddToQueue}
           onGoToAlbum={handleGoToAlbum}
-          onSongRadio={handleSongRadio}
+          onSongRadio={handleSongRadio} onHideSong={handleHideSong} onHideArtist={handleHideArtist}
           showToast={showToastMessage}
           sleepTimer={sleepTimer}
           onSleepTimer={handleSleepTimer}

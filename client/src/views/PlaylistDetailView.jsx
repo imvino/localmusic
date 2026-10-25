@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Play, Shuffle, Music, ArrowUp, ArrowDown, Trash2, Pencil, Share2, Search, X } from 'lucide-react'
+import { ArrowLeft, Play, Shuffle, Music, ArrowUp, ArrowDown, Trash2, Pencil, Share2, Search, X, ArrowUpDown, Check } from 'lucide-react'
 import { useState } from 'react'
 import { usePlaylistStore } from '../stores/playlistStore'
 import { getImageSrc, formatDuration, encodePlaylistShare, haptic, decodeHtmlEntities } from '../utils'
@@ -7,7 +7,25 @@ import TrackMenu from '../components/TrackMenu'
 import BatchDownloadButton from '../components/BatchDownloadButton'
 import SwipeableRow from '../components/SwipeableRow'
 
-export default function PlaylistDetailView({ onSongClick, onShufflePlay, onPlayNext, onAddToQueue, onGoToAlbum, onSongRadio, likedSongs, onLikeToggle, currentSong, isPlaying, showToast }) {
+const SORT_OPTIONS = [
+  { id: 'custom', label: 'Custom order' },
+  { id: 'recent', label: 'Recently added' },
+  { id: 'oldest', label: 'Oldest first' },
+  { id: 'title', label: 'Title' },
+  { id: 'artist', label: 'Artist' }
+]
+
+const sortSongs = (songs, mode) => {
+  if (mode === 'custom') return songs
+  const arr = [...songs]
+  if (mode === 'recent') arr.sort((a, b) => (b.addedAt || 0) - (a.addedAt || 0))
+  else if (mode === 'oldest') arr.sort((a, b) => (a.addedAt || 0) - (b.addedAt || 0))
+  else if (mode === 'title') arr.sort((a, b) => (a.name || a.title || '').localeCompare(b.name || b.title || ''))
+  else if (mode === 'artist') arr.sort((a, b) => (a.artist || a.artists?.primary?.[0]?.name || '').localeCompare(b.artist || b.artists?.primary?.[0]?.name || ''))
+  return arr
+}
+
+export default function PlaylistDetailView({ onSongClick, onShufflePlay, onPlayNext, onAddToQueue, onGoToAlbum, onSongRadio, onHideSong, onHideArtist, likedSongs, onLikeToggle, currentSong, isPlaying, showToast }) {
   const { id } = useParams()
   const navigate = useNavigate()
   const playlist = usePlaylistStore(s => s.playlists[id])
@@ -18,6 +36,18 @@ export default function PlaylistDetailView({ onSongClick, onShufflePlay, onPlayN
   const [name, setName] = useState('')
   const [filter, setFilter] = useState('')
   const [filterOpen, setFilterOpen] = useState(false)
+  const [sortMode, setSortMode] = useState('custom')
+  const [sortOpen, setSortOpen] = useState(false)
+  const [dragIdx, setDragIdx] = useState(null)
+  const [dropIdx, setDropIdx] = useState(null)
+
+  const finishDrag = () => {
+    if (dragIdx != null && dropIdx != null && dropIdx !== dragIdx) {
+      moveSong(playlist.id, dragIdx, dropIdx)
+    }
+    setDragIdx(null)
+    setDropIdx(null)
+  }
 
   if (!playlist) {
     return (
@@ -116,7 +146,34 @@ export default function PlaylistDetailView({ onSongClick, onShufflePlay, onPlayN
         </div>
       ) : (
         <div>
-          <div className="flex items-center justify-end mb-2">
+          <div className="flex items-center justify-end gap-1 mb-2">
+            <div className="relative">
+              <button
+                onClick={() => setSortOpen(o => !o)}
+                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-colors ${sortMode !== 'custom' ? 'text-[#fc3c44] bg-[#fc3c44]/10' : 'text-zinc-500 hover:text-white'}`}
+                title="Sort playlist"
+              >
+                <ArrowUpDown size={14} />
+                {SORT_OPTIONS.find(o => o.id === sortMode)?.label}
+              </button>
+              {sortOpen && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setSortOpen(false)} />
+                  <div className="absolute right-0 top-full mt-1 w-44 bg-zinc-900 border border-zinc-800 rounded-xl shadow-2xl z-50 overflow-hidden">
+                    {SORT_OPTIONS.map(o => (
+                      <button
+                        key={o.id}
+                        onClick={() => { setSortMode(o.id); setSortOpen(false) }}
+                        className={`w-full flex items-center justify-between px-3 py-2.5 text-sm transition-colors ${sortMode === o.id ? 'text-[#fc3c44]' : 'text-zinc-300 hover:bg-zinc-800'}`}
+                      >
+                        {o.label}
+                        {sortMode === o.id && <Check size={14} />}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
             {filterOpen ? (
               <div className="flex items-center gap-2 bg-zinc-800/80 rounded-lg px-3 py-1.5 w-64">
                 <Search size={14} className="text-zinc-500 shrink-0" />
@@ -140,19 +197,28 @@ export default function PlaylistDetailView({ onSongClick, onShufflePlay, onPlayN
           </div>
           {(() => {
             const q = filter.trim().toLowerCase()
-            const shown = q
+            const filtered = q
               ? playlist.songs.filter(s => (s.name || s.title || '').toLowerCase().includes(q) || (s.artist || '').toLowerCase().includes(q))
               : playlist.songs
+            const shown = sortSongs(filtered, sortMode)
             if (q && shown.length === 0) {
               return <p className="text-sm text-zinc-500 text-center py-10">No matches for “{filter.trim()}”</p>
             }
+            // Reorder (drag + arrows) only in custom order on the unfiltered
+            // list — sorted/filtered indices don't map to playlist.songs.
+            const reorderable = !q && sortMode === 'custom'
             return shown.map((song, shownIdx) => {
             const i = playlist.songs.indexOf(song)
             const isCurrent = currentSong?.id === song.id
             return (
               <SwipeableRow
                 key={`${i}-${song.id}`}
-                className="group flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-zinc-800/60 transition-colors cursor-pointer"
+                className={`group flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-zinc-800/60 transition-colors cursor-pointer ${dragIdx === i ? 'opacity-40' : ''} ${dropIdx === i && dragIdx !== i ? 'border-t-2 border-[#fc3c44]' : 'border-t-2 border-transparent'}`}
+                draggable={reorderable}
+                onDragStart={reorderable ? (e => { e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', ''); setDragIdx(i) }) : undefined}
+                onDragOver={reorderable ? (e => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; if (dropIdx !== i) setDropIdx(i) }) : undefined}
+                onDrop={reorderable ? (e => { e.preventDefault(); finishDrag() }) : undefined}
+                onDragEnd={reorderable ? finishDrag : undefined}
                 onClick={() => onSongClick(song, shown, shownIdx)} // plays the filtered subset, Spotify-style
                 onSwipeLeft={() => onAddToQueue?.(song)}
                 onSwipeRight={() => onLikeToggle?.(song.id, song)}
@@ -175,7 +241,7 @@ export default function PlaylistDetailView({ onSongClick, onShufflePlay, onPlayN
                   {formatDuration(song.duration)}
                 </span>
                 <div className="flex items-center gap-0.5 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity shrink-0">
-                  {!q && (
+                  {reorderable && (
                     <>
                       <button onClick={e => { e.stopPropagation(); moveSong(playlist.id, i, i - 1) }} disabled={i === 0} className="p-1.5 text-zinc-500 hover:text-white disabled:opacity-30" title="Move up">
                         <ArrowUp size={14} />
@@ -196,7 +262,7 @@ export default function PlaylistDetailView({ onSongClick, onShufflePlay, onPlayN
                     onLikeToggle={onLikeToggle}
                     onPlayNext={onPlayNext}
                     onAddToQueue={onAddToQueue}
-                    onGoToAlbum={onGoToAlbum} onSongRadio={onSongRadio}
+                    onGoToAlbum={onGoToAlbum} onSongRadio={onSongRadio} onHideSong={onHideSong} onHideArtist={onHideArtist}
                     showToast={showToast}
                   />
                 </div>

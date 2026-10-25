@@ -18,6 +18,26 @@ export const usePlaylistStore = create(persist(
       return id
     },
 
+    // Deterministic-id create (Weekly Mix) — two devices generating pre-sync
+    // converge on the same id instead of unioning two distinct playlists.
+    createPlaylistWithId: (id, name, extra = {}) => {
+      set(state => state.playlists[id] ? state : {
+        playlists: {
+          ...state.playlists,
+          [id]: { id, name: name.trim() || 'Untitled Playlist', songs: [], createdAt: Date.now(), updatedAt: Date.now(), ...extra }
+        }
+      })
+      return id
+    },
+
+    // Replace a playlist's song list wholesale (Weekly Mix refills —
+    // the merge layer gives this playlist week-keyed replace semantics).
+    replacePlaylistSongs: (id, songs, extra = {}) => {
+      set(state => state.playlists[id] ? {
+        playlists: { ...state.playlists, [id]: { ...state.playlists[id], songs, updatedAt: Date.now(), ...extra } }
+      } : state)
+    },
+
     pinPlaylist: (id, pinned) => {
       set(state => state.playlists[id] ? {
         playlists: { ...state.playlists, [id]: { ...state.playlists[id], pinned: pinned ?? !state.playlists[id].pinned, updatedAt: Date.now() } }

@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useAuth } from '@clerk/clerk-react'
 import { usePlaylistStore } from '../stores/playlistStore'
 import { clearPersonalData, getLastUserId, setLastUserId } from '../utils/personalData'
-import { slimSong, slimPlaylists, slimFolders, mergePlaylists, mergeFolders, mergeHistory, mergeCollections, markPullDone, resetPullDone, isPullDone, onPullDone, getTombstones, isTombstoned, applyTombstones, TOMB_KEYS, HISTORY_CLEARED_KEY } from '../utils/sync'
+import { slimSong, slimPlaylists, slimFolders, mergePlaylists, mergeFolders, mergeHistory, mergeCollections, markPullDone, resetPullDone, isPullDone, onPullDone, getTombstones, isTombstoned, applyTombstones, TOMB_KEYS, HISTORY_CLEARED_KEY, mergeHiddenMap } from '../utils/sync'
 
 const API_BASE = import.meta.env.VITE_API_URL
 const LAST_SYNC_KEY = 'libraryLastSync'
@@ -29,12 +29,22 @@ async function pushSnapshot(getToken, likedSongs, playlists, collections) {
         savedAlbums: collections?.savedAlbums?.slice(0, 2000) || [],
         followedArtists: collections?.followedArtists?.slice(0, 2000) || [],
         likedMeta: readLS('likedMeta', {}), // metadata so local/delisted songs still render
+        // Content controls + sharing prefs — member-scoped, merged on pull
+        hiddenSongs: readLS('hiddenSongs', {}),
+        hiddenArtists: readLS('hiddenArtists', {}),
+        explicitFilter: !!readLS('explicitFilter', false),
+        dataSaver: !!readLS('dataSaver', false),
+        shareActivity: !!readLS('shareActivity', false),
+        shareActivityAt: Number(readLS('shareActivityAt', 0)) || 0,
+        displayName: readLS('displayName', '') || '',
         // Tombstones let deletes propagate through the union merges
         removedAlbums: getTombstones(TOMB_KEYS.albums),
         removedArtists: getTombstones(TOMB_KEYS.artists),
         removedSongs: getTombstones(TOMB_KEYS.songs),
         removedPlaylists: getTombstones(TOMB_KEYS.playlists),
         removedFolders: getTombstones(TOMB_KEYS.folders),
+        removedHiddenSongs: getTombstones(TOMB_KEYS.hiddenSongs),
+        removedHiddenArtists: getTombstones(TOMB_KEYS.hiddenArtists),
         historyClearedAt: Number(localStorage.getItem(HISTORY_CLEARED_KEY)) || 0,
         // Cap the payload — keep the 3000 most recently played ids
         playCounts: Object.fromEntries(
@@ -228,6 +238,27 @@ export function useLibrarySync({ likedSongs, setLikedSongs, savedAlbums, setSave
 
         // Cleared-at wins on BOTH sides — entries older than the latest
         // clear (local or server) stay gone after the union merge
+        // 7. Hidden lists — per-entry hiddenAt LWW + dedicated tomb filter
+        // (server tombs are already folded into local storage by step 1).
+        writeLS('hiddenSongs', mergeHiddenMap(readLS('hiddenSongs', {}), server.hiddenSongs, 'hiddenSongs'))
+        writeLS('hiddenArtists', mergeHiddenMap(readLS('hiddenArtists', {}), server.hiddenArtists, 'hiddenArtists'))
+
+        // 8. Scalars — shareActivity resolves by shareActivityAt (newest
+        // wins: a stale device can't re-enable after an opt-out). The other
+        // toggles take the server value when the doc is newer — this merge
+        // only runs when serverTs > lastSync (or first login), so the
+        // server's copy is definitionally the newer write.
+        if (Number(server.shareActivityAt || 0) !== Number(readLS('shareActivityAt', 0))) {
+          const newer = Number(server.shareActivityAt || 0) > Number(readLS('shareActivityAt', 0)) ? server : { shareActivity: readLS('shareActivity', false), shareActivityAt: readLS('shareActivityAt', 0) }
+          writeLS('shareActivity', !!newer.shareActivity)
+          writeLS('shareActivityAt', Number(newer.shareActivityAt) || 0)
+        }
+        if (server.explicitFilter !== undefined) writeLS('explicitFilter', !!server.explicitFilter)
+        if (server.dataSaver !== undefined) writeLS('dataSaver', !!server.dataSaver)
+        if (server.displayName && !readLS('displayName', '')) {
+          writeLS('displayName', String(server.displayName).slice(0, 100))
+        }
+
         const clearedAt = Math.max(
           Number(localStorage.getItem(HISTORY_CLEARED_KEY)) || 0,
           Number(server.historyClearedAt) || 0

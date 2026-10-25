@@ -27,6 +27,17 @@ const PERSONAL_KEYS = [
   'removedArtists',
   'removedPlaylists',
   'removedFolders',
+  // Content controls — member-scoped (guest hides live under guest* keys
+  // and must survive a member sign-in/out cycle on shared devices).
+  'hiddenSongs',
+  'hiddenArtists',
+  'explicitFilter',
+  'dataSaver',
+  'shareActivity',
+  'shareActivityAt',
+  'displayName',
+  'removedHiddenSongs',
+  'removedHiddenArtists',
 ]
 
 export function clearPersonalData() {

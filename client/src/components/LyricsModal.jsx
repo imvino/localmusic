@@ -9,11 +9,12 @@ const API_BASE = import.meta.env.VITE_API_URL
 
 // Module-level translation cache — switching songs twice shouldn't re-hit
 // the proxy every time
-const translationCache = new Map() // songId -> { lines?: string[], text?: string }
+const translationCache = new Map() // `${songId}:${mode}` -> { lines?: string[], text?: string }
 
 export default function LyricsModal({ song, onClose, currentTime, onSeek }) {
   const scrollRef = useRef(null)
-  const [translateOn, setTranslateOn] = useState(false)
+  // mode: null | 'rm' (Tanglish romanization) | 'en' (English translation)
+  const [mode, setMode] = useState(null)
   const [translating, setTranslating] = useState(false)
   const [translation, setTranslation] = useState(null) // { lines?: [], text?: string }
   const [translateFailed, setTranslateFailed] = useState(false)
@@ -36,7 +37,7 @@ export default function LyricsModal({ song, onClose, currentTime, onSeek }) {
 
   // Reset translation state when the song changes
   useEffect(() => {
-    setTranslateOn(false)
+    setMode(null)
     setTranslation(null)
     setTranslateFailed(false)
   }, [song?.id])
@@ -62,16 +63,17 @@ export default function LyricsModal({ song, onClose, currentTime, onSeek }) {
     return () => document.removeEventListener('keydown', onKey)
   }, [onClose])
 
-  const toggleTranslate = async () => {
-    if (translateOn) {
-      setTranslateOn(false)
+  const toggleTranslate = async (next) => {
+    if (mode === next) {
+      setMode(null)
       return
     }
     if (!data) return
-    const cached = translationCache.get(song.id)
+    const cacheKey = `${song.id}:${next}`
+    const cached = translationCache.get(cacheKey)
     if (cached) {
       setTranslation(cached)
-      setTranslateOn(true)
+      setMode(next)
       return
     }
     setTranslating(true)
@@ -80,16 +82,17 @@ export default function LyricsModal({ song, onClose, currentTime, onSeek }) {
       const payload = karaoke
         ? { lines: synced.map(l => l.text) }
         : { text: data.lyrics }
-      const res = await fetch(`${API_BASE}/api/translate`, {
+      const res = await fetch(`${API_BASE}/api/translate?lang=${next}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       })
       const json = await res.json()
       const result = json?.data || null
-      if (result) translationCache.set(song.id, result)
+      if (result) translationCache.set(cacheKey, result)
       setTranslation(result)
-      setTranslateOn(true)
+      setMode(next)
+      if (!result) setTranslateFailed(true)
     } catch {
       setTranslateFailed(true)
     } finally {
@@ -99,8 +102,8 @@ export default function LyricsModal({ song, onClose, currentTime, onSeek }) {
 
   if (!song) return null
 
-  const translatedLine = (i) => (translateOn && translation?.lines ? translation.lines[i] : null)
-  const showTranslatedPlain = translateOn && translation?.text
+  const translatedLine = (i) => (mode && translation?.lines ? translation.lines[i] : null)
+  const showTranslatedPlain = mode && translation?.text
 
   return createPortal(
     <div className="fixed inset-0 bg-black/80 z-[110] flex items-center justify-center p-4" onClick={onClose}>
@@ -118,19 +121,33 @@ export default function LyricsModal({ song, onClose, currentTime, onSeek }) {
             <div className="text-sm font-semibold text-white truncate">{decodeHtmlEntities(song.name || song.title)}</div>
             <div className="text-xs text-zinc-500 truncate">{song.artist || song.artists?.primary?.[0]?.name || ''}</div>
           </div>
-          {/* Translate toggle — regional songs get English lyrics */}
+          {/* Lyrics modes — Tanglish romanization (sing along without
+              reading the script) and English translation, line-synced */}
           {!isLoading && (karaoke || data?.lyrics) && (
-            <button
-              onClick={toggleTranslate}
-              disabled={translating}
-              title={translateOn ? 'Show original' : 'Translate to English'}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors touch-target ${
-                translateOn ? 'bg-[#fc3c44] text-white' : 'bg-zinc-800 text-zinc-300 hover:text-white'
-              }`}
-            >
-              {translating ? <Loader2 size={14} className="animate-spin" /> : <Languages size={14} />}
-              {translateOn ? 'Original' : 'English'}
-            </button>
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={() => toggleTranslate('rm')}
+                disabled={translating}
+                title={mode === 'rm' ? 'Show original' : 'Romanize — sing-along script (e.g. oruvan oruvan)'}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors touch-target ${
+                  mode === 'rm' ? 'bg-[#fc3c44] text-white' : 'bg-zinc-800 text-zinc-300 hover:text-white'
+                }`}
+              >
+                {translating && mode !== 'en' ? <Loader2 size={14} className="animate-spin" /> : <Languages size={14} />}
+                {mode === 'rm' ? 'Original' : 'Tanglish'}
+              </button>
+              <button
+                onClick={() => toggleTranslate('en')}
+                disabled={translating}
+                title={mode === 'en' ? 'Show original' : 'Translate to English'}
+                className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-colors touch-target ${
+                  mode === 'en' ? 'bg-[#fc3c44] text-white' : 'bg-zinc-800 text-zinc-300 hover:text-white'
+                }`}
+              >
+                {translating && mode !== 'rm' ? <Loader2 size={14} className="animate-spin" /> : null}
+                {mode === 'en' ? 'Original' : 'English'}
+              </button>
+            </div>
           )}
           <button onClick={onClose} className="p-1.5 text-zinc-400 hover:text-white transition-colors touch-target">
             <X size={20} />
@@ -172,7 +189,7 @@ export default function LyricsModal({ song, onClose, currentTime, onSeek }) {
                   </div>
                 )
               })}
-              {translateOn && translateFailed && (
+              {mode && translateFailed && (
                 <p className="text-xs text-zinc-600 mt-4">Translation unavailable right now.</p>
               )}
             </div>
@@ -186,7 +203,7 @@ export default function LyricsModal({ song, onClose, currentTime, onSeek }) {
                   {translation.text}
                 </pre>
               )}
-              {translateOn && !showTranslatedPlain && !translateFailed && (
+              {mode && !showTranslatedPlain && !translateFailed && (
                 <p className="text-xs text-zinc-600 mt-4">No translation found for this song.</p>
               )}
             </div>

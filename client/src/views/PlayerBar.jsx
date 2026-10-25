@@ -4,7 +4,7 @@ import { Range, getTrackBackground } from 'react-range'
 import { formatTime, decodeHtmlEntities, getSongArtwork } from '../utils'
 import TrackMenu from '../components/TrackMenu'
 
-export default function PlayerBar({ currentSong, isPlaying, onTogglePlay, onPrev, onNext, volume, onVolumeChange, muted, onMuteToggle, shuffle, onShuffleToggle, repeat, onRepeatToggle, liked, onLikeToggle, currentTime, duration, onSeek, onArtworkClick, onQueueToggle, onLyricsToggle, isSearchingAlbum, isMobileMiniplayer = false, onOpenFullScreen = null, likedSongs, onPlayNext, onAddToQueue, onGoToAlbum, onSongRadio, showToast }) {
+export default function PlayerBar({ currentSong, isPlaying, onTogglePlay, onPrev, onNext, volume, onVolumeChange, muted, onMuteToggle, shuffle, onShuffleToggle, repeat, onRepeatToggle, liked, onLikeToggle, currentTime, duration, onSeek, onArtworkClick, onQueueToggle, onLyricsToggle, isSearchingAlbum, isMobileMiniplayer = false, onOpenFullScreen = null, likedSongs, onPlayNext, onAddToQueue, onGoToAlbum, onSongRadio, onHideSong, onHideArtist, showToast }) {
   const touch = useRef(null)
   // Scrub preview — seek commits once on release, not per drag frame
   const [dragT, setDragT] = useState(null)
@@ -143,7 +143,7 @@ export default function PlayerBar({ currentSong, isPlaying, onTogglePlay, onPrev
           onPlayNext={onPlayNext}
           onAddToQueue={onAddToQueue}
           onGoToAlbum={onGoToAlbum}
-          onSongRadio={onSongRadio}
+          onSongRadio={onSongRadio} onHideSong={onHideSong} onHideArtist={onHideArtist}
           showToast={showToast}
         />
       </div>

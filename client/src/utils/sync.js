@@ -32,6 +32,10 @@ export function slimPlaylists(playlists) {
       // folderId rides along — dropping it here would wipe folder
       // assignments on every push (the server's stored copy wins ties).
       ...(p.folderId ? { folderId: String(p.folderId) } : {}),
+      // Weekly-mix markers MUST round-trip or a fresh device regenerates
+      // a duplicate mix instead of refilling the synced one.
+      ...(p.weeklyMix ? { weeklyMix: true } : {}),
+      ...(p.weeklyMixWeek ? { weeklyMixWeek: String(p.weeklyMixWeek) } : {}),
       removed: p.removed && typeof p.removed === 'object' ? p.removed : {},
       songs: (p.songs || []).map(slimSong).filter(Boolean)
     }
@@ -84,6 +88,16 @@ export function mergePlaylists(local, server) {
     const s = server[id]
     if (!l) { merged[id] = s; continue }
     if (!s) { merged[id] = l; continue }
+    // Weekly-mix playlists REPLACE their song list by week, not union —
+    // the newer weeklyMixWeek wins wholesale (tie → updatedAt winner) or
+    // week-2 refills grow the mix unboundedly past its 30-track cap.
+    if (l.weeklyMix || s.weeklyMix) {
+      const lw = l.weeklyMixWeek || '', sw = s.weeklyMixWeek || ''
+      const mixWinner = sw > lw ? s : lw > sw ? l
+        : ((s.updatedAt || 0) >= (l.updatedAt || 0) ? s : l)
+      merged[id] = { ...(mixWinner === s ? l : s), ...mixWinner, songs: mixWinner.songs || [] }
+      continue
+    }
     // Scalars (name, pinned) go to the most recently edited copy; song
     // lists union so adds from either device survive — BUT per-song removal
     // tombstones (removed[songId] > song.addedAt) propagate deletes.
@@ -152,7 +166,7 @@ export function mergeCollections(local, server) {
 // Tombstones — deletes must propagate through union merges, or an un-save /
 // un-follow / clear-history silently resurrects on the next pull. A tombstone
 // only kills items saved BEFORE it, so re-saving later still works.
-export const TOMB_KEYS = { albums: 'removedAlbums', artists: 'removedArtists', songs: 'removedSongs', playlists: 'removedPlaylists', folders: 'removedFolders' }
+export const TOMB_KEYS = { albums: 'removedAlbums', artists: 'removedArtists', songs: 'removedSongs', playlists: 'removedPlaylists', folders: 'removedFolders', hiddenSongs: 'removedHiddenSongs', hiddenArtists: 'removedHiddenArtists' }
 export const HISTORY_CLEARED_KEY = 'historyClearedAt'
 
 export function getTombstones(key) {
@@ -178,6 +192,44 @@ export function applyTombstones(items, kind, tsKey) {
   const m = new Map(getTombstones(TOMB_KEYS[kind]).map(t => [t.id, t.ts]))
   if (!m.size) return items
   return items.filter(i => (m.get(i.id) || 0) <= (i[tsKey] || 0))
+}
+
+// Hidden-list merge — per-entry hiddenAt LWW + dedicated tombstone filter.
+// Used by BOTH the client pull and (mirrored in) the server PUT so an
+// un-hide propagates and a re-hide (fresh hiddenAt > tomb ts) survives.
+export function mergeHiddenMap(local, server, kind) {
+  const merged = { ...(local || {}) }
+  for (const [id, e] of Object.entries(server || {})) {
+    const prev = merged[id]
+    if (!prev || (e?.hiddenAt || 0) > (prev?.hiddenAt || 0)) merged[id] = e
+  }
+  const m = new Map(getTombstones(TOMB_KEYS[kind]).map(t => [t.id, t.ts]))
+  return Object.fromEntries(
+    Object.entries(merged).filter(([id, e]) => (m.get(id) || 0) <= (e?.hiddenAt || 0))
+  )
+}
+
+// Member vs guest key selection — guests hide on the device only (their
+// keys are deliberately absent from PERSONAL_KEYS so a member sign-in/out
+// on a shared device never nukes them).
+export const blocklistKeys = (signedIn) => signedIn
+  ? { hiddenSongs: 'hiddenSongs', hiddenArtists: 'hiddenArtists', explicitFilter: 'explicitFilter', dataSaver: 'dataSaver' }
+  : { hiddenSongs: 'guestHiddenSongs', hiddenArtists: 'guestHiddenArtists', explicitFilter: 'guestExplicitFilter', dataSaver: 'guestDataSaver' }
+
+// The single block check — consumed by every passive surface: suggestion
+// injection (autoplay + both radios), play-all/shuffle queue builds,
+// discovery rails, search results, typeahead. Explicit flag is checked in
+// BOTH payload shapes since raw-fetch paths bypass boundary normalization.
+export function isContentBlocked(song, { hiddenSongs = {}, hiddenArtists = {}, explicitFilter = false } = {}) {
+  if (!song?.id) return false
+  if (hiddenSongs[song.id]) return true
+  const artist = normalizeArtistName(song.artist || song.artists?.primary?.[0]?.name || song.primaryArtists || '')
+  if (artist && hiddenArtists[artist]) return true
+  if (explicitFilter) {
+    const ec = song.explicitContent ?? song.more_info?.explicit_content
+    if (ec === true || ec === 'true' || ec === 1 || ec === '1') return true
+  }
+  return false
 }
 
 // Shared pull-done signal: AuthGate holds a pending member action (e.g. a

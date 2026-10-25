@@ -1,4 +1,4 @@
-import { Compass, RefreshCw, Keyboard, X, Trash2, ListMusic, Settings, Heart, Music, Radio, Timer, SlidersHorizontal, BarChart3, Waves, Download, Lock, Pin, EyeOff, Folder, FolderOpen, ChevronDown, ChevronRight, Languages, Check } from 'lucide-react'
+import { Compass, RefreshCw, Keyboard, X, Trash2, ListMusic, Settings, Heart, Music, Radio, Timer, SlidersHorizontal, BarChart3, Waves, Download, Lock, Pin, EyeOff, Folder, FolderOpen, ChevronDown, ChevronRight, Languages, Check, Gauge, Ban, UserX, Users, CircleUser } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 import { useState } from 'react'
 import { usePlaylistStore } from '../stores/playlistStore'
@@ -15,7 +15,7 @@ const NAV_ITEMS = [
   { id: 'discover', label: 'Discover', icon: Compass, path: '/discover' },
 ]
 
-export default function Sidebar({ showToast, onClose, qualityPreference, onQualityChange, autoplayEnabled, onAutoplayToggle, sleepTimer, onSleepTimer, eqSettings, onEqChange, smoothTransitions, onSmoothTransitionsToggle, installPrompt, onInstall, onImportLibrary, likedCount, privateSession, onPrivateSessionToggle, contentLanguages, onContentLanguageToggle }) {
+export default function Sidebar({ showToast, onClose, qualityPreference, onQualityChange, autoplayEnabled, onAutoplayToggle, sleepTimer, onSleepTimer, eqSettings, onEqChange, crossfadeSec = 0, onCrossfadeChange, dataSaver, onDataSaverToggle, explicitFilter, onExplicitFilterToggle, hiddenSongs = {}, hiddenArtists = {}, onUnhideSong, onUnhideArtist, shareActivity, onShareActivityToggle, displayName, onDisplayNameChange, installPrompt, onInstall, onImportLibrary, likedCount, privateSession, onPrivateSessionToggle, contentLanguages, onContentLanguageToggle }) {
   const location = useLocation()
   const currentPath = location.pathname
   const playlists = usePlaylistStore(s => s.playlists)
@@ -28,6 +28,11 @@ export default function Sidebar({ showToast, onClose, qualityPreference, onQuali
   const [collapsedFolders, setCollapsedFolders] = useState({})
   const [sleepMenuOpen, setSleepMenuOpen] = useState(false)
   const [langMenuOpen, setLangMenuOpen] = useState(false)
+  const [xfadeMenuOpen, setXfadeMenuOpen] = useState(false)
+  const [hiddenMenuOpen, setHiddenMenuOpen] = useState(false)
+  const [nameMenuOpen, setNameMenuOpen] = useState(false)
+  const [nameDraft, setNameDraft] = useState('')
+  const hiddenCount = Object.keys(hiddenSongs || {}).length + Object.keys(hiddenArtists || {}).length
 
   const sleepTimerValue = sleepTimer?.type === 'eot' ? 'eot'
     : sleepTimer?.type === 'timer' ? String(Math.max(1, Math.round((sleepTimer.endsAt - Date.now()) / 60000)))
@@ -321,19 +326,173 @@ export default function Sidebar({ showToast, onClose, qualityPreference, onQuali
             </button>
           )}
 
-          {/* Smooth transitions */}
+          {/* Crossfade — real overlapping fade between tracks; duration
+              selectable like Spotify's crossfade slider */}
+          <div className="relative">
+            <button
+              onClick={() => setXfadeMenuOpen(o => !o)}
+              className="flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-left w-full text-zinc-400 hover:text-white hover:bg-zinc-800/40"
+            >
+              <div className="flex items-center gap-3 whitespace-nowrap">
+                <Waves size={17} className={crossfadeSec > 0 ? 'text-[#fc3c44]' : ''} />
+                Crossfade
+              </div>
+              <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${crossfadeSec > 0 ? 'bg-[#fc3c44] text-white' : 'bg-zinc-800 text-zinc-500'}`}>
+                {crossfadeSec > 0 ? `${crossfadeSec}s` : 'Off'}
+              </span>
+            </button>
+            {xfadeMenuOpen && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setXfadeMenuOpen(false)} />
+                <div className="absolute left-2 right-2 top-full mt-1 bg-zinc-900 border border-zinc-800 rounded-xl shadow-2xl z-50 overflow-hidden">
+                  {[0, 2, 4, 6, 8, 12].map(sec => (
+                    <button
+                      key={sec}
+                      onClick={() => { onCrossfadeChange?.(sec); setXfadeMenuOpen(false) }}
+                      className={`w-full flex items-center justify-between px-3 py-2.5 text-sm transition-colors ${crossfadeSec === sec ? 'text-[#fc3c44]' : 'text-zinc-300 hover:bg-zinc-800'}`}
+                    >
+                      {sec === 0 ? 'Off' : `${sec} seconds`}
+                      {crossfadeSec === sec && <Check size={14} />}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* Data saver — pins streaming to 96kbps and stops prefetch */}
           <button
-            onClick={() => onSmoothTransitionsToggle?.(!smoothTransitions)}
+            onClick={() => onDataSaverToggle?.()}
             className="flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-left w-full text-zinc-400 hover:text-white hover:bg-zinc-800/40"
           >
             <div className="flex items-center gap-3 whitespace-nowrap">
-              <Waves size={17} />
-              Smooth transitions
+              <Gauge size={17} className={dataSaver ? 'text-[#fc3c44]' : ''} />
+              Data saver
             </div>
-            <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${smoothTransitions ? 'bg-[#fc3c44] text-white' : 'bg-zinc-800 text-zinc-500'}`}>
-              {smoothTransitions ? 'On' : 'Off'}
+            <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${dataSaver ? 'bg-[#fc3c44] text-white' : 'bg-zinc-800 text-zinc-500'}`}>
+              {dataSaver ? 'On' : 'Off'}
             </span>
           </button>
+
+          {/* Hide explicit content — family-safe switch */}
+          <button
+            onClick={() => onExplicitFilterToggle?.()}
+            className="flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-left w-full text-zinc-400 hover:text-white hover:bg-zinc-800/40"
+          >
+            <div className="flex items-center gap-3 whitespace-nowrap">
+              <Ban size={17} className={explicitFilter ? 'text-[#fc3c44]' : ''} />
+              Hide explicit
+            </div>
+            <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${explicitFilter ? 'bg-[#fc3c44] text-white' : 'bg-zinc-800 text-zinc-500'}`}>
+              {explicitFilter ? 'On' : 'Off'}
+            </span>
+          </button>
+
+          {/* Hidden content — manage "Don't play this" entries */}
+          <div className="relative">
+            <button
+              onClick={() => setHiddenMenuOpen(o => !o)}
+              className="flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-left w-full text-zinc-400 hover:text-white hover:bg-zinc-800/40"
+            >
+              <div className="flex items-center gap-3 whitespace-nowrap">
+                <UserX size={17} className={hiddenCount ? 'text-[#fc3c44]' : ''} />
+                Hidden content
+              </div>
+              <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${hiddenCount ? 'bg-[#fc3c44] text-white' : 'bg-zinc-800 text-zinc-500'}`}>
+                {hiddenCount || 'None'}
+              </span>
+            </button>
+            {hiddenMenuOpen && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setHiddenMenuOpen(false)} />
+                <div className="absolute left-2 right-2 top-full mt-1 bg-zinc-900 border border-zinc-800 rounded-xl shadow-2xl z-50 overflow-hidden max-h-72 overflow-y-auto">
+                  {!hiddenCount && (
+                    <div className="px-3 py-3 text-xs text-zinc-500">Nothing hidden. Use a song's ⋯ menu → "Don't play this".</div>
+                  )}
+                  {Object.keys(hiddenSongs || {}).length > 0 && (
+                    <>
+                      <div className="px-3 pt-2.5 pb-1 text-[10px] font-semibold text-zinc-600 uppercase tracking-widest">Songs</div>
+                      {Object.values(hiddenSongs).map(s => (
+                        <div key={s.id} className="flex items-center justify-between gap-2 px-3 py-2">
+                          <div className="min-w-0 flex-1">
+                            <div className="text-sm text-zinc-200 truncate">{s.name || s.id}</div>
+                            <div className="text-xs text-zinc-500 truncate">{s.artist || ''}</div>
+                          </div>
+                          <button onClick={() => onUnhideSong?.(s.id)} className="text-xs text-[#fc3c44] hover:underline flex-shrink-0">Unhide</button>
+                        </div>
+                      ))}
+                    </>
+                  )}
+                  {Object.keys(hiddenArtists || {}).length > 0 && (
+                    <>
+                      <div className="px-3 pt-2.5 pb-1 text-[10px] font-semibold text-zinc-600 uppercase tracking-widest">Artists</div>
+                      {Object.values(hiddenArtists).map(a => (
+                        <div key={a.id} className="flex items-center justify-between gap-2 px-3 py-2">
+                          <div className="text-sm text-zinc-200 truncate flex-1">{a.name || a.id}</div>
+                          <button onClick={() => onUnhideArtist?.(a.id)} className="text-xs text-[#fc3c44] hover:underline flex-shrink-0">Unhide</button>
+                        </div>
+                      ))}
+                    </>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* Family activity — member-only opt-in + display name */}
+          {isSignedIn && (
+            <>
+              <button
+                onClick={() => onShareActivityToggle?.()}
+                className="flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-left w-full text-zinc-400 hover:text-white hover:bg-zinc-800/40"
+              >
+                <div className="flex items-center gap-3 whitespace-nowrap">
+                  <Users size={17} className={shareActivity ? 'text-[#fc3c44]' : ''} />
+                  Share activity
+                </div>
+                <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${shareActivity ? 'bg-[#fc3c44] text-white' : 'bg-zinc-800 text-zinc-500'}`}>
+                  {shareActivity ? 'On' : 'Off'}
+                </span>
+              </button>
+              <div className="relative">
+                <button
+                  onClick={() => { setNameDraft(displayName || ''); setNameMenuOpen(o => !o) }}
+                  className="flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-left w-full text-zinc-400 hover:text-white hover:bg-zinc-800/40"
+                >
+                  <div className="flex items-center gap-3 whitespace-nowrap">
+                    <CircleUser size={17} className={displayName ? 'text-[#fc3c44]' : ''} />
+                    Display name
+                  </div>
+                  <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium max-w-[80px] truncate ${displayName ? 'bg-[#fc3c44] text-white' : 'bg-zinc-800 text-zinc-500'}`}>
+                    {displayName || 'Set'}
+                  </span>
+                </button>
+                {nameMenuOpen && (
+                  <>
+                    <div className="fixed inset-0 z-40" onClick={() => setNameMenuOpen(false)} />
+                    <div className="absolute left-2 right-2 top-full mt-1 bg-zinc-900 border border-zinc-800 rounded-xl shadow-2xl z-50 p-3">
+                      <div className="text-xs text-zinc-500 mb-2">Shown in Family activity</div>
+                      <input
+                        autoFocus
+                        value={nameDraft}
+                        onChange={e => setNameDraft(e.target.value)}
+                        placeholder="e.g. Appa"
+                        maxLength={50}
+                        onKeyDown={e => { if (e.key === 'Enter') { onDisplayNameChange?.(nameDraft); setNameMenuOpen(false) } }}
+                        className="w-full bg-zinc-800 text-sm text-white rounded-lg px-3 py-2 outline-none border border-transparent focus:border-zinc-600"
+                      />
+                      <div className="flex justify-end mt-2">
+                        <button
+                          onClick={() => { onDisplayNameChange?.(nameDraft); setNameMenuOpen(false) }}
+                          className="text-xs bg-[#fc3c44] text-white px-3 py-1.5 rounded-full font-medium"
+                        >Save</button>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+            </>
+          )}
 
           {/* Private session — device-scoped; pauses history/count writes
               so a shared listening session doesn't skew personalization */}

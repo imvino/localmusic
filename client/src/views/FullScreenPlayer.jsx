@@ -32,8 +32,7 @@ export default function FullScreenPlayer({
   onPlayNext,
   onAddToQueue,
   onGoToAlbum,
-  onSongRadio,
-  showToast,
+  onSongRadio, onHideSong, onHideArtist,   showToast,
   sleepTimer,
   onSleepTimer
 }) {
@@ -126,7 +125,7 @@ export default function FullScreenPlayer({
             onPlayNext={onPlayNext}
             onAddToQueue={onAddToQueue}
             onGoToAlbum={onGoToAlbum}
-            onSongRadio={onSongRadio}
+            onSongRadio={onSongRadio} onHideSong={onHideSong} onHideArtist={onHideArtist}
             showToast={showToast}
           />
         </div>

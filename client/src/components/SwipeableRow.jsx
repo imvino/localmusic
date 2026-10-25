@@ -6,7 +6,7 @@ import { haptic } from '../utils'
 // queue", swipe right reveals "like". The row slides with the finger and
 // snaps back under the threshold; the completed swipe's trailing click is
 // suppressed so it can't also trigger play.
-export default function SwipeableRow({ onSwipeLeft, onSwipeRight, onClick, className = '', children }) {
+export default function SwipeableRow({ onSwipeLeft, onSwipeRight, onClick, className = '', children, ...rest }) {
   const { dragX, swiping, handlers } = useSwipeAction({
     onSwipeLeft: onSwipeLeft ? () => { haptic(); onSwipeLeft() } : undefined,
     onSwipeRight: onSwipeRight ? () => { haptic(); onSwipeRight() } : undefined
@@ -25,6 +25,7 @@ export default function SwipeableRow({ onSwipeLeft, onSwipeRight, onClick, class
         </div>
       )}
       <div
+        {...rest}
         {...handlers}
         onClick={onClick}
         className={className}

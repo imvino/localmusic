@@ -1,14 +1,14 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
-import { MoreHorizontal, Heart, ListPlus, Play, Disc3, ListMusic, Plus, ChevronLeft, Radio, Mic2, Share2, Download, Check, UserRound } from 'lucide-react'
+import { MoreHorizontal, Heart, ListPlus, Play, Disc3, ListMusic, Plus, ChevronLeft, Radio, Mic2, Share2, Download, Check, UserRound, Ban, UserX } from 'lucide-react'
 import { usePlaylistStore } from '../stores/playlistStore'
 import { downloadSong, removeDownload, isDownloaded } from '../utils/downloads'
 import { haptic } from '../utils'
 import LyricsModal from './LyricsModal'
 import { useAppAuth } from './AuthGate'
 
-export default function TrackMenu({ song, likedSongs, onLikeToggle, onPlayNext, onAddToQueue, onGoToAlbum, onSongRadio, showToast, triggerClass }) {
+export default function TrackMenu({ song, likedSongs, onLikeToggle, onPlayNext, onAddToQueue, onGoToAlbum, onSongRadio, onHideSong, onHideArtist, showToast, triggerClass }) {
   const navigate = useNavigate()
   const [open, setOpen] = useState(false)
   const [showPlaylistPicker, setShowPlaylistPicker] = useState(false)
@@ -226,6 +226,19 @@ export default function TrackMenu({ song, likedSongs, onLikeToggle, onPlayNext, 
               </button>
               <button className={itemCls} onClick={() => act(shareSong)}>
                 <Share2 size={16} /> Share
+              </button>
+              <div className="border-t border-zinc-800 my-1" />
+              {/* Negative-taste controls — device-local for guests, synced for
+                  members; NOT auth-gated (same as Play next / Add to queue) */}
+              <button className={itemCls} onClick={() => act(() => onHideSong?.(song))}>
+                <Ban size={16} /> Don't play this
+              </button>
+              <button
+                className={`${itemCls} ${!(song.artist || song.artists?.primary?.[0]?.name || song.primaryArtists) ? 'opacity-40 cursor-not-allowed' : ''}`}
+                disabled={!(song.artist || song.artists?.primary?.[0]?.name || song.primaryArtists)}
+                onClick={() => act(() => onHideArtist?.(song))}
+              >
+                <UserX size={16} /> Don't play this artist
               </button>
             </>
           )}

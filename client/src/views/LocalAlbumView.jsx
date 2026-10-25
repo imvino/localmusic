@@ -10,7 +10,7 @@ const API_BASE = import.meta.env.VITE_API_URL
 
 // Local album detail — songs come from the server's music-library index
 // (dev/LAN: the owner's disk). Reuses the shared TrackMenu + row patterns.
-export default function LocalAlbumView({ onSongClick, onShufflePlay, showToast, likedSongs, onLikeToggle, onPlayNext, onAddToQueue, onGoToAlbum, onSongRadio, currentSong, isPlaying }) {
+export default function LocalAlbumView({ onSongClick, onShufflePlay, showToast, likedSongs, onLikeToggle, onPlayNext, onAddToQueue, onGoToAlbum, onSongRadio, onHideSong, onHideArtist, currentSong, isPlaying }) {
   const { id } = useParams()
   const navigate = useNavigate()
   const location = useLocation()
@@ -140,7 +140,7 @@ export default function LocalAlbumView({ onSongClick, onShufflePlay, showToast, 
                 onPlayNext={onPlayNext}
                 onAddToQueue={onAddToQueue}
                 onGoToAlbum={onGoToAlbum}
-                onSongRadio={onSongRadio}
+                onSongRadio={onSongRadio} onHideSong={onHideSong} onHideArtist={onHideArtist}
                 showToast={showToast}
               />
             </div>

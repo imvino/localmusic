@@ -258,3 +258,116 @@ describe('normalizeArtistName', () => {
     expect(normalizeArtistName(42)).toBe('42')
   })
 })
+
+describe('mergeHiddenMap — hidden song/artist sync', () => {
+  it('per-entry hiddenAt LWW: the newer hide wins', async () => {
+    const { mergeHiddenMap } = await import('./sync')
+    const local = { s1: { id: 's1', hiddenAt: 100 } }
+    const server = { s1: { id: 's1', hiddenAt: 200 }, s2: { id: 's2', hiddenAt: 50 } }
+    const merged = mergeHiddenMap(local, server, 'hiddenSongs')
+    expect(merged.s1.hiddenAt).toBe(200)
+    expect(merged.s2).toBeTruthy()
+  })
+
+  it('un-hide tombstone kills the older entry — must NOT resurrect on merge', async () => {
+    const { mergeHiddenMap } = await import('./sync')
+    __store.clear()
+    addTombstone('hiddenSongs', 's1')
+    const tombTs = getTombstones(TOMB_KEYS.hiddenSongs)[0].ts
+    const local = { s1: { id: 's1', hiddenAt: tombTs - 10 } }
+    const server = { s1: { id: 's1', hiddenAt: tombTs - 5 } }
+    expect(mergeHiddenMap(local, server, 'hiddenSongs').s1).toBeUndefined()
+  })
+
+  it('a re-hide AFTER the tombstone survives the filter', async () => {
+    const { mergeHiddenMap } = await import('./sync')
+    __store.clear()
+    addTombstone('hiddenSongs', 's1')
+    const tombTs = getTombstones(TOMB_KEYS.hiddenSongs)[0].ts
+    const merged = mergeHiddenMap({ s1: { id: 's1', hiddenAt: tombTs + 10 } }, {}, 'hiddenSongs')
+    expect(merged.s1.hiddenAt).toBe(tombTs + 10)
+  })
+
+  it('hiddenSongs and hiddenArtists have INDEPENDENT tombstone kinds', () => {
+    expect(TOMB_KEYS.hiddenSongs).toBe('removedHiddenSongs')
+    expect(TOMB_KEYS.hiddenArtists).toBe('removedHiddenArtists')
+    expect(TOMB_KEYS.hiddenSongs).not.toBe(TOMB_KEYS.songs) // never collide with like-tombs
+  })
+})
+
+describe('blocklistKeys — member vs guest scope', () => {
+  it('member and guest keys are disjoint sets', async () => {
+    const { blocklistKeys } = await import('./sync')
+    const member = blocklistKeys(true), guest = blocklistKeys(false)
+    for (const k of Object.keys(member)) {
+      expect(member[k]).not.toBe(guest[k])
+      expect(guest[k]).toMatch(/^guest/)
+    }
+  })
+})
+
+describe('isContentBlocked', () => {
+  it('blocks by hidden song id', async () => {
+    const { isContentBlocked } = await import('./sync')
+    expect(isContentBlocked(song('s1'), { hiddenSongs: { s1: {} } })).toBe(true)
+    expect(isContentBlocked(song('s2'), { hiddenSongs: { s1: {} } })).toBe(false)
+  })
+
+  it('blocks by normalized artist name — punctuation/case-insensitive', async () => {
+    const { isContentBlocked } = await import('./sync')
+    const ctx = { hiddenArtists: { arrahman: {} } }
+    expect(isContentBlocked({ id: 's1', artist: 'A. R. Rahman' }, ctx)).toBe(true)
+    expect(isContentBlocked({ id: 's1', artists: { primary: [{ name: 'AR-RAHMAN' }] } }, ctx)).toBe(true)
+    expect(isContentBlocked({ id: 's1', artist: 'Someone Else' }, ctx)).toBe(false)
+  })
+
+  it('blocks explicit tracks only when the filter is on — both payload shapes', async () => {
+    const { isContentBlocked } = await import('./sync')
+    const on = { explicitFilter: true }, off = {}
+    expect(isContentBlocked({ id: 's1', explicitContent: true }, on)).toBe(true)
+    expect(isContentBlocked({ id: 's1', more_info: { explicit_content: '1' } }, on)).toBe(true)
+    expect(isContentBlocked({ id: 's1', explicitContent: true }, off)).toBe(false)
+  })
+
+  it('never blocks a song with no id', async () => {
+    const { isContentBlocked } = await import('./sync')
+    expect(isContentBlocked({ name: 'x' }, { hiddenSongs: { x: {} }, explicitFilter: true })).toBe(false)
+  })
+})
+
+describe('weekly-mix playlist merge', () => {
+  it('newer weeklyMixWeek replaces the song list wholesale — no union growth', () => {
+    const local = {
+      w: { id: 'w', name: 'Weekly Mix', createdAt: 1, updatedAt: 5, weeklyMix: true, weeklyMixWeek: '2025-W10', songs: [song('a'), song('b')] }
+    }
+    const server = {
+      w: { id: 'w', name: 'Weekly Mix', createdAt: 1, updatedAt: 6, weeklyMix: true, weeklyMixWeek: '2025-W11', songs: [song('c')] }
+    }
+    const merged = mergePlaylists(local, server)
+    expect(merged.w.songs).toHaveLength(1)
+    expect(merged.w.songs[0].id).toBe('c')
+    expect(merged.w.weeklyMixWeek).toBe('2025-W11')
+  })
+
+  it('same week: updatedAt winner still replaces (idempotent refill)', () => {
+    const local = { w: { id: 'w', createdAt: 1, updatedAt: 5, weeklyMix: true, weeklyMixWeek: '2025-W10', songs: [song('a')] } }
+    const server = { w: { id: 'w', createdAt: 1, updatedAt: 9, weeklyMix: true, weeklyMixWeek: '2025-W10', songs: [song('a'), song('b')] } }
+    const merged = mergePlaylists(local, server)
+    expect(merged.w.songs).toHaveLength(2)
+    expect(merged.w.songs[1].id).toBe('b')
+  })
+
+  it('older week never clobbers a newer refill', () => {
+    const local = { w: { id: 'w', createdAt: 1, updatedAt: 5, weeklyMix: true, weeklyMixWeek: '2025-W11', songs: [song('c')] } }
+    const server = { w: { id: 'w', createdAt: 1, updatedAt: 99, weeklyMix: true, weeklyMixWeek: '2025-W10', songs: [song('a'), song('b'), song('d')] } }
+    const merged = mergePlaylists(local, server)
+    expect(merged.w.songs).toHaveLength(1)
+    expect(merged.w.weeklyMixWeek).toBe('2025-W11')
+  })
+
+  it('slimPlaylists round-trips weekly markers (a fresh device must not regenerate a duplicate)', () => {
+    const out = slimPlaylists({ w: { id: 'w', name: 'WM', weeklyMix: true, weeklyMixWeek: '2025-W11', songs: [] } })
+    expect(out.w.weeklyMix).toBe(true)
+    expect(out.w.weeklyMixWeek).toBe('2025-W11')
+  })
+})

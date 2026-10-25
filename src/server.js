@@ -232,7 +232,7 @@ const slimLibrarySong = (s) => ({
 // history/savedAlbums/followedArtists are optional additive fields so older
 // clients keep working.
 app.put('/api/me/library', requireUser, (req, res) => {
-  const { v, ts, likedSongs, playlists, folders, history, savedAlbums, followedArtists, removedAlbums, removedArtists, historyClearedAt, likedMeta } = req.body || {};
+  const { v, ts, likedSongs, playlists, folders, history, savedAlbums, followedArtists, removedAlbums, removedArtists, historyClearedAt, likedMeta, hiddenSongs, hiddenArtists, explicitFilter, dataSaver, shareActivity, shareActivityAt, displayName } = req.body || {};
   if (!Array.isArray(likedSongs) || typeof playlists !== 'object' || playlists === null) {
     return res.status(400).json({ success: false, error: 'Bad payload' });
   }
@@ -248,6 +248,9 @@ app.put('/api/me/library', requireUser, (req, res) => {
       // folderId MUST round-trip — stripping it here would wipe the
       // client's folder assignment on that same device's next pull.
       ...(p.folderId ? { folderId: String(p.folderId).slice(0, 200) } : {}),
+      // weekly-mix markers must round-trip or fresh devices regenerate dupes
+      ...(p.weeklyMix ? { weeklyMix: true } : {}),
+      ...(p.weeklyMixWeek ? { weeklyMixWeek: String(p.weeklyMixWeek).slice(0, 20) } : {}),
       removed: p.removed && typeof p.removed === 'object' ? p.removed : {},
       songs: Array.isArray(p.songs) ? p.songs.slice(0, 2000).map(slimLibrarySong).filter(s => s.id) : []
     };
@@ -282,7 +285,9 @@ app.put('/api/me/library', requireUser, (req, res) => {
     artists: unionTombstones(existingDoc.tombstones?.artists, Array.isArray(removedArtists) ? removedArtists : []),
     songs: unionTombstones(existingDoc.tombstones?.songs, Array.isArray(req.body?.removedSongs) ? req.body.removedSongs : []),
     playlists: unionTombstones(existingDoc.tombstones?.playlists, Array.isArray(req.body?.removedPlaylists) ? req.body.removedPlaylists : []),
-    folders: unionTombstones(existingDoc.tombstones?.folders, Array.isArray(req.body?.removedFolders) ? req.body.removedFolders : [])
+    folders: unionTombstones(existingDoc.tombstones?.folders, Array.isArray(req.body?.removedFolders) ? req.body.removedFolders : []),
+    hiddenSongs: unionTombstones(existingDoc.tombstones?.hiddenSongs, Array.isArray(req.body?.removedHiddenSongs) ? req.body.removedHiddenSongs : []),
+    hiddenArtists: unionTombstones(existingDoc.tombstones?.hiddenArtists, Array.isArray(req.body?.removedHiddenArtists) ? req.body.removedHiddenArtists : [])
   };
   data.historyClearedAt = Math.max(
     Number(existingDoc.historyClearedAt) || 0,
@@ -355,6 +360,50 @@ app.put('/api/me/library', requireUser, (req, res) => {
   for (const id of Object.keys(mergedMeta)) if (!likeSet.has(id)) delete mergedMeta[id];
   data.likedMeta = mergedMeta;
 
+  // Hidden lists — per-entry hiddenAt LWW + dedicated tomb filter (mirrors
+  // the client mergeHiddenMap). Tombstones are the DEDICATED hidden kinds —
+  // reusing removedSongs would unlike liked songs (tomb > likedAt kills).
+  const mergeHidden = (key, incoming, tombs) => {
+    const tombMap = new Map((tombs || []).map(t => [t.id, t.ts]));
+    const merged = { ...(existingDoc[key] || {}) };
+    for (const [id, e] of Object.entries(incoming || {}).slice(0, 5000)) {
+      if (!e || typeof e !== 'object') continue;
+      const prev = merged[id];
+      if (!prev || (e.hiddenAt || 0) > (prev.hiddenAt || 0)) {
+        merged[id] = { ...slimLibrarySong(e), hiddenAt: Number(e.hiddenAt) || 0 };
+      }
+    }
+    data[key] = Object.fromEntries(
+      Object.entries(merged).filter(([id, e]) => (tombMap.get(id) || 0) <= (e.hiddenAt || 0))
+    );
+  };
+  if (hiddenSongs && typeof hiddenSongs === 'object') mergeHidden('hiddenSongs', hiddenSongs, data.tombstones.hiddenSongs);
+  else if (existingDoc.hiddenSongs) {
+    const tombMap = new Map((data.tombstones.hiddenSongs || []).map(t => [t.id, t.ts]));
+    data.hiddenSongs = Object.fromEntries(Object.entries(existingDoc.hiddenSongs).filter(([id, e]) => (tombMap.get(id) || 0) <= (e.hiddenAt || 0)));
+  }
+  if (hiddenArtists && typeof hiddenArtists === 'object') mergeHidden('hiddenArtists', hiddenArtists, data.tombstones.hiddenArtists);
+  else if (existingDoc.hiddenArtists) {
+    const tombMap = new Map((data.tombstones.hiddenArtists || []).map(t => [t.id, t.ts]));
+    data.hiddenArtists = Object.fromEntries(Object.entries(existingDoc.hiddenArtists).filter(([id, e]) => (tombMap.get(id) || 0) <= (e.hiddenAt || 0)));
+  }
+
+  // Sharing/quality scalars — shareActivity resolves by shareActivityAt so
+  // a stale device's push can't re-enable sharing after an opt-out.
+  const prevShareAt = Number(existingDoc.shareActivityAt) || 0;
+  const nextShareAt = Number(shareActivityAt) || 0;
+  data.shareActivity = nextShareAt >= prevShareAt ? !!shareActivity : !!existingDoc.shareActivity;
+  data.shareActivityAt = Math.max(nextShareAt, prevShareAt);
+  if (explicitFilter !== undefined) data.explicitFilter = !!explicitFilter;
+  else if (existingDoc.explicitFilter !== undefined) data.explicitFilter = existingDoc.explicitFilter;
+  if (dataSaver !== undefined) data.dataSaver = !!dataSaver;
+  else if (existingDoc.dataSaver !== undefined) data.dataSaver = existingDoc.dataSaver;
+  if (typeof displayName === 'string' && displayName.trim()) {
+    data.displayName = displayName.trim().slice(0, 100);
+  } else if (existingDoc.displayName) {
+    data.displayName = existingDoc.displayName;
+  }
+
   // Playlists: union by id (a stale device's copy must merge, not replace),
   // per-playlist updatedAt wins scalars — and song lists union with
   // per-song removal tombstones so concurrent edits on two devices don't
@@ -364,6 +413,15 @@ app.put('/api/me/library', requireUser, (req, res) => {
   for (const [id, p] of Object.entries(safePlaylists)) {
     const prev = mergedPls[id];
     if (!prev) { mergedPls[id] = p; continue; }
+    // Weekly-mix playlists REPLACE songs by week, never union — else
+    // week-2 refills grow the mix past its cap (mirrors client merge).
+    if (p.weeklyMix || prev.weeklyMix) {
+      const pw = prev.weeklyMixWeek || '', cw = p.weeklyMixWeek || '';
+      const mixWinner = cw > pw ? p : pw > cw ? prev
+        : ((p.updatedAt || 0) >= (prev.updatedAt || 0) ? p : prev);
+      mergedPls[id] = { ...(mixWinner === p ? prev : p), ...mixWinner, songs: mixWinner.songs || [] };
+      continue;
+    }
     const winner = (p.updatedAt || p.createdAt || 0) >= (prev.updatedAt || prev.createdAt || 0) ? p : prev;
     const loser = winner === p ? prev : p;
     const removed = {};
@@ -433,6 +491,42 @@ app.put('/api/me/library', requireUser, (req, res) => {
   }
   saveUserData(req.userId, data);
   res.json({ success: true, ts: data.ts });
+});
+
+// Family activity — opted-in members' recent plays (friends & family social
+// layer). One deployment = one household. Only docs with shareActivity===true
+// contribute; never emits fields for non-opted members.
+app.get('/api/family/activity', requireUser, async (req, res) => {
+  try {
+    let files = [];
+    try {
+      files = fs.readdirSync(USER_DATA_DIR).filter(f => f.endsWith('.json'));
+    } catch { /* dir missing — nobody has synced yet */ }
+    const rows = [];
+    for (const f of files) {
+      const uid = f.replace(/\.json$/, '');
+      const doc = loadUserData(uid);
+      if (!doc?.shareActivity || !Array.isArray(doc.history)) continue;
+      let name = doc.displayName;
+      if (!name) {
+        try {
+          const u = await clerkClient.users.getUser(uid);
+          name = u?.firstName || u?.username || 'Member';
+          doc.displayName = name;
+          saveUserData(uid, doc); // cache back — avoids repeat lookups
+        } catch { name = 'Member'; }
+      }
+      for (const s of doc.history.slice(0, 10)) {
+        if (!s?.id) continue;
+        rows.push({ memberName: name, isYou: uid === req.userId, songId: s.id, song: s.name, artist: s.artist, image: s.image, ts: s.ts || 0 });
+      }
+    }
+    rows.sort((a, b) => (b.ts || 0) - (a.ts || 0));
+    res.json({ success: true, data: rows.slice(0, 50) });
+  } catch (e) {
+    console.error('family activity error:', e.message);
+    res.json({ success: true, data: [] });
+  }
 });
 
 // Serve artist configuration
@@ -1664,7 +1758,11 @@ app.get('/api/songs/:id/suggestions', async (req, res) => {
     const songs = (rawSongs || [])
       .filter(s => s && s.id)
       .slice(0, 50)
-      .map(song => ({ ...song, isLocal: isSongLocal(song.id) }));
+      .map(song => ({
+        ...song,
+        isLocal: isSongLocal(song.id),
+        explicitContent: !!(song.explicitContent || song.more_info?.explicit_content === '1' || song.more_info?.explicit_content === 1 || song.explicit_content === '1')
+      }));
 
     res.json({ success: true, data: songs });
   } catch (error) {
@@ -1769,6 +1867,24 @@ async function translateText(text, to = 'en') {
   const key = `${to}:${text.slice(0, 4000)}`;
   const hit = translateCache.get(key);
   if (hit && Date.now() - hit.ts < TRANSLATE_TTL) return hit.text;
+
+  // Romanize mode — "Tanglish": Tamil/Telugu/Hindi script → Latin phonetics
+  // (ஒருவன் → oruvan). gtx `dt=rm` returns romanization in segment[3].
+  if (to === 'rm') {
+    try {
+      const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=en&dt=t&dt=rm&q=${encodeURIComponent(text.slice(0, 4500))}`;
+      const res = await axios.get(url, { timeout: 8000 });
+      const segments = res.data?.[0];
+      if (Array.isArray(segments)) {
+        const out = segments.map(s => (typeof s?.[3] === 'string' ? s[3] : '')).join('');
+        if (out.trim()) {
+          cacheSet(key, { ts: Date.now(), text: out });
+          return out;
+        }
+      }
+    } catch (e) { /* fall through */ }
+    return null; // no fallback for romanize — degrades to original script
+  }
 
   // 1) Google Translate gtx (no key)
   try {
@@ -3172,6 +3288,9 @@ app.get('/api/search', async (req, res) => {
           year: item.year || item.more_info?.year || null,
           image: imageUrl ? [{ quality: '150x150', url: imageUrl }] : [],
           imageUrl: imageUrl || null,
+          // Normalize the explicit flag to top-level — upstream ships both
+          // explicitContent (bool) and more_info.explicit_content ('1') shapes.
+          explicitContent: !!(item.explicitContent || item.more_info?.explicit_content === '1' || item.more_info?.explicit_content === 1 || item.explicit_content === '1'),
           isLocal: type === 'song' ? isSongLocal(item.id || item.tokenid) :
                    type === 'album' ? isAlbumLocal(item.albumid || item.id || item.tokenid) : false
         };
@@ -3239,6 +3358,47 @@ app.get('/api/search', async (req, res) => {
     console.error('Search error:', error);
     res.status(500).json({ error: 'Failed to perform search' });
   }
+});
+
+// Typeahead suggestions — compact grouped results for the header search
+// dropdown. Upstream /search/suggestions is not on every saavn.dev host
+// (the fallback 404s it) → degrade to a quick song search; always 200 so
+// the UI just hides the dropdown instead of erroring.
+app.get('/api/search/suggestions', async (req, res) => {
+  const q = String(req.query.q || '').trim();
+  const empty = { songs: [], albums: [], artists: [], playlists: [] };
+  if (q.length < 2) return res.json({ success: true, data: empty });
+  const img = (it) => Array.isArray(it?.image) ? (it.image[it.image.length - 1]?.url || it.image[0]?.url || '') : (typeof it?.image === 'string' ? it.image : '');
+  const isExplicit = (s) => !!(s?.explicitContent || s?.more_info?.explicit_content === '1' || s?.more_info?.explicit_content === 1 || s?.explicit_content === '1');
+  const artistOf = (s) => s?.artists?.primary?.[0]?.name || s?.primaryArtists || s?.more_info?.artistMap?.primary_artists?.[0]?.name || s?.more_info?.music || '';
+  const songItem = (s) => s?.id ? { id: s.id, name: s.name || s.title || s.song || '', type: 'song', image: img(s), primaryArtist: artistOf(s), explicitContent: isExplicit(s) } : null;
+  const entityItem = (it, type) => it?.id ? { id: it.id, name: it.name || it.title || '', type, image: img(it) } : null;
+  const resultsOf = (g) => (Array.isArray(g) ? g : (g?.results || []));
+  for (const base of [PRIMARY_API, FALLBACK_API]) {
+    try {
+      const r = await axios.get(`${base}/search/suggestions`, { params: { query: q }, timeout: 4000, headers: { 'User-Agent': 'Mozilla/5.0' } });
+      const d = r.data?.data;
+      if (d && typeof d === 'object') {
+        const out = {
+          songs: resultsOf(d.songs).map(songItem).filter(Boolean).slice(0, 5),
+          albums: resultsOf(d.albums).map(a => entityItem(a, 'album')).filter(Boolean).slice(0, 3),
+          artists: resultsOf(d.artists).map(a => entityItem(a, 'artist')).filter(Boolean).slice(0, 3),
+          playlists: resultsOf(d.playlists).map(p => entityItem(p, 'playlist')).filter(Boolean).slice(0, 3)
+        };
+        if (out.songs.length || out.albums.length || out.artists.length || out.playlists.length) {
+          return res.json({ success: true, data: out });
+        }
+      }
+    } catch { /* try song-search fallback on this base */ }
+    try {
+      const r = await axios.get(`${base}/search/songs`, { params: { query: q, limit: 5 }, timeout: 4000, headers: { 'User-Agent': 'Mozilla/5.0' } });
+      const list = r.data?.data?.results || r.data?.data || [];
+      if (Array.isArray(list) && list.length) {
+        return res.json({ success: true, data: { ...empty, songs: list.slice(0, 5).map(songItem).filter(Boolean) } });
+      }
+    } catch { /* next base */ }
+  }
+  res.json({ success: true, data: empty });
 });
 
 // Get trending songs from YouTube playlist matched with music service

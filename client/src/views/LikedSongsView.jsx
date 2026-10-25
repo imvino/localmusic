@@ -15,7 +15,7 @@ const chunk = (arr, size) => {
   return out
 }
 
-export default function LikedSongsView({ likedSongs, onLikeToggle, onSongClick, onShufflePlay, onPlayNext, onAddToQueue, onGoToAlbum, onSongRadio, currentSong, isPlaying, showToast }) {
+export default function LikedSongsView({ likedSongs, onLikeToggle, onSongClick, onShufflePlay, onPlayNext, onAddToQueue, onGoToAlbum, onSongRadio, onHideSong, onHideArtist, currentSong, isPlaying, showToast }) {
   // likedSongs serializes oldest-first; display newest-first (Spotify order)
   const orderedIds = useMemo(() => [...likedSongs].reverse(), [likedSongs])
 
@@ -205,7 +205,7 @@ export default function LikedSongsView({ likedSongs, onLikeToggle, onSongClick, 
                     onLikeToggle={onLikeToggle}
                     onPlayNext={onPlayNext}
                     onAddToQueue={onAddToQueue}
-                    onGoToAlbum={onGoToAlbum} onSongRadio={onSongRadio}
+                    onGoToAlbum={onGoToAlbum} onSongRadio={onSongRadio} onHideSong={onHideSong} onHideArtist={onHideArtist}
                     showToast={showToast}
                   />
                 </div>

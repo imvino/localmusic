@@ -1,15 +1,42 @@
-import { useState, useEffect, useMemo } from 'react'
-import { Disc, ListMusic, Loader2, Download, Play, History, TrendingUp, UserCheck, Sparkles } from 'lucide-react'
+import { useState, useEffect, useMemo, useRef } from 'react'
+import { Disc, ListMusic, Loader2, Download, Play, History, TrendingUp, UserCheck, Sparkles, Users } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import MetaTags from '../components/MetaTags'
 import HorizontalScroll from '../components/HorizontalScroll'
 import TrackMenu from '../components/TrackMenu'
 import { decodeHtmlEntities, getBestImageUrl, getImageSrc } from '../utils'
-import { normalizeArtistName } from '../utils/sync'
+import { normalizeArtistName, isContentBlocked, slimSong } from '../utils/sync'
 import { useJioFeaturedPlaylists, useJioNewReleases, useCharts, useTrending, useNewReleaseAlbums, useSongSuggestions } from '../hooks/useApi'
 import { useArtistConfig } from '../artist-config'
 import { useAppAuth } from '../components/AuthGate'
+import { useAuth } from '@clerk/clerk-react'
+import { usePlaylistStore } from '../stores/playlistStore'
+
+// ISO week id — two devices generating in the same week MUST converge on
+// the same playlist id or sync union-creates a duplicate.
+function isoWeekId(d = new Date()) {
+  const dt = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()))
+  const day = (dt.getUTCDay() + 6) % 7 // Mon=0
+  dt.setUTCDate(dt.getUTCDate() - day + 3) // Thursday anchors the week
+  const firstThu = new Date(Date.UTC(dt.getUTCFullYear(), 0, 4))
+  const fday = (firstThu.getUTCDay() + 6) % 7
+  firstThu.setUTCDate(firstThu.getUTCDate() - fday + 3)
+  const week = 1 + Math.round((dt - firstThu) / (7 * 24 * 3600 * 1000))
+  return `${dt.getUTCFullYear()}-W${String(week).padStart(2, '0')}`
+}
+
+// Max N songs per artist — keeps the mix varied like Spotify's daily mixes
+const capPerArtist = (songs, max = 3) => {
+  const counts = new Map()
+  return songs.filter(s => {
+    const k = normalizeArtistName(s.artist || s.artists?.primary?.[0]?.name || s.primaryArtists || '')
+    const n = counts.get(k) || 0
+    if (n >= max) return false
+    counts.set(k, n + 1)
+    return true
+  })
+}
 
 const API_BASE = import.meta.env.VITE_API_URL
 const isProduction = import.meta.env.MODE === 'production'
@@ -26,7 +53,7 @@ function formatPlayCount(count) {
   return num.toString()
 }
 
-export default function DiscoverView({ onSongClick, showToast, likedSongs, onLikeToggle, onPlayNext, onAddToQueue, onGoToAlbum, onSongRadio, contentLanguages }) {
+export default function DiscoverView({ onSongClick, showToast, likedSongs, onLikeToggle, onPlayNext, onAddToQueue, onGoToAlbum, onSongRadio, onHideSong, onHideArtist, contentLanguages, blockCtx }) {
   const navigate = useNavigate()
   const [downloadProgress, setDownloadProgress] = useState({})
   const appUrl = import.meta.env.VITE_APP_URL
@@ -42,6 +69,18 @@ export default function DiscoverView({ onSongClick, showToast, likedSongs, onLik
     if (!langPrefs.size) return true
     const l = (item?.language || item?.more_info?.language || '').toLowerCase()
     return !l || langPrefs.has(l)
+  }
+
+  // Content controls — hidden songs/artists and explicit tracks (when the
+  // filter is on) never surface on rails. Trending/chart items carry artists
+  // as a bare [{name}] array, so check that shape too.
+  const railPass = (item) => {
+    if (!blockCtx) return true
+    if (isContentBlocked(item, blockCtx)) return false
+    const names = (item?.artists || [])
+      .map(a => normalizeArtistName(typeof a === 'object' ? a?.name : a))
+      .filter(Boolean)
+    return !names.some(n => blockCtx.hiddenArtists?.[n])
   }
 
   // Recently played from local play history (unique songs, newest first)
@@ -164,6 +203,73 @@ export default function DiscoverView({ onSongClick, showToast, likedSongs, onLik
     }
   }).filter(m => m.songs.length > 0)
 
+  // ─── Weekly Mix ───
+  // Discover-Weekly analog: a REAL playlist (shows in Playlists/Sidebar,
+  // syncs cross-device) refilled wholesale each ISO week. Deterministic id
+  // → two devices generating pre-sync converge; the merge layer gives
+  // weeklyMix playlists replace-not-union song semantics.
+  const { getToken } = useAuth()
+  const weekId = useMemo(() => isoWeekId(), [])
+  const weeklyMixId = `pl_weekly_${weekId}`
+  const weeklyMix = usePlaylistStore(s => s.playlists[weeklyMixId])
+  const weeklyGenRef = useRef(false)
+
+  useEffect(() => {
+    if (!isSignedIn || weeklyGenRef.current) return
+    const existing = usePlaylistStore.getState().playlists[weeklyMixId]
+    if (existing?.weeklyMixWeek === weekId && existing.songs?.length) return
+    let pc
+    try { pc = JSON.parse(localStorage.getItem('playCounts') || '{}') } catch { return }
+    const entries = Object.values(pc).filter(e => e?.id && (e.count || 0) >= 2)
+    if (entries.length < 3) return // not enough listening history to mix
+    weeklyGenRef.current = true
+    ;(async () => {
+      const sorted = entries.sort((a, b) => (b.count || 0) - (a.count || 0))
+      const seeds = capPerArtist(sorted, 2).slice(0, 10)
+      // Suggestions seeded by the top THREE DISTINCT artists — the mix must
+      // not collapse into a single-artist echo chamber.
+      const topArtists = []
+      const seenArtists = new Set()
+      for (const s of sorted) {
+        const k = normalizeArtistName(s.artist)
+        if (k && !seenArtists.has(k)) { seenArtists.add(k); topArtists.push(s) }
+        if (topArtists.length >= 3) break
+      }
+      const suggLists = await Promise.all(topArtists.map(s =>
+        fetch(`${API_BASE}/api/songs/${s.id}/suggestions`)
+          .then(r => r.json()).then(j => j?.success ? j.data || [] : []).catch(() => [])
+      ))
+      const ctx = blockCtx || {}
+      const seen = new Set(seeds.map(s => s.id))
+      const fill = suggLists.flat()
+        .filter(s => s?.id && !seen.has(s.id) && seen.add(s.id) && !isContentBlocked(s, ctx))
+        .map(s => slimSong(s) || s)
+      const songs = capPerArtist(
+        [...seeds.map(s => slimSong(s) || s).filter(s => !isContentBlocked(s, ctx)), ...fill],
+        3
+      ).slice(0, 30)
+      const store = usePlaylistStore.getState()
+      store.createPlaylistWithId(weeklyMixId, 'Weekly Mix', { weeklyMix: true, weeklyMixWeek: weekId })
+      store.replacePlaylistSongs(weeklyMixId, songs, { weeklyMixWeek: weekId })
+      window.dispatchEvent(new Event('library:changed')) // push the generated mix
+    })()
+  }, [isSignedIn, weeklyMixId, weekId, weeklyMix?.weeklyMixWeek, blockCtx])
+
+  // ─── Family activity — opt-in member feed (no data when nobody shares) ───
+  const { data: familyActivity } = useQuery({
+    queryKey: ['family-activity'],
+    queryFn: async () => {
+      const token = await getToken()
+      if (!token) return []
+      const res = await fetch(`${API_BASE}/api/family/activity`, { headers: { Authorization: `Bearer ${token}` } })
+      const json = await res.json()
+      return json?.success ? (json.data || []) : []
+    },
+    enabled: isSignedIn,
+    staleTime: 60 * 1000,
+    retry: 1
+  })
+
   const loading = configLoading || playlistsLoading || songsLoading
 
   // Process top artists from config
@@ -188,7 +294,7 @@ export default function DiscoverView({ onSongClick, showToast, likedSongs, onLik
 
   // Process new releases (songs) — language-filtered before slicing so a
   // pref for e.g. Telugu doesn't just empty a Tamil-heavy rail
-  const newSongs = (newReleasesData || []).filter(matchLang).slice(0, 10).map(song => ({
+  const newSongs = (newReleasesData || []).filter(i => matchLang(i) && railPass(i)).slice(0, 10).map(song => ({
     id: song.id,
     name: decodeHtmlEntities(song.title),
     artist: decodeHtmlEntities(song.subtitle || ''),
@@ -261,65 +367,79 @@ export default function DiscoverView({ onSongClick, showToast, likedSongs, onLik
       <h1 className="text-2xl font-bold text-white mb-8">Discover Music</h1>
 
       {/* Recently Played — member-only personalization */}
-      {isSignedIn && recentlyPlayed.length > 0 && (
+      {isSignedIn && recentlyPlayed.filter(railPass).length > 0 && (
         <HorizontalScroll
           title="Recently Played"
           icon={History}
-          items={recentlyPlayed}
+          items={recentlyPlayed.filter(railPass)}
           renderItem={(song) => (
-            <SongCard song={song} onSongClick={onSongClick} downloadProgress={downloadProgress} setDownloadProgress={setDownloadProgress} likedSongs={likedSongs} onLikeToggle={onLikeToggle} onPlayNext={onPlayNext} onAddToQueue={onAddToQueue} onGoToAlbum={onGoToAlbum} onSongRadio={onSongRadio} showToast={showToast} />
+            <SongCard song={song} onSongClick={onSongClick} downloadProgress={downloadProgress} setDownloadProgress={setDownloadProgress} likedSongs={likedSongs} onLikeToggle={onLikeToggle} onPlayNext={onPlayNext} onAddToQueue={onAddToQueue} onGoToAlbum={onGoToAlbum} onSongRadio={onSongRadio} onHideSong={onHideSong} onHideArtist={onHideArtist} showToast={showToast} />
           )}
           emptyMessage=""
         />
       )}
 
       {/* Because you listened — personalized suggestions from play history */}
-      {isSignedIn && becauseYouListened?.length > 0 && seedSong && (
+      {isSignedIn && becauseYouListened?.filter(railPass).length > 0 && seedSong && (
         <HorizontalScroll
           title={`Because you listened to ${decodeHtmlEntities(seedSong.name || '')}`}
           icon={History}
-          items={becauseYouListened.slice(0, 15)}
+          items={becauseYouListened.filter(railPass).slice(0, 15)}
           renderItem={(song) => (
-            <SongCard song={{ ...song, name: decodeHtmlEntities(song.name || song.title || ''), artist: decodeHtmlEntities(song.artists?.primary?.[0]?.name || song.artist || ''), image: song.image }} onSongClick={onSongClick} downloadProgress={downloadProgress} setDownloadProgress={setDownloadProgress} likedSongs={likedSongs} onLikeToggle={onLikeToggle} onPlayNext={onPlayNext} onAddToQueue={onAddToQueue} onGoToAlbum={onGoToAlbum} onSongRadio={onSongRadio} showToast={showToast} />
+            <SongCard song={{ ...song, name: decodeHtmlEntities(song.name || song.title || ''), artist: decodeHtmlEntities(song.artists?.primary?.[0]?.name || song.artist || ''), image: song.image }} onSongClick={onSongClick} downloadProgress={downloadProgress} setDownloadProgress={setDownloadProgress} likedSongs={likedSongs} onLikeToggle={onLikeToggle} onPlayNext={onPlayNext} onAddToQueue={onAddToQueue} onGoToAlbum={onGoToAlbum} onSongRadio={onSongRadio} onHideSong={onHideSong} onHideArtist={onHideArtist} showToast={showToast} />
           )}
           emptyMessage=""
         />
       )}
 
       {/* On Repeat — your most-played songs */}
-      {isSignedIn && mixes.onRepeat.length > 0 && (
+      {isSignedIn && mixes.onRepeat.filter(railPass).length > 0 && (
         <HorizontalScroll
           title="On Repeat"
           icon={TrendingUp}
-          items={mixes.onRepeat}
+          items={mixes.onRepeat.filter(railPass)}
           renderItem={(song) => (
-            <SongCard song={song} onSongClick={onSongClick} downloadProgress={downloadProgress} setDownloadProgress={setDownloadProgress} likedSongs={likedSongs} onLikeToggle={onLikeToggle} onPlayNext={onPlayNext} onAddToQueue={onAddToQueue} onGoToAlbum={onGoToAlbum} onSongRadio={onSongRadio} showToast={showToast} />
+            <SongCard song={song} onSongClick={onSongClick} downloadProgress={downloadProgress} setDownloadProgress={setDownloadProgress} likedSongs={likedSongs} onLikeToggle={onLikeToggle} onPlayNext={onPlayNext} onAddToQueue={onAddToQueue} onGoToAlbum={onGoToAlbum} onSongRadio={onSongRadio} onHideSong={onHideSong} onHideArtist={onHideArtist} showToast={showToast} />
           )}
           emptyMessage=""
         />
       )}
 
       {/* Repeat Rewind — old favorites resurfaced */}
-      {isSignedIn && mixes.rewind.length > 0 && (
+      {isSignedIn && mixes.rewind.filter(railPass).length > 0 && (
         <HorizontalScroll
           title="Repeat Rewind"
           icon={History}
-          items={mixes.rewind}
+          items={mixes.rewind.filter(railPass)}
           renderItem={(song) => (
-            <SongCard song={song} onSongClick={onSongClick} downloadProgress={downloadProgress} setDownloadProgress={setDownloadProgress} likedSongs={likedSongs} onLikeToggle={onLikeToggle} onPlayNext={onPlayNext} onAddToQueue={onAddToQueue} onGoToAlbum={onGoToAlbum} onSongRadio={onSongRadio} showToast={showToast} />
+            <SongCard song={song} onSongClick={onSongClick} downloadProgress={downloadProgress} setDownloadProgress={setDownloadProgress} likedSongs={likedSongs} onLikeToggle={onLikeToggle} onPlayNext={onPlayNext} onAddToQueue={onAddToQueue} onGoToAlbum={onGoToAlbum} onSongRadio={onSongRadio} onHideSong={onHideSong} onHideArtist={onHideArtist} showToast={showToast} />
           )}
           emptyMessage=""
         />
       )}
 
       {/* New from artists you follow — member-only personalized rail */}
-      {isSignedIn && followedRail.length > 0 && (
+      {isSignedIn && followedRail.filter(railPass).length > 0 && (
         <HorizontalScroll
           title="New from artists you follow"
           icon={UserCheck}
-          items={followedRail}
+          items={followedRail.filter(railPass)}
           renderItem={(album) => (
             <EntityCard item={album} onClick={() => handleAlbumClick(album)} subtitle={album.year || 'Album'} />
+          )}
+          emptyMessage=""
+        />
+      )}
+
+      {/* Weekly Mix — a real playlist refilled each ISO week; lives in
+          Playlists/Sidebar and syncs like any member playlist */}
+      {isSignedIn && weeklyMix?.songs?.filter(railPass).length > 0 && (
+        <HorizontalScroll
+          title="Weekly Mix"
+          icon={Sparkles}
+          items={weeklyMix.songs.filter(railPass).slice(0, 15)}
+          renderItem={(song) => (
+            <SongCard song={{ ...song, name: decodeHtmlEntities(song.name || song.title || ''), artist: decodeHtmlEntities(song.artists?.primary?.[0]?.name || song.artist || ''), image: song.image }} onSongClick={onSongClick} downloadProgress={downloadProgress} setDownloadProgress={setDownloadProgress} likedSongs={likedSongs} onLikeToggle={onLikeToggle} onPlayNext={onPlayNext} onAddToQueue={onAddToQueue} onGoToAlbum={onGoToAlbum} onSongRadio={onSongRadio} onHideSong={onHideSong} onHideArtist={onHideArtist} showToast={showToast} />
           )}
           emptyMessage=""
         />
@@ -331,9 +451,9 @@ export default function DiscoverView({ onSongClick, showToast, likedSongs, onLik
           key={mix.title}
           title={mix.title}
           icon={Sparkles}
-          items={mix.songs}
+          items={mix.songs.filter(railPass)}
           renderItem={(song) => (
-            <SongCard song={{ ...song, name: decodeHtmlEntities(song.name || song.title || ''), artist: decodeHtmlEntities(song.artists?.primary?.[0]?.name || song.artist || ''), image: song.image }} onSongClick={onSongClick} downloadProgress={downloadProgress} setDownloadProgress={setDownloadProgress} likedSongs={likedSongs} onLikeToggle={onLikeToggle} onPlayNext={onPlayNext} onAddToQueue={onAddToQueue} onGoToAlbum={onGoToAlbum} onSongRadio={onSongRadio} showToast={showToast} />
+            <SongCard song={{ ...song, name: decodeHtmlEntities(song.name || song.title || ''), artist: decodeHtmlEntities(song.artists?.primary?.[0]?.name || song.artist || ''), image: song.image }} onSongClick={onSongClick} downloadProgress={downloadProgress} setDownloadProgress={setDownloadProgress} likedSongs={likedSongs} onLikeToggle={onLikeToggle} onPlayNext={onPlayNext} onAddToQueue={onAddToQueue} onGoToAlbum={onGoToAlbum} onSongRadio={onSongRadio} onHideSong={onHideSong} onHideArtist={onHideArtist} showToast={showToast} />
           )}
           emptyMessage=""
         />
@@ -342,7 +462,7 @@ export default function DiscoverView({ onSongClick, showToast, likedSongs, onLik
       {/* Top Artists */}
       <HorizontalScroll
         title="Top Artists"
-        items={topArtists}
+        items={topArtists.filter(a => !(blockCtx?.hiddenArtists?.[normalizeArtistName(a.name)]))}
         renderItem={(artist) => (
           <ArtistCard artist={artist} onArtistClick={handleArtistClick} />
         )}
@@ -354,7 +474,7 @@ export default function DiscoverView({ onSongClick, showToast, likedSongs, onLik
         title="Top Songs"
         items={newSongs}
         renderItem={(song, index) => (
-          <SongCard song={song} onSongClick={onSongClick} downloadProgress={downloadProgress} setDownloadProgress={setDownloadProgress} likedSongs={likedSongs} onLikeToggle={onLikeToggle} onPlayNext={onPlayNext} onAddToQueue={onAddToQueue} onGoToAlbum={onGoToAlbum} onSongRadio={onSongRadio} showToast={showToast} />
+          <SongCard song={song} onSongClick={onSongClick} downloadProgress={downloadProgress} setDownloadProgress={setDownloadProgress} likedSongs={likedSongs} onLikeToggle={onLikeToggle} onPlayNext={onPlayNext} onAddToQueue={onAddToQueue} onGoToAlbum={onGoToAlbum} onSongRadio={onSongRadio} onHideSong={onHideSong} onHideArtist={onHideArtist} showToast={showToast} />
         )}
         emptyMessage="No top songs found"
       />
@@ -375,7 +495,7 @@ export default function DiscoverView({ onSongClick, showToast, likedSongs, onLik
         <HorizontalScroll
           title="Charts"
           icon={ListMusic}
-          items={charts.filter(matchLang)}
+          items={charts.filter(i => matchLang(i) && railPass(i))}
           renderItem={(chart) => (
             <EntityCard item={chart} onClick={() => handleEntityClick(chart)} subtitle={chart.songCount ? `${chart.songCount} songs` : 'Chart'} />
           )}
@@ -387,7 +507,7 @@ export default function DiscoverView({ onSongClick, showToast, likedSongs, onLik
       {trending?.length > 0 && (
         <HorizontalScroll
           title="Trending Albums"
-          items={trending.filter(matchLang)}
+          items={trending.filter(i => matchLang(i) && railPass(i))}
           renderItem={(album) => (
             <EntityCard item={album} onClick={() => handleAlbumClick(album)} subtitle={album.year || 'Album'} />
           )}
@@ -395,11 +515,42 @@ export default function DiscoverView({ onSongClick, showToast, likedSongs, onLik
         />
       )}
 
+      {/* Family activity — opt-in member feed; hidden entirely when nobody
+          shares (privacy boundary is the member's own toggle in Settings) */}
+      {isSignedIn && familyActivity?.length > 0 && (
+        <div className="mb-8">
+          <h2 className="text-lg font-bold text-white mb-3 flex items-center gap-2">
+            <Users size={18} className="text-zinc-400" /> Family activity
+          </h2>
+          <div className="bg-zinc-900/50 rounded-xl border border-zinc-800/50 divide-y divide-zinc-800/50 max-w-2xl">
+            {familyActivity.slice(0, 8).map((row, i) => (
+              <div key={`${row.songId}-${row.ts}-${i}`} className="flex items-center gap-3 px-3 py-2.5">
+                <div className="w-8 h-8 rounded-full bg-zinc-800 flex items-center justify-center flex-shrink-0 text-xs font-semibold text-zinc-300">
+                  {decodeHtmlEntities(row.memberName || 'M').slice(0, 1).toUpperCase()}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="text-sm text-white truncate">
+                    <span className="font-medium">{row.isYou ? 'You' : decodeHtmlEntities(row.memberName || 'Member')}</span>
+                    <span className="text-zinc-500"> played </span>
+                    {decodeHtmlEntities(row.song || '')}
+                  </div>
+                  <div className="text-xs text-zinc-500 truncate">
+                    {decodeHtmlEntities(row.artist || '')}
+                    {row.ts ? ` · ${new Date(row.ts).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}` : ''}
+                  </div>
+                </div>
+                {row.image && <img src={row.image} alt="" className="w-9 h-9 rounded object-cover flex-shrink-0" />}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* New release albums */}
       {newAlbums?.length > 0 && (
         <HorizontalScroll
           title="New Releases"
-          items={newAlbums.filter(matchLang)}
+          items={newAlbums.filter(i => matchLang(i) && railPass(i))}
           renderItem={(album) => (
             <EntityCard item={album} onClick={() => handleAlbumClick(album)} subtitle={album.year || 'Album'} />
           )}
@@ -458,7 +609,7 @@ function ArtistCard({ artist, onArtistClick }) {
   )
 }
 
-function SongCard({ song, onSongClick, downloadProgress, setDownloadProgress, likedSongs, onLikeToggle, onPlayNext, onAddToQueue, onGoToAlbum, onSongRadio, showToast }) {
+function SongCard({ song, onSongClick, downloadProgress, setDownloadProgress, likedSongs, onLikeToggle, onPlayNext, onAddToQueue, onGoToAlbum, onSongRadio, onHideSong, onHideArtist, showToast }) {
   const imageUrl = getImageSrc(song.image) || getImageSrc(song.imageUrl)
   const [failed, setFailed] = useState(false)
   const progress = downloadProgress?.[song.id]
@@ -552,7 +703,7 @@ function SongCard({ song, onSongClick, downloadProgress, setDownloadProgress, li
             onLikeToggle={onLikeToggle}
             onPlayNext={onPlayNext}
             onAddToQueue={onAddToQueue}
-            onGoToAlbum={onGoToAlbum} onSongRadio={onSongRadio}
+            onGoToAlbum={onGoToAlbum} onSongRadio={onSongRadio} onHideSong={onHideSong} onHideArtist={onHideArtist}
             showToast={showToast}
             triggerClass="p-1.5 rounded-full bg-black/60 text-white hover:bg-black/80 transition-colors"
           />
@@ -580,7 +731,7 @@ function SongCard({ song, onSongClick, downloadProgress, setDownloadProgress, li
             onLikeToggle={onLikeToggle}
             onPlayNext={onPlayNext}
             onAddToQueue={onAddToQueue}
-            onGoToAlbum={onGoToAlbum} onSongRadio={onSongRadio}
+            onGoToAlbum={onGoToAlbum} onSongRadio={onSongRadio} onHideSong={onHideSong} onHideArtist={onHideArtist}
             showToast={showToast}
           />
         </div>
