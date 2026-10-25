@@ -665,7 +665,7 @@ export default function DiscoverView({ onSongClick, showToast, likedSongs, onLik
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="text-sm text-white truncate">
-                    <span className="font-medium">{row.isYou ? 'You' : decodeHtmlEntities(row.memberName || 'Member')}</span>
+                    <span className="font-medium">{decodeHtmlEntities(row.memberName || 'Member')}</span>
                     <span className="text-zinc-500"> played </span>
                     {decodeHtmlEntities(row.song || '')}
                   </div>

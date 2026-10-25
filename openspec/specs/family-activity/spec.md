@@ -17,7 +17,7 @@ Settings SHALL include "Share my listening activity" (default OFF). A member's r
 - **THEN** the timestamped flag resolves to the newest write — the opt-out wins
 
 ### Requirement: Family activity endpoint
-`GET /api/family/activity` (authenticated) SHALL scan the per-user library docs and return, per opted-in member, their recent plays: `{memberName, song, artist, image, ts}` rows merge-sorted newest-first, capped at 50 total. Members who have not opted in MUST NOT appear, including partial/leaked fields. `memberName` resolves from the doc's `displayName`; when absent, the server SHALL look it up via `clerkClient.users.getUser(userId)` (secret key already configured) using first name, falling back to "Member" — and cache the resolved name back into the doc. The endpoint reads N user docs per request (the store loads one doc per request today — this is new, and acceptable at household scale).
+`GET /api/family/activity` (authenticated) SHALL scan the per-user library docs and return, per opted-in member, their recent plays: `{memberName, song, artist, image, ts}` rows merge-sorted newest-first, capped at 50 total. The requester's own doc MUST be excluded — the feed shows only OTHER members' activity (a "family" feed of one's own rows is noise). Members who have not opted in MUST NOT appear, including partial/leaked fields. `memberName` resolves from the doc's `displayName`; when absent, the server SHALL look it up via `clerkClient.users.getUser(userId)` (secret key already configured) using first name, falling back to "Member" — and cache the resolved name back into the doc. The endpoint reads N user docs per request (the store loads one doc per request today — this is new, and acceptable at household scale).
 
 #### Scenario: Only opted-in members appear
 - **WHEN** two members exist, one opted in and one not, and a third member requests the feed
@@ -36,7 +36,7 @@ Settings SHALL include "Share my listening activity" (default OFF). A member's r
 - **THEN** each carries memberName, song name, artist, image, and ts — enough to render "Appa played X" without a second lookup
 
 ### Requirement: Activity feed surface
-Signed-in members SHALL see a "Family activity" section on Discover's member area when at least one *other* member has opted in and has entries. Tapping an entry plays or navigates to that song. The member's own entries are labeled "You". When nobody shares, the surface shows an empty-state nudge to enable sharing rather than disappearing silently (visible only to members who would benefit).
+Signed-in members SHALL see a "Family activity" section on Discover's member area when at least one *other* member has opted in and has entries. Tapping an entry plays or navigates to that song. The member's own entries MUST NOT appear — when the requester is the only opted-in member, the rail does not render. When nobody shares, the surface shows an empty-state nudge to enable sharing rather than disappearing silently (visible only to members who would benefit).
 
 #### Scenario: Feed renders for member
 - **WHEN** a signed-in member opens Discover and another member has opted in with plays

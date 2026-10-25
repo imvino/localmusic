@@ -492,7 +492,9 @@ app.get('/api/family/activity', requireUser, async (req, res) => {
     store.all((uid, doc) => docs.push({ uid, doc }));
     const rows = [];
     for (const { uid, doc } of docs) {
-      if (!doc?.shareActivity || !Array.isArray(doc.history)) continue;
+      // Other members only — a "family" feed of your own rows is noise
+      // (the requester already knows what they played).
+      if (uid === req.userId || !doc?.shareActivity || !Array.isArray(doc.history)) continue;
       let name = doc.displayName;
       if (!name) {
         try {
@@ -504,7 +506,7 @@ app.get('/api/family/activity', requireUser, async (req, res) => {
       }
       for (const s of doc.history.slice(0, 10)) {
         if (!s?.id) continue;
-        rows.push({ memberName: name, isYou: uid === req.userId, songId: s.id, song: s.name, artist: s.artist, image: s.image, ts: s.ts || 0 });
+        rows.push({ memberName: name, songId: s.id, song: s.name, artist: s.artist, image: s.image, ts: s.ts || 0 });
       }
     }
     rows.sort((a, b) => (b.ts || 0) - (a.ts || 0));
