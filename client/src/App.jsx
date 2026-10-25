@@ -200,6 +200,10 @@ function AppContent() {
     })
   }
   const privateSessionRef = useRef(privateSession) // handlePlaying reads the live value
+  // Play accounting — a "play" only counts after a real listen (30s or half
+  // the song, whichever is shorter). countedPlayRef holds the song id once
+  // counted so resume/re-buffer/xfade-commit never double-count.
+  const countedPlayRef = useRef(null)
   // Offline awareness — navigator.onLine + the health-check signal
   const [isOnline, setIsOnline] = useState(() => navigator.onLine !== false)
 
@@ -643,7 +647,9 @@ function AppContent() {
   // listeners rebind to it, so the commit must record the play itself).
   const recordPlayStats = (s, dur) => {
     if (!s?.id) return
+    if (countedPlayRef.current === s.id) return // already counted this listen
     if (privateSessionRef.current) return // private session — record nothing
+    countedPlayRef.current = s.id
     try {
       const pc = readKey('playCounts', {})
       const prevPc = pc[s.id] || {}
@@ -854,7 +860,15 @@ function AppContent() {
           })
         } catch { /* unsupported */ }
       }
-      
+
+      // Count the play only after a real listen — 30s or half the song,
+      // whichever comes first (Spotify counts a stream at ~30s). Skips
+      // before this threshold don't feed playCounts/history/Daily Mixes.
+      if (currentSong?.id && audio.duration > 0 &&
+          audio.currentTime >= Math.min(30, audio.duration * 0.5)) {
+        recordPlayStats(currentSong, audio.duration)
+      }
+
       // Adaptive bitrate: upgrade based on buffer health (less aggressive).
       // Skipped for local songs (endpoint ignores bitrate), downloaded songs
       // (they always stream the cached 96k copy), and when offline (the
@@ -960,7 +974,6 @@ function AppContent() {
           audio.volume = muted ? 0 : volume
         })
       }
-      recordPlayStats(currentSong, audio.duration)
     }
 
     audio.addEventListener('error', handleError)
@@ -1074,6 +1087,10 @@ function AppContent() {
     const el = audible()
     const onEnded = () => {
       if (xfadeRef.current) { commitXfade(); return } // outgoing ended mid-fade — the crossfade owns the advance
+      // A finished song always counts as a listen, however short. Reset the
+      // counted marker so a repeat-one replay earns a fresh count.
+      recordPlayStats(currentSong, el.duration || currentSong?.duration)
+      countedPlayRef.current = null
       if (sleepTimerRef.current?.type === 'eot') {
         setSleepTimer(null)
         setIsPlaying(false)
@@ -1804,6 +1821,19 @@ function AppContent() {
 
   const handleNext = async () => {
     abortXfade()
+    // Skip signal — advancing before the listen threshold (ended() arrives
+    // at ~duration, so it never trips this). Skipped songs de-rank as seeds
+    // for Daily/Weekly Mixes: a skip is a negative taste signal.
+    try {
+      const el = audible()
+      if (currentSong?.id && el?.duration > 0 &&
+          el.currentTime < Math.min(30, el.duration * 0.5) &&
+          countedPlayRef.current !== currentSong.id) {
+        const sk = readKey('skipCounts', {})
+        sk[currentSong.id] = { count: (sk[currentSong.id]?.count || 0) + 1, ts: Date.now() }
+        localStorage.setItem('skipCounts', JSON.stringify(sk))
+      }
+    } catch { /* skip tracking is best-effort */ }
     if (queue.length === 0) {
       setIsPlaying(false)
       return

@@ -156,6 +156,8 @@ export default function DiscoverView({ onSongClick, showToast, likedSongs, onLik
     if (!isSignedIn) return []
     try {
       const pc = JSON.parse(localStorage.getItem('playCounts') || '{}')
+      const sk = JSON.parse(localStorage.getItem('skipCounts') || '{}')
+      const net = (e) => (e.count || 1) - 2 * (sk[e.id]?.count || 0)
       const byArtist = new Map()
       for (const e of Object.values(pc)) {
         if (!e?.id || !e.artist) continue
@@ -169,7 +171,13 @@ export default function DiscoverView({ onSongClick, showToast, likedSongs, onLik
       return [...byArtist.values()]
         .sort((a, b) => b.total - a.total)
         .slice(0, 3)
-        .map(c => ({ name: c.name, seeds: c.songs.sort((x, y) => (y.count || 0) - (x.count || 0)).slice(0, 10) }))
+        .map(c => ({
+          name: c.name,
+          seeds: c.songs
+            .filter(e => net(e) > 0) // songs the user keeps skipping aren't seeds
+            .sort((x, y) => net(y) - net(x))
+            .slice(0, 10)
+        }))
     } catch { return [] }
   }, [isSignedIn])
 
@@ -218,13 +226,17 @@ export default function DiscoverView({ onSongClick, showToast, likedSongs, onLik
     if (!isSignedIn || weeklyGenRef.current) return
     const existing = usePlaylistStore.getState().playlists[weeklyMixId]
     if (existing?.weeklyMixWeek === weekId && existing.songs?.length) return
-    let pc
-    try { pc = JSON.parse(localStorage.getItem('playCounts') || '{}') } catch { return }
-    const entries = Object.values(pc).filter(e => e?.id && (e.count || 0) >= 2)
+    let pc, sk = {}
+    try {
+      pc = JSON.parse(localStorage.getItem('playCounts') || '{}')
+      sk = JSON.parse(localStorage.getItem('skipCounts') || '{}')
+    } catch { return }
+    const net = (e) => (e.count || 0) - 2 * (sk[e.id]?.count || 0)
+    const entries = Object.values(pc).filter(e => e?.id && net(e) >= 2)
     if (entries.length < 3) return // not enough listening history to mix
     weeklyGenRef.current = true
     ;(async () => {
-      const sorted = entries.sort((a, b) => (b.count || 0) - (a.count || 0))
+      const sorted = entries.sort((a, b) => net(b) - net(a))
       const seeds = capPerArtist(sorted, 2).slice(0, 10)
       // Suggestions seeded by the top THREE DISTINCT artists — the mix must
       // not collapse into a single-artist echo chamber.
