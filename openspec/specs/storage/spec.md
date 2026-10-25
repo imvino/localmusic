@@ -1,7 +1,10 @@
 # storage Specification
 
 ## Purpose
-TBD - created by archiving change spotify-parity-batch-3. Update Purpose after archive.
+Server-side durable storage for member library documents and secondary
+feature data (shares, play events, client errors): SQLite primary with a
+JSON-file fallback so a native-module failure degrades features, never the
+app.
 
 ## Requirements
 
