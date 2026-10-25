@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
 import { Disc, ListMusic, Loader2, Download, Play, History, TrendingUp, UserCheck, Sparkles, Users } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, keepPreviousData } from '@tanstack/react-query'
 import MetaTags from '../components/MetaTags'
 import HorizontalScroll from '../components/HorizontalScroll'
 import TrackMenu from '../components/TrackMenu'
@@ -147,21 +147,36 @@ export default function DiscoverView({ onSongClick, showToast, likedSongs, onLik
   const { data: moodSongs } = useQuery({
     queryKey: ['mood-songs', moodSearchQuery],
     queryFn: async () => {
-      try {
-        const res = await fetch(`${API_BASE}/api/search?q=${encodeURIComponent(moodSearchQuery)}&n=15`)
-        const json = await res.json()
-        return (json?.data?.songs || []).map(song => ({
-          id: song.id,
-          name: decodeHtmlEntities(song.title || song.name || ''),
-          artist: decodeHtmlEntities(song.subtitle || song.artists?.primary?.[0]?.name || ''),
-          album: decodeHtmlEntities(song.more_info?.album || ''),
-          image: getImageSrc(song.image),
-          language: song.language || song.more_info?.language || '',
-          type: song.type
-        }))
-      } catch { return [] }
+      const fetchMood = async (q) => {
+        try {
+          const res = await fetch(`${API_BASE}/api/search?q=${encodeURIComponent(q)}&n=15`)
+          const json = await res.json()
+          return (json?.data?.songs || []).map(song => ({
+            id: song.id,
+            name: decodeHtmlEntities(song.title || song.name || ''),
+            artist: decodeHtmlEntities(song.subtitle || song.artists?.primary?.[0]?.name || ''),
+            album: decodeHtmlEntities(song.more_info?.album || ''),
+            image: getImageSrc(song.image),
+            language: song.language || song.more_info?.language || '',
+            type: song.type
+          }))
+        } catch { return [] }
+      }
+      const songs = await fetchMood(moodSearchQuery)
+      // A language-biased query can starve language-specific moods
+      // ("kannada Carvaan" → 0 while the Hindi catalog is full) — retry
+      // the bare mood query rather than showing a dead rail. Fallback
+      // songs are tagged so the passive language rail filter lets them
+      // through: an explicit chip tap IS the intent.
+      if (!songs.length && moodSearchQuery !== activeMoodQuery) {
+        return (await fetchMood(activeMoodQuery)).map(s => ({ ...s, _moodFallback: true }))
+      }
+      return songs
     },
     enabled: !!moodSearchQuery,
+    // Keep the previous rail mounted while the next mood's query flies —
+    // without it every chip click unmounts the rail into an empty gap.
+    placeholderData: keepPreviousData,
     staleTime: 12 * 60 * 60 * 1000,
     retry: 1
   })
@@ -511,16 +526,21 @@ export default function DiscoverView({ onSongClick, showToast, likedSongs, onLik
               </button>
             ))}
           </div>
-          {(moodSongs || []).filter(i => matchLang(i) && railPass(i)).length > 0 && (
-            <HorizontalScroll
-              title={activeMoodName ? `${activeMoodName} picks` : 'Mood picks'}
-              items={(moodSongs || []).filter(i => matchLang(i) && railPass(i))}
-              renderItem={(song) => (
-                <SongCard song={song} onSongClick={onSongClick} downloadProgress={downloadProgress} setDownloadProgress={setDownloadProgress} likedSongs={likedSongs} onLikeToggle={onLikeToggle} onPlayNext={onPlayNext} onAddToQueue={onAddToQueue} onGoToAlbum={onGoToAlbum} onSongRadio={onSongRadio} onHideSong={onHideSong} onHideArtist={onHideArtist} showToast={showToast} />
-              )}
-              emptyMessage=""
-            />
-          )}
+          {(() => {
+            const moodItems = (moodSongs || []).filter(i => (i._moodFallback || matchLang(i)) && railPass(i))
+            return moodItems.length > 0 ? (
+              <HorizontalScroll
+                title={activeMoodName ? `${activeMoodName} picks` : 'Mood picks'}
+                items={moodItems}
+                renderItem={(song) => (
+                  <SongCard song={song} onSongClick={onSongClick} downloadProgress={downloadProgress} setDownloadProgress={setDownloadProgress} likedSongs={likedSongs} onLikeToggle={onLikeToggle} onPlayNext={onPlayNext} onAddToQueue={onAddToQueue} onGoToAlbum={onGoToAlbum} onSongRadio={onSongRadio} onHideSong={onHideSong} onHideArtist={onHideArtist} showToast={showToast} />
+                )}
+                emptyMessage=""
+              />
+            ) : moodSongs ? (
+              <p className="text-sm text-zinc-500">No {activeMoodName || 'mood'} songs right now — try another mood.</p>
+            ) : null
+          })()}
         </div>
       )}
 
