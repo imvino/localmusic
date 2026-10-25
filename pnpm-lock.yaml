@@ -32,6 +32,9 @@ importers:
       node-id3:
         specifier: ^0.2.9
         version: 0.2.9
+      postgres:
+        specifier: ^3.4.9
+        version: 3.4.9
       ws:
         specifier: '8'
         version: 8.22.0
@@ -674,6 +677,10 @@ packages:
 
   picomatch@4.0.7:
     resolution: {integrity: sha512-qcJu88Q2IWqJsDD529JKMdwGm/dvInW4HvQnRwiH9JtihJvzGOscDtHE3x1pBKeUOTysQ8kVmLnJ2kJu7yhcGA==, tarball: https://registry.npmjs.org/picomatch/-/picomatch-4.0.7.tgz}
+    engines: {node: '>=12'}
+
+  postgres@3.4.9:
+    resolution: {integrity: sha512-GD3qdB0x1z9xgFI6cdRD6xu2Sp2WCOEoe3mtnyB5Ee0XrrL5Pe+e4CCnJrRMnL1zYtRDZmQQVbvOttLnKDLnaw==, tarball: https://registry.npmjs.org/postgres/-/postgres-3.4.9.tgz}
     engines: {node: '>=12'}
 
   prebuild-install@7.1.3:
@@ -1476,6 +1483,8 @@ snapshots:
   path-to-regexp@8.4.2: {}
 
   picomatch@4.0.7: {}
+
+  postgres@3.4.9: {}
 
   prebuild-install@7.1.3:
     dependencies:

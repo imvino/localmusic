@@ -168,7 +168,7 @@ app.use(express.json({ limit: '2mb' })); // full library snapshots (playlists+hi
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: Date.now() })
+  res.json({ status: 'ok', timestamp: Date.now(), backend: store.name })
 });
 
 // ─── Auth + per-user library sync ───────────────────────────────────────────
@@ -3770,7 +3770,7 @@ app.post('/api/shares', requireUser, async (req, res) => {
     const code = shareCode();
     let ownerName = null;
     try { ownerName = await memberDisplayName(req.userId) } catch {}
-    store.createShare({ code, payload: JSON.stringify(payload), ownerId: req.userId, ownerName });
+    await store.createShare({ code, payload: JSON.stringify(payload), ownerId: req.userId, ownerName });
     res.json({ success: true, code });
   } catch (e) {
     const status = e.message === 'storage unavailable' ? 503 : 500;
@@ -3778,9 +3778,9 @@ app.post('/api/shares', requireUser, async (req, res) => {
   }
 });
 
-app.delete('/api/shares/:code', requireUser, (req, res) => {
+app.delete('/api/shares/:code', requireUser, async (req, res) => {
   try {
-    const ok = store.deleteShare(String(req.params.code), req.userId);
+    const ok = await store.deleteShare(String(req.params.code), req.userId);
     res.json({ success: ok });
   } catch { res.status(503).json({ success: false, error: 'storage unavailable' }) }
 });
@@ -3797,9 +3797,10 @@ const shareNotFoundHtml = `<!doctype html><html><head><meta charset="utf-8"><tit
 app.get('/s/:code', (req, res) => {
   let share = null;
   try { share = store.getShare(String(req.params.code)) } catch { share = null }
-  if (!share) return res.status(404).send(shareNotFoundHtml);
+  // no-store on misses — a cached 404 would outlive the row's existence
+  if (!share) return res.status(404).set('Cache-Control', 'no-store').send(shareNotFoundHtml);
   let payload;
-  try { payload = JSON.parse(share.payload) } catch { return res.status(404).send(shareNotFoundHtml) }
+  try { payload = JSON.parse(share.payload) } catch { return res.status(404).set('Cache-Control', 'no-store').send(shareNotFoundHtml) }
   const origin = publicOrigin(req);
   const name = escHtml(payload.n);
   const desc = escHtml(`${payload.s.length} songs · shared by ${share.owner_name || 'a member'} · Torsongs`);
@@ -3971,6 +3972,10 @@ setInterval(() => {
   if (changed) broadcastPresence();
 }, 30000).unref();
 
-server.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+// Hydrate/finalize storage before accepting requests — pg backend serves
+// from memory, so listen must wait on init() (no-op for sqlite/json).
+store.init().then(() => {
+  server.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
 });
