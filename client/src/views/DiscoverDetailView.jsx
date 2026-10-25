@@ -60,6 +60,14 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
   const data = albumData || artistData || playlistData
   const loading = albumLoading || artistLoading || playlistLoading
 
+  // Canonical URL — slug/name ids resolve server-side to the numeric artist
+  // id; swap the address bar to match the entity actually rendered.
+  useEffect(() => {
+    if (isArtist && data?.id && String(data.id) !== String(id)) {
+      navigate(`/discover/artist/${data.id}`, { replace: true, state: { artist: data } })
+    }
+  }, [data?.id, id, isArtist, navigate])
+
   // Helper to get album image URL based on device
   const getAlbumImageUrl = (album) => {
     if (!album?.image) return null

@@ -2762,7 +2762,7 @@ app.get('/api/artist/:id/albums-test', async (req, res) => {
 
 // Get artist details and top songs
 app.get('/api/artist/:id', async (req, res) => {
-  const { id } = req.params;
+  let { id } = req.params;
   const limit = parseInt(req.query.limit) || 50;
   const language = 'all';
   const sort = req.query.sort || 'popular';
@@ -2772,8 +2772,29 @@ app.get('/api/artist/:id', async (req, res) => {
   const isEncodedName = isNaN(id) && id !== decodedId;
   const isArtistName = isNaN(id) && !id.match(/^\d+$/);
 
-  // If it's an encoded name or just an artist name (not numeric ID), we need to search for the artist first
+  // Non-numeric ids (artist names or perma slugs like "sid-sriram") —
+  // resolve to the canonical numeric artist id via ARTIST search first.
+  // The fallback below guesses a profile from the first matching song's
+  // singer list, which lands on combo/featured-artist entities — wrong page.
   if (isEncodedName || isArtistName) {
+    try {
+      const cleanName = decodedId.replace(/[-_+]/g, ' ').trim();
+      const data = await fetchFromMusicServiceOfficial('search.getArtistResults', { q: cleanName, p: 1, n: 10 });
+      const results = data?.results ? (Array.isArray(data.results) ? data.results : Object.values(data.results)) : [];
+      const norm = s => String(s || '').toLowerCase().replace(/&amp;/g, '&').replace(/[^a-z0-9]/g, '');
+      const target = norm(cleanName);
+      const numeric = r => /^\d+$/.test(String(r?.id || ''));
+      const hit = results.find(r => numeric(r) && norm(r.name || r.title) === target)
+               || results.find(r => numeric(r) && (norm(r.name || r.title).startsWith(target) || target.startsWith(norm(r.name || r.title))))
+               || results.find(numeric);
+      if (hit) id = String(hit.id);
+    } catch (e) {
+      console.error('artist name→id resolve failed:', e.message);
+    }
+  }
+
+  // Still non-numeric — build a basic profile from song search (last resort)
+  if (!/^\d+$/.test(id)) {
     try {
       // Search for the artist using the fallback API
       const searchResponse = await axios.get(`${FALLBACK_API}/search?query=${encodeURIComponent(decodedId)}`);
