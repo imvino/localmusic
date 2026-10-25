@@ -186,8 +186,17 @@ function AppContent() {
   const sleepTimerRef = useRef(null) // onEnded reads the live value (stale-closure safe)
   const liveQueueRef = useRef(null) // post-await commits read live queue/shuffle state
   const [eqSettings, setEqSettings] = useState(() => {
-    try { return { enabled: false, low: 0, mid: 0, high: 0, preset: 'flat', ...JSON.parse(localStorage.getItem('eq') || '{}') } }
-    catch { return { enabled: false, low: 0, mid: 0, high: 0, preset: 'flat' } }
+    const base = { enabled: false, preset: 'flat', preamp: 0, bands: [0, 0, 0, 0, 0, 0] }
+    try {
+      const saved = JSON.parse(localStorage.getItem('eq') || '{}')
+      // Migrate the old 3-band {low,mid,high} shape → 6-band array
+      // (low→60, mid→1k, high→15k)
+      if (saved && !Array.isArray(saved.bands) && (saved.low || saved.mid || saved.high)) {
+        saved.bands = [saved.low || 0, 0, 0, saved.mid || 0, 0, saved.high || 0]
+      }
+      const { low, mid, high, ...rest } = saved || {} // strip legacy 3-band keys
+      return { ...base, ...rest }
+    } catch { return base }
   })
   const fadingRef = useRef(false) // true while a volume ramp owns audio.volume
   const fadeRafRef = useRef(null)
@@ -714,13 +723,13 @@ function AppContent() {
     const el = audible()
     if (!el) return
     if (!eqSettings.enabled) {
-      setEqGains({ low: 0, mid: 0, high: 0 }) // no-op if graph was never built
+      setEqGains({}) // flat — no-op if graph was never built
       return // do NOT build the graph while disabled — a suspended
       // AudioContext would reroute the element's output to silence
     }
     if (!warmEq(el)) return
     enableEq(el) // resume() is a no-op until a gesture — play paths also resume
-    setEqGains({ low: eqSettings.low, mid: eqSettings.mid, high: eqSettings.high })
+    setEqGains({ bands: eqSettings.bands, preamp: eqSettings.preamp })
   }, [eqSettings])
 
   useEffect(() => {

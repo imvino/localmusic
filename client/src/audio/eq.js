@@ -13,17 +13,28 @@
 // silence — the /api/stream local + proxied branches both send it.
 
 let ctx = null
-let lowFilter = null
-let midFilter = null
-let highFilter = null
+let preampNode = null
+const bandFilters = [] // 6-band graphic EQ — Spotify's band layout
 // element -> { source, normGain, analyser, rmsBuf }
 const registry = new Map()
 
+// Band center freqs: shelf / 4× peaking / shelf. Bands[i] pairs with EQ_BANDS[i].
+export const EQ_BANDS = [60, 150, 400, 1000, 2400, 15000]
+
+// Presets: bands = [60, 150, 400, 1k, 2.4k, 15k] dB; heavy boosts carry a
+// negative preamp so they don't clip hot masters (Boost without headroom
+// distorts — most web EQs get this wrong).
 export const EQ_PRESETS = {
-  flat: { low: 0, mid: 0, high: 0 },
-  bass: { low: 9, mid: 0, high: -2 },
-  vocal: { low: -3, mid: 7, high: 4 },
-  treble: { low: -4, mid: 2, high: 8 }
+  flat:       { bands: [0, 0, 0, 0, 0, 0], preamp: 0 },
+  bass:       { bands: [9, 6, 1, 0, -1, -2], preamp: -3 },
+  melody:     { bands: [-3, -1, 3, 5, 3, 1], preamp: -2 },
+  kuthu:      { bands: [7, 4, -2, 0, 3, 6], preamp: -3 },
+  acoustic:   { bands: [3, 2, 0, 2, 3, 4], preamp: -1 },
+  devotional: { bands: [-2, 0, 2, 4, 3, 1], preamp: -1 },
+  treble:     { bands: [-4, -2, 0, 2, 5, 8], preamp: -3 },
+  rock:       { bands: [5, 2, -1, 2, 4, 5], preamp: -2 },
+  electronic: { bands: [6, 4, -2, 0, 2, 5], preamp: -2 },
+  spoken:     { bands: [-4, 0, 3, 4, 2, 0], preamp: 0 }
 }
 
 export function getAudioContext() { return ctx }
@@ -37,21 +48,22 @@ export function ensureGraph(audioEl) {
     const Ctor = window.AudioContext || window.webkitAudioContext
     if (!Ctor) return false
     if (!ctx) ctx = new Ctor()
-    // Filter chain is built once and shared across elements.
-    if (!lowFilter) {
-      lowFilter = ctx.createBiquadFilter()
-      lowFilter.type = 'lowshelf'
-      lowFilter.frequency.value = 200
-      midFilter = ctx.createBiquadFilter()
-      midFilter.type = 'peaking'
-      midFilter.frequency.value = 1000
-      midFilter.Q.value = 1
-      highFilter = ctx.createBiquadFilter()
-      highFilter.type = 'highshelf'
-      highFilter.frequency.value = 3000
-      lowFilter.connect(midFilter)
-      midFilter.connect(highFilter)
-      highFilter.connect(ctx.destination)
+    // Filter chain is built once and shared across elements:
+    // source → normGain → preamp → 60 → 150 → 400 → 1k → 2.4k → 15k → out
+    if (!preampNode) {
+      preampNode = ctx.createGain()
+      preampNode.gain.value = 1
+      let prev = preampNode
+      EQ_BANDS.forEach((freq, i) => {
+        const f = ctx.createBiquadFilter()
+        f.type = i === 0 ? 'lowshelf' : i === EQ_BANDS.length - 1 ? 'highshelf' : 'peaking'
+        f.frequency.value = freq
+        if (f.type === 'peaking') f.Q.value = 1
+        prev.connect(f)
+        prev = f
+        bandFilters.push(f)
+      })
+      prev.connect(ctx.destination)
     }
     const source = ctx.createMediaElementSource(audioEl)
     const normGain = ctx.createGain()
@@ -59,7 +71,7 @@ export function ensureGraph(audioEl) {
     const analyser = ctx.createAnalyser()
     analyser.fftSize = 2048
     source.connect(normGain)
-    normGain.connect(lowFilter)
+    normGain.connect(preampNode)
     source.connect(analyser) // measurement tap — pre-norm, pre-filters
     registry.set(audioEl, {
       source, normGain, analyser,
@@ -89,11 +101,11 @@ export function isAttached(audioEl) {
 }
 
 // gains in dB; safe to call when the graph exists. "off" = flat.
-export function setEqGains({ low = 0, mid = 0, high = 0 }) {
-  if (!ctx || !lowFilter) return
-  lowFilter.gain.value = low
-  midFilter.gain.value = mid
-  highFilter.gain.value = high
+// bands: [60, 150, 400, 1k, 2.4k, 15k]; preamp runs ahead of all filters.
+export function setEqGains({ bands = [0, 0, 0, 0, 0, 0], preamp = 0 }) {
+  if (!ctx || !preampNode) return
+  preampNode.gain.value = Math.pow(10, preamp / 20)
+  bandFilters.forEach((f, i) => { f.gain.value = bands[i] ?? 0 })
 }
 
 // Loudness normalization — per-element compensating gain, ramped so drift

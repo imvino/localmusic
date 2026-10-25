@@ -2,7 +2,7 @@ import { Compass, RefreshCw, Keyboard, X, Trash2, ListMusic, Settings, Heart, Mu
 import { Link, useLocation } from 'react-router-dom'
 import { useState } from 'react'
 import { usePlaylistStore } from '../stores/playlistStore'
-import { EQ_PRESETS, isEqAvailable } from '../audio/eq'
+import { EQ_PRESETS, EQ_BANDS, isEqAvailable } from '../audio/eq'
 import UserMenu from '../components/UserMenu'
 import BackupControls from '../components/BackupControls'
 import { useAppAuth } from '../components/AuthGate'
@@ -859,37 +859,51 @@ export default function Sidebar({ showToast, onClose, qualityPreference, onQuali
             >
               <div className="text-left">
                 <div className="font-medium">{eqSettings?.enabled ? 'Enabled' : 'Disabled'}</div>
-                <div className="text-xs text-zinc-500 mt-1">3-band EQ via Web Audio</div>
+                <div className="text-xs text-zinc-500 mt-1">6-band EQ via Web Audio</div>
               </div>
               <div className={`w-2 h-2 rounded-full ${eqSettings?.enabled ? 'bg-[#fc3c44]' : 'bg-zinc-700'}`} />
             </button>
 
-            {/* Presets */}
+            {/* Presets — 6-band shapes; heavy boosts carry headroom preamp */}
             <div className="flex gap-2 mb-5 flex-wrap">
               {Object.keys(EQ_PRESETS).map(name => (
                 <button
                   key={name}
-                  onClick={() => onEqChange?.({ ...eqSettings, enabled: true, preset: name, ...EQ_PRESETS[name] })}
+                  onClick={() => onEqChange?.({ ...eqSettings, enabled: true, preset: name, bands: [...EQ_PRESETS[name].bands], preamp: EQ_PRESETS[name].preamp })}
                   className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors capitalize
                     ${eqSettings?.preset === name && eqSettings?.enabled
                       ? 'bg-[#fc3c44] text-white'
                       : 'bg-zinc-800 text-zinc-400 hover:text-white'}`}
                 >
-                  {name === 'flat' ? 'Flat' : name === 'bass' ? 'Bass Boost' : name === 'vocal' ? 'Vocal' : 'Treble'}
+                  {{ flat: 'Flat', bass: 'Bass Boost', melody: 'Melody', kuthu: 'Kuthu', acoustic: 'Acoustic', devotional: 'Devotional', treble: 'Treble', rock: 'Rock', electronic: 'Electronic', spoken: 'Spoken Word' }[name] || name}
                 </button>
               ))}
             </div>
 
-            {/* Band sliders */}
-            {[
-              { key: 'low', label: 'Bass', freq: '200 Hz' },
-              { key: 'mid', label: 'Mid', freq: '1 kHz' },
-              { key: 'high', label: 'Treble', freq: '3 kHz' }
-            ].map(({ key, label, freq }) => (
-              <div key={key} className="mb-4">
+            {/* Preamp — headroom control; pull down if boosted bands clip */}
+            <div className="mb-4">
+              <div className="flex justify-between text-xs text-zinc-400 mb-1">
+                <span>Preamp</span>
+                <span>{(eqSettings?.preamp ?? 0) > 0 ? '+' : ''}{eqSettings?.preamp ?? 0} dB</span>
+              </div>
+              <input
+                type="range"
+                min={-12}
+                max={12}
+                step={1}
+                disabled={!eqSettings?.enabled}
+                value={eqSettings?.preamp ?? 0}
+                onChange={e => onEqChange?.({ ...eqSettings, enabled: true, preset: 'custom', preamp: parseInt(e.target.value) })}
+                className="w-full accent-zinc-400 disabled:opacity-40"
+              />
+            </div>
+
+            {/* Band sliders — 60 / 150 / 400 / 1k / 2.4k / 15k */}
+            {EQ_BANDS.map((freq, i) => (
+              <div key={freq} className="mb-3">
                 <div className="flex justify-between text-xs text-zinc-400 mb-1">
-                  <span>{label} <span className="text-zinc-600">({freq})</span></span>
-                  <span>{(eqSettings?.[key] ?? 0) > 0 ? '+' : ''}{eqSettings?.[key] ?? 0} dB</span>
+                  <span>{freq >= 1000 ? `${freq / 1000}k` : freq} Hz</span>
+                  <span>{(eqSettings?.bands?.[i] ?? 0) > 0 ? '+' : ''}{eqSettings?.bands?.[i] ?? 0} dB</span>
                 </div>
                 <input
                   type="range"
@@ -897,8 +911,12 @@ export default function Sidebar({ showToast, onClose, qualityPreference, onQuali
                   max={12}
                   step={1}
                   disabled={!eqSettings?.enabled}
-                  value={eqSettings?.[key] ?? 0}
-                  onChange={e => onEqChange?.({ ...eqSettings, enabled: true, preset: 'custom', [key]: parseInt(e.target.value) })}
+                  value={eqSettings?.bands?.[i] ?? 0}
+                  onChange={e => {
+                    const bands = [...(eqSettings?.bands || [0, 0, 0, 0, 0, 0])]
+                    bands[i] = parseInt(e.target.value)
+                    onEqChange?.({ ...eqSettings, enabled: true, preset: 'custom', bands })
+                  }}
                   className="w-full accent-[#fc3c44] disabled:opacity-40"
                 />
               </div>

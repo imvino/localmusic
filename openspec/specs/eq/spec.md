@@ -2,18 +2,23 @@
 
 ## Purpose
 
-Defines sound shaping: a 3-band equalizer and a smooth-transition toggle,
-both applied to the playback element via Web Audio.
+Defines sound shaping: a 6-band equalizer with preamp and a
+smooth-transition toggle, both applied to the playback element via
+Web Audio.
 
 ## Requirements
 
 ### Requirement: Equalizer adjusts playback audio
 
-Settings SHALL offer a 3-band EQ (low/mid/high, ±12dB) with presets
-(Flat, Bass Boost, Vocal, Treble). Band values and enabled state persist
-across reloads. The AudioContext graph SHALL be created lazily on first
-enable and left connected permanently (bypass = flat gains) — the element
-source is never detached.
+Settings SHALL offer a 6-band EQ (60 / 150 / 400 / 1k / 2.4k / 15k Hz,
+±12dB) plus a preamp gain (±12dB) ahead of all bands so heavy boosts keep
+headroom instead of clipping. Presets (Flat, Bass Boost, Melody, Kuthu,
+Acoustic, Devotional, Treble, Rock, Electronic, Spoken Word) set all bands
+and preamp at once; boost-heavy presets carry a negative preamp. Band
+values and enabled state persist across reloads; the old 3-band persisted
+shape migrates into the 6-band array. The AudioContext graph SHALL be
+created lazily on first enable and left connected permanently (bypass =
+flat gains) — the element source is never detached.
 
 #### Scenario: Enable EQ
 - **WHEN** the user enables EQ and raises bass
@@ -25,7 +30,8 @@ source is never detached.
 
 #### Scenario: Preset selection
 - **WHEN** the user picks a preset
-- **THEN** the three bands set to the preset's gains immediately
+- **THEN** all six bands and the preamp set to the preset's gains
+  immediately
 
 #### Scenario: Persisted enable across reload
 - **WHEN** the user reloads with EQ left enabled and presses play
