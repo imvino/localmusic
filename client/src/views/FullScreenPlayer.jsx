@@ -94,7 +94,7 @@ export default function FullScreenPlayer({
       onTouchMove={onTouchMove}
       onTouchEnd={onTouchEnd}
       onTouchCancel={resetTouch}
-      className="fixed inset-0 z-50 flex flex-col md:hidden"
+      className="fixed inset-0 z-50 flex flex-col md:items-center md:justify-center"
       style={{
         background: bg,
         transform: `translateY(${dragY}px)`,
@@ -102,6 +102,8 @@ export default function FullScreenPlayer({
         transition: touch.current ? 'none' : 'transform .3s ease-out, opacity .3s ease-out'
       }}
     >
+      {/* Desktop: constrain to a centered now-playing panel; mobile: full-bleed */}
+      <div className="flex flex-col w-full h-full min-h-0 md:w-[26rem] md:h-auto md:max-h-[92vh] md:rounded-2xl md:overflow-hidden md:shadow-2xl md:ring-1 md:ring-white/10">
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-4 pt-[max(1rem,env(safe-area-inset-top))]">
         <button
@@ -321,6 +323,7 @@ export default function FullScreenPlayer({
             />
           </div>
         </div>
+      </div>
       </div>
       {lyricsOpen && <LyricsModal song={currentSong} currentTime={currentTime} onSeek={onSeek} onClose={() => setLyricsOpen(false)} />}
 
