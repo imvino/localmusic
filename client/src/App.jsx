@@ -842,6 +842,30 @@ function AppContent() {
   // Ownership: while xfadeRef is set, ONLY the ramp writes volumes and the
   // commit/abort paths touch the elements — the playback effect's volume
   // line is fenced off via fadingRef so a dep-change can't stomp the fade.
+  // xfadeRef is set SYNCHRONOUSLY with pending:true while the stream
+  // handshake is in flight — timeupdate fires ~4×/sec and without the
+  // marker every tick re-entered startCrossfade, reassigning inEl.src and
+  // aborting the in-flight play() forever (verified: src flickered
+  // set/cleared until the song hard-cut).
+
+  const xfadeArmRef = useRef(null) // song id prebuffered on the idle element
+
+  // Prebuffer the next track seconds BEFORE the fade window — the stream
+  // cold-start (upstream fetch + transcode) is ~1-3s; without this, play()
+  // races the outgoing song's remaining time and loses.
+  const armCrossfade = () => {
+    const nextIdx = getNextQueueIndex()
+    if (nextIdx === null) return
+    const nextSong = queue[nextIdx]
+    if (!nextSong?.id || isLocalSong(nextSong)) return
+    const inEl = idleEl()
+    if (!inEl || xfadeArmRef.current === nextSong.id) return
+    xfadeArmRef.current = nextSong.id
+    inEl.src = streamUrlFor(nextSong, currentBitrate)
+    inEl.preload = 'auto'
+    inEl.load()
+    if (audioGraphOn()) enableEq(inEl)
+  }
 
   const startCrossfade = () => {
     const sec = xfadeSecRef.current
@@ -853,18 +877,37 @@ function AppContent() {
     const outEl = audible()
     const inEl = idleEl()
     if (!outEl || !inEl) return
-    if (audioGraphOn()) enableEq(inEl)
     const bitrate = currentBitrate
-    inEl.src = streamUrlFor(nextSong, bitrate)
-    inEl.volume = 0
     const epoch = queueEpochRef.current
+    xfadeRef.current = { pending: true, outEl, inEl, nextIdx, song: nextSong, bitrate, epoch, raf: 0 }
+    fadingRef.current = true // fence the playback effect's volume writes
+    if (audioGraphOn()) enableEq(inEl)
+    const src = streamUrlFor(nextSong, bitrate)
+    if (inEl.src !== src) { inEl.src = src; inEl.load() }
+    inEl.volume = 0
     const target = muted ? 0 : volume
     const base = outEl.volume
+    // Stall guard — a hung play() must not freeze queue advancement
+    setTimeout(() => {
+      const x = xfadeRef.current
+      if (x?.pending && x.epoch === epoch) {
+        xfadeRef.current = null
+        fadingRef.current = false
+        try { inEl.pause(); inEl.removeAttribute('src'); inEl.load() } catch {}
+        if (outEl.ended) handleNext()
+      }
+    }, 8000)
     inEl.play().then(() => {
-      // User replaced the queue while the stream spun up — drop the element
-      if (queueEpochRef.current !== epoch) { inEl.pause(); try { inEl.removeAttribute('src') } catch {} return }
-      xfadeRef.current = { outEl, inEl, nextIdx, song: nextSong, bitrate, epoch, raf: 0 }
-      fadingRef.current = true // fence the playback effect's volume writes
+      const x = xfadeRef.current
+      // Fade aborted/queue replaced while the stream spun up — drop it
+      if (!x || queueEpochRef.current !== epoch) {
+        if (x === xfadeRef.current) { xfadeRef.current = null; fadingRef.current = false }
+        inEl.pause(); try { inEl.removeAttribute('src') } catch {}
+        return
+      }
+      x.pending = false
+      // Outgoing already finished during the handshake — commit instantly
+      if (outEl.ended || outEl.paused) { commitXfade(); return }
       const start = performance.now()
       const durMs = sec * 1000
       const tick = now => {
@@ -879,12 +922,14 @@ function AppContent() {
         if (t < 1 && !outEl.ended) x.raf = requestAnimationFrame(tick)
         else commitXfade()
       }
-      xfadeRef.current.raf = requestAnimationFrame(tick)
+      x.raf = requestAnimationFrame(tick)
     }).catch(() => {
-      // Autoplay policy / decode failure — degrade to a hard cut; the normal
-      // `ended` listener still advances the queue when outEl finishes.
+      // Autoplay policy / decode failure — degrade to a hard cut; if the
+      // outgoing track already ended, the queue must still advance.
       xfadeRef.current = null
+      fadingRef.current = false
       try { inEl.pause(); inEl.removeAttribute('src'); inEl.load() } catch {}
+      if (outEl.ended) handleNext()
     })
   }
 
@@ -1112,13 +1157,16 @@ function AppContent() {
         }
       }
 
-      // Crossfade handoff — start the next track on the idle element while
-      // this one fades out. Natural advances only: queue-end stays with the
-      // ended/autoplay path, repeat-one replays itself, local files skip.
-      if (xfadeSecRef.current > 0 && !xfadeRef.current && !fadingRef.current &&
-          audio.duration > xfadeSecRef.current + 2 &&
-          audio.duration - audio.currentTime <= xfadeSecRef.current) {
-        startCrossfade()
+      // Crossfade handoff — arm (prebuffer) ahead of the fade window, then
+      // start the next track on the idle element while this one fades out.
+      // Natural advances only: queue-end stays with the ended/autoplay path,
+      // repeat-one replays itself, local files skip.
+      const xSec = xfadeSecRef.current
+      if (xSec > 0 && !xfadeRef.current && !fadingRef.current &&
+          audio.duration > xSec + 2) {
+        const remaining = audio.duration - audio.currentTime
+        if (remaining <= xSec + 4) armCrossfade()
+        if (remaining <= xSec) startCrossfade()
       }
     }
 
@@ -1257,7 +1305,17 @@ function AppContent() {
     if (!audible()) return
     const el = audible()
     const onEnded = () => {
-      if (xfadeRef.current) { commitXfade(); return } // outgoing ended mid-fade — the crossfade owns the advance
+      // Outgoing ended mid-fade — the crossfade owns the advance, but the
+      // finished song still earns its play count first (threshold gate may
+      // not have fired for short tails). A pending handshake resolves
+      // through the play() chain — committing here would swap to silence.
+      if (xfadeRef.current) {
+        if (!xfadeRef.current.pending) {
+          recordPlayStats(currentSong, el.duration || currentSong?.duration)
+          commitXfade()
+        }
+        return
+      }
       // A finished song always counts as a listen, however short. Reset the
       // counted marker so a repeat-one replay earns a fresh count.
       recordPlayStats(currentSong, el.duration || currentSong?.duration)
