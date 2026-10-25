@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { useParams, useNavigate, useLocation } from 'react-router-dom'
-import { ArrowLeft, Disc, Download, Loader2, ChevronDown, Play, Shuffle, Radio, Share2, Heart, UserPlus, UserCheck } from 'lucide-react'
+import { ArrowLeft, Disc, Download, Loader2, Play, Shuffle, Radio, Share2, Heart, UserPlus, UserCheck } from 'lucide-react'
 import TrackMenu from '../components/TrackMenu'
 import BatchDownloadButton from '../components/BatchDownloadButton'
 import SwipeableRow from '../components/SwipeableRow'
+import ChipSelect from '../components/ChipSelect'
 import { useDownloadStore } from '../stores/downloadStore'
 import MetaTags from '../components/MetaTags'
 import { decodeHtmlEntities, getArtistImageUrl, getImageSrc, formatCount } from '../utils'
@@ -501,48 +502,50 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
             )}
           </p>
 
-          {/* Play / Shuffle — flex-wrap keeps 5 buttons on a small screen
-              instead of overflowing 90px off both edges */}
-          <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 mb-4">
+          {/* Play / Shuffle pills + icon-only secondary buttons on mobile —
+              one row at 390px instead of five chunky pills wrapping twice */}
+          <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 md:gap-3 mb-4">
             <button
               onClick={handlePlayAll}
-              className="flex items-center gap-2 px-5 py-2.5 bg-[#fc3c44] hover:bg-[#e03239] text-white text-sm font-semibold rounded-full transition-colors touch-target"
+              className="flex items-center gap-2 px-4 py-2.5 md:px-5 bg-[#fc3c44] hover:bg-[#e03239] text-white text-sm font-semibold rounded-full transition-colors touch-target"
             >
               <Play size={16} className="fill-white" /> Play
             </button>
             <button
               onClick={handleShuffleAll}
-              className="flex items-center gap-2 px-5 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-white text-sm font-semibold rounded-full transition-colors touch-target"
+              className="flex items-center gap-2 px-4 py-2.5 md:px-5 bg-zinc-800 hover:bg-zinc-700 text-white text-sm font-semibold rounded-full transition-colors touch-target"
             >
               <Shuffle size={16} /> Shuffle
             </button>
             {isAlbum && onSaveAlbumToggle && (
               <button
                 onClick={() => onSaveAlbumToggle({ id, name: data?.name || meta?.name || albumName, artist: data?.artists?.[0]?.name || '', image: imageUrl })}
-                className={`flex items-center gap-2 px-5 py-2.5 text-sm font-semibold rounded-full transition-colors touch-target ${
+                className={`flex items-center gap-2 p-3 md:px-5 md:py-2.5 text-sm font-semibold rounded-full transition-colors touch-target ${
                   savedAlbums?.has(id) ? 'bg-zinc-800 text-[#fc3c44]' : 'bg-zinc-800 hover:bg-zinc-700 text-white'}`}
                 title={savedAlbums?.has(id) ? 'Remove from Your Library' : 'Save to Your Library'}
               >
-                <Heart size={16} className={savedAlbums?.has(id) ? 'fill-[#fc3c44] text-[#fc3c44]' : ''} />
-                {savedAlbums?.has(id) ? 'Saved' : 'Save'}
+                <Heart size={18} className={savedAlbums?.has(id) ? 'fill-[#fc3c44] text-[#fc3c44]' : ''} />
+                <span className="hidden md:inline">{savedAlbums?.has(id) ? 'Saved' : 'Save'}</span>
               </button>
             )}
             {isArtist && onFollowArtistToggle && (
               <button
                 onClick={() => onFollowArtistToggle({ id, name: data?.name || meta?.name, image: imageUrl })}
-                className={`flex items-center gap-2 px-5 py-2.5 text-sm font-semibold rounded-full transition-colors touch-target ${
+                className={`flex items-center gap-2 p-3 md:px-5 md:py-2.5 text-sm font-semibold rounded-full transition-colors touch-target ${
                   followedArtists?.has(id) ? 'bg-zinc-800 text-[#fc3c44]' : 'bg-zinc-800 hover:bg-zinc-700 text-white'}`}
+                title={followedArtists?.has(id) ? 'Following' : 'Follow artist'}
               >
-                {followedArtists?.has(id) ? <UserCheck size={16} /> : <UserPlus size={16} />}
-                {followedArtists?.has(id) ? 'Following' : 'Follow'}
+                {followedArtists?.has(id) ? <UserCheck size={18} /> : <UserPlus size={18} />}
+                <span className="hidden md:inline">{followedArtists?.has(id) ? 'Following' : 'Follow'}</span>
               </button>
             )}
             {isArtist && onArtistRadio && (
               <button
                 onClick={() => onArtistRadio(songs)}
-                className="flex items-center gap-2 px-5 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-white text-sm font-semibold rounded-full transition-colors touch-target"
+                className="flex items-center gap-2 p-3 md:px-5 md:py-2.5 bg-zinc-800 hover:bg-zinc-700 text-white text-sm font-semibold rounded-full transition-colors touch-target"
+                title="Artist radio"
               >
-                <Radio size={16} /> Radio
+                <Radio size={18} /> <span className="hidden md:inline">Radio</span>
               </button>
             )}
             <button
@@ -559,9 +562,10 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
                   }
                 }
               }}
-              className="flex items-center gap-2 px-5 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-white text-sm font-semibold rounded-full transition-colors touch-target"
+              className="flex items-center gap-2 p-3 md:px-5 md:py-2.5 bg-zinc-800 hover:bg-zinc-700 text-white text-sm font-semibold rounded-full transition-colors touch-target"
+              title="Share"
             >
-              <Share2 size={16} /> Share
+              <Share2 size={18} /> <span className="hidden md:inline">Share</span>
             </button>
           </div>
           
@@ -702,31 +706,23 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
                 <p className="text-zinc-400 text-sm">{sortedSongs.length} songs</p>
                 <div className="flex items-center gap-2">
                   {distinctLanguages.length > 0 && (
-                    <div className="relative">
-                      <select
-                        value={languageFilter}
-                        onChange={(e) => setLanguageFilter(e.target.value)}
-                        className="appearance-none bg-zinc-800 text-white text-sm px-4 py-2 pr-8 rounded-lg border border-zinc-700 focus:outline-none focus:border-zinc-600 cursor-pointer"
-                      >
-                        <option value="all">All Languages</option>
-                        {distinctLanguages.map(lang => (
-                          <option key={lang} value={lang}>{lang.charAt(0).toUpperCase() + lang.slice(1)}</option>
-                        ))}
-                      </select>
-                      <ChevronDown size={16} className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
-                    </div>
+                    <ChipSelect
+                      value={languageFilter}
+                      onChange={setLanguageFilter}
+                      options={[
+                        { value: 'all', label: 'All Languages' },
+                        ...distinctLanguages.map(lang => ({ value: lang, label: lang.charAt(0).toUpperCase() + lang.slice(1) }))
+                      ]}
+                    />
                   )}
-                  <div className="relative">
-                    <select
-                      value={songsSortBy}
-                      onChange={(e) => setSongsSortBy(e.target.value)}
-                      className="appearance-none bg-zinc-800 text-white text-sm px-4 py-2 pr-8 rounded-lg border border-zinc-700 focus:outline-none focus:border-zinc-600 cursor-pointer"
-                    >
-                      <option value="date">Date</option>
-                      <option value="name">Name</option>
-                    </select>
-                    <ChevronDown size={16} className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
-                  </div>
+                  <ChipSelect
+                    value={songsSortBy}
+                    onChange={setSongsSortBy}
+                    options={[
+                      { value: 'date', label: 'Date' },
+                      { value: 'name', label: 'Name' }
+                    ]}
+                  />
                 </div>
               </div>
 
@@ -841,48 +837,29 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
                 <p className="text-zinc-400 text-sm">{sortedAlbums.length} albums</p>
                 <div className="flex items-center gap-2">
                   {distinctAlbumLanguages.length > 0 && (
-                    <div className="relative">
-                      <select
-                        value={albumsLanguageFilter}
-                        onChange={(e) => setAlbumsLanguageFilter(e.target.value)}
-                        className="appearance-none bg-zinc-800 text-white text-sm px-4 py-2 pr-8 rounded-lg border border-zinc-700 focus:outline-none focus:border-zinc-600 cursor-pointer"
-                      >
-                        <option value="all">All Languages</option>
-                        {distinctAlbumLanguages.map(lang => (
-                          <option key={lang} value={lang}>{lang.charAt(0).toUpperCase() + lang.slice(1)}</option>
-                        ))}
-                      </select>
-                      <ChevronDown size={16} className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
-                    </div>
+                    <ChipSelect
+                      value={albumsLanguageFilter}
+                      onChange={setAlbumsLanguageFilter}
+                      options={[
+                        { value: 'all', label: 'All Languages' },
+                        ...distinctAlbumLanguages.map(lang => ({ value: lang, label: lang.charAt(0).toUpperCase() + lang.slice(1) }))
+                      ]}
+                    />
                   )}
-                  <div className="relative">
-                    <select
-                      value={`${albumsSortBy}-${albumsSortDirection}`}
-                      onChange={(e) => {
-                        const [sortBy, direction] = e.target.value.split('-')
-                        setAlbumsSortBy(sortBy)
-                        setAlbumsSortDirection(direction)
-                      }}
-                      className="appearance-none bg-zinc-800 text-white text-sm px-4 py-2 pr-8 rounded-lg border border-zinc-700 focus:outline-none focus:border-zinc-600 cursor-pointer"
-                    >
-                      {hasCustomAlbumsOverride ? (
-                        <>
-                          <option value="date-desc">Date (Newest)</option>
-                          <option value="date-asc">Date (Oldest)</option>
-                          <option value="name-asc">Name (A-Z)</option>
-                          <option value="name-desc">Name (Z-A)</option>
-                        </>
-                      ) : (
-                        <>
-                          <option value="date-desc">Date (Newest)</option>
-                          <option value="date-asc">Date (Oldest)</option>
-                          <option value="name-asc">Name (A-Z)</option>
-                          <option value="name-desc">Name (Z-A)</option>
-                        </>
-                      )}
-                    </select>
-                    <ChevronDown size={16} className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
-                  </div>
+                  <ChipSelect
+                    value={`${albumsSortBy}-${albumsSortDirection}`}
+                    onChange={v => {
+                      const [sortBy, direction] = v.split('-')
+                      setAlbumsSortBy(sortBy)
+                      setAlbumsSortDirection(direction)
+                    }}
+                    options={[
+                      { value: 'date-desc', label: 'Date (Newest)' },
+                      { value: 'date-asc', label: 'Date (Oldest)' },
+                      { value: 'name-asc', label: 'Name (A-Z)' },
+                      { value: 'name-desc', label: 'Name (Z-A)' }
+                    ]}
+                  />
                 </div>
               </div>
 
@@ -940,39 +917,29 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
                 <p className="text-zinc-400 text-sm">{sortedAlbums.length} albums</p>
                 <div className="flex items-center gap-2">
                   {distinctAlbumLanguages.length > 0 && (
-                    <div className="relative">
-                      <select
-                        value={albumsLanguageFilter}
-                        onChange={(e) => setAlbumsLanguageFilter(e.target.value)}
-                        className="appearance-none bg-zinc-800 text-white text-sm px-4 py-2 pr-8 rounded-lg border border-zinc-700 focus:outline-none focus:border-zinc-600 cursor-pointer"
-                      >
-                        <option value="all">All Languages</option>
-                        {distinctAlbumLanguages.map(lang => (
-                          <option key={lang} value={lang}>{lang.charAt(0).toUpperCase() + lang.slice(1)}</option>
-                        ))}
-                      </select>
-                      <ChevronDown size={16} className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
-                    </div>
+                    <ChipSelect
+                      value={albumsLanguageFilter}
+                      onChange={setAlbumsLanguageFilter}
+                      options={[
+                        { value: 'all', label: 'All Languages' },
+                        ...distinctAlbumLanguages.map(lang => ({ value: lang, label: lang.charAt(0).toUpperCase() + lang.slice(1) }))
+                      ]}
+                    />
                   )}
-                  <div className="relative">
-                    <select
-                      value={`${albumsSortBy}-${albumsSortDirection}`}
-                      onChange={(e) => {
-                        const [sortBy, direction] = e.target.value.split('-')
-                        setAlbumsSortBy(sortBy)
-                        setAlbumsSortDirection(direction)
-                      }}
-                      className="appearance-none bg-zinc-800 text-white text-sm px-4 py-2 pr-8 rounded-lg border border-zinc-700 focus:outline-none focus:border-zinc-600 cursor-pointer"
-                    >
-                      <>
-                        <option value="date-desc">Date (Newest)</option>
-                        <option value="date-asc">Date (Oldest)</option>
-                        <option value="name-asc">Name (A-Z)</option>
-                        <option value="name-desc">Name (Z-A)</option>
-                      </>
-                    </select>
-                    <ChevronDown size={16} className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
-                  </div>
+                  <ChipSelect
+                    value={`${albumsSortBy}-${albumsSortDirection}`}
+                    onChange={v => {
+                      const [sortBy, direction] = v.split('-')
+                      setAlbumsSortBy(sortBy)
+                      setAlbumsSortDirection(direction)
+                    }}
+                    options={[
+                      { value: 'date-desc', label: 'Date (Newest)' },
+                      { value: 'date-asc', label: 'Date (Oldest)' },
+                      { value: 'name-asc', label: 'Name (A-Z)' },
+                      { value: 'name-desc', label: 'Name (Z-A)' }
+                    ]}
+                  />
                 </div>
               </div>
 
