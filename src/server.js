@@ -3,8 +3,12 @@ const express = require('express');
 const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
+const os = require('os');
+const http = require('http');
 const axios = require('axios');
 const { exec } = require('child_process');
+const { WebSocketServer } = require('ws');
+const store = require('./store'); // runs JSON→sqlite migration at require time
 const { decodeHtmlEntities, loadLibrary: loadLibraryUtil, detectComposerFromSongs, getBestImage, fetchFromMusicServiceOfficial, fetchWithFallback, generateJioSaavnAuthToken, generateJioSaavnAuthUrls } = require('./utils');
 const { PRIMARY_API, FALLBACK_API } = require('./constants');
 const { createClerkClient } = require('@clerk/backend');
@@ -190,25 +194,9 @@ async function requireUser(req, res, next) {
   }
 }
 
-function loadUserData(userId) {
-  try {
-    const file = path.join(USER_DATA_DIR, `${userId}.json`);
-    if (!fs.existsSync(file)) return null;
-    return JSON.parse(fs.readFileSync(file, 'utf8'));
-  } catch (e) {
-    console.error('loadUserData error:', e.message);
-    return null;
-  }
-}
-
-function saveUserData(userId, data) {
-  try {
-    fs.mkdirSync(USER_DATA_DIR, { recursive: true });
-    fs.writeFileSync(path.join(USER_DATA_DIR, `${userId}.json`), JSON.stringify(data));
-  } catch (e) {
-    console.error('saveUserData error:', e.message);
-  }
-}
+// Storage delegates — sqlite primary, JSON fallback (see src/store.js).
+function loadUserData(userId) { return store.load(userId); }
+function saveUserData(userId, data) { store.save(userId, data); }
 
 // Pull the user's library (liked songs + playlists + history + collections)
 app.get('/api/me/library', requireUser, (req, res) => {
@@ -232,7 +220,7 @@ const slimLibrarySong = (s) => ({
 // history/savedAlbums/followedArtists are optional additive fields so older
 // clients keep working.
 app.put('/api/me/library', requireUser, (req, res) => {
-  const { v, ts, likedSongs, playlists, folders, history, savedAlbums, followedArtists, removedAlbums, removedArtists, historyClearedAt, likedMeta, hiddenSongs, hiddenArtists, explicitFilter, dataSaver, shareActivity, shareActivityAt, displayName } = req.body || {};
+  const { v, ts, likedSongs, playlists, folders, history, savedAlbums, followedArtists, removedAlbums, removedArtists, historyClearedAt, likedMeta, hiddenSongs, hiddenArtists, explicitFilter, dataSaver, normalizeVolume, shareActivity, shareActivityAt, displayName } = req.body || {};
   if (!Array.isArray(likedSongs) || typeof playlists !== 'object' || playlists === null) {
     return res.status(400).json({ success: false, error: 'Bad payload' });
   }
@@ -398,6 +386,8 @@ app.put('/api/me/library', requireUser, (req, res) => {
   else if (existingDoc.explicitFilter !== undefined) data.explicitFilter = existingDoc.explicitFilter;
   if (dataSaver !== undefined) data.dataSaver = !!dataSaver;
   else if (existingDoc.dataSaver !== undefined) data.dataSaver = existingDoc.dataSaver;
+  if (normalizeVolume !== undefined) data.normalizeVolume = !!normalizeVolume;
+  else if (existingDoc.normalizeVolume !== undefined) data.normalizeVolume = existingDoc.normalizeVolume;
   if (typeof displayName === 'string' && displayName.trim()) {
     data.displayName = displayName.trim().slice(0, 100);
   } else if (existingDoc.displayName) {
@@ -498,14 +488,10 @@ app.put('/api/me/library', requireUser, (req, res) => {
 // contribute; never emits fields for non-opted members.
 app.get('/api/family/activity', requireUser, async (req, res) => {
   try {
-    let files = [];
-    try {
-      files = fs.readdirSync(USER_DATA_DIR).filter(f => f.endsWith('.json'));
-    } catch { /* dir missing — nobody has synced yet */ }
+    const docs = [];
+    store.all((uid, doc) => docs.push({ uid, doc }));
     const rows = [];
-    for (const f of files) {
-      const uid = f.replace(/\.json$/, '');
-      const doc = loadUserData(uid);
+    for (const { uid, doc } of docs) {
       if (!doc?.shareActivity || !Array.isArray(doc.history)) continue;
       let name = doc.displayName;
       if (!name) {
@@ -748,6 +734,7 @@ const streamHandler = async (req, res, bitrate = '320') => {
           'Accept-Ranges': 'bytes',
           'Content-Length': chunksize,
           'Content-Type': 'audio/mpeg',
+          'Access-Control-Allow-Origin': '*', // WebAudio graph capture
         });
         
         file.pipe(res);
@@ -755,6 +742,7 @@ const streamHandler = async (req, res, bitrate = '320') => {
         res.writeHead(200, {
           'Content-Length': fileSize,
           'Content-Type': 'audio/mpeg',
+          'Access-Control-Allow-Origin': '*',
         });
         fs.createReadStream(filePath).pipe(res);
       }
@@ -3586,9 +3574,135 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', musicDir: MUSIC_DIR });
 });
 
+// LAN origin for Chromecast — the receiver fetches stream URLs itself, so a
+// localhost API is useless to it. Dev-only: requires auth + a local Host;
+// returns null on public deployments (container IPs are unreachable anyway).
+app.get('/api/lan', requireUser, (req, res) => {
+  try {
+    if (rateLimited(req.ip)) return res.status(429).json({ success: false, error: 'Rate limited' });
+    const host = (req.headers.host || '').split(':')[0];
+    const localHost = host === 'localhost' || host === '127.0.0.1' || host === '::1' ||
+      /^(10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.)/.test(host);
+    if (!localHost) return res.json({ success: true, origin: null });
+    const nets = os.networkInterfaces();
+    for (const list of Object.values(nets)) {
+      for (const n of list || []) {
+        if (n.family === 'IPv4' && !n.internal) {
+          return res.json({ success: true, origin: `http://${n.address}:${PORT}` });
+        }
+      }
+    }
+    res.json({ success: true, origin: null });
+  } catch (e) {
+    res.json({ success: true, origin: null });
+  }
+});
+
 // Build indexes on startup
 buildIndexes();
 
-app.listen(PORT, () => {
+// ─── Presence WebSocket — live "Listening now" for opted-in members ─────────
+// One HTTP server hosts Express + the ws server. Auth via first-message
+// Clerk token. Presence is per-CONNECTION (userId#connId) so a member's
+// second tab/device can't evict their first; broadcasts dedupe by userId.
+// shareActivity is enforced server-side from the stored doc — a crafted
+// client cannot self-promote. Nothing is persisted; restarts clear it.
+const server = http.createServer(app);
+const wss = new WebSocketServer({ server, path: '/ws/presence', maxPayload: 64 * 1024 });
+const presence = new Map(); // key `${userId}#${connId}` -> { userId, name, song, ts }
+let nextConnId = 1;
+let lastPresenceView = '';
+
+async function memberDisplayName(userId) {
+  const doc = loadUserData(userId) || {};
+  if (doc.displayName) return doc.displayName;
+  try {
+    const u = await clerkClient.users.getUser(userId);
+    const name = u?.firstName || u?.username || 'Member';
+    doc.displayName = name;
+    saveUserData(userId, doc); // cache back — avoids repeat lookups
+    return name;
+  } catch { return 'Member'; }
+}
+
+function broadcastPresence() {
+  const byUser = new Map();
+  for (const e of presence.values()) {
+    const cur = byUser.get(e.userId);
+    if (!cur || (e.ts || 0) > (cur.ts || 0)) byUser.set(e.userId, e);
+  }
+  const members = [...byUser.values()].map(e => ({ userId: e.userId, name: e.name, song: e.song || null, ts: e.ts }));
+  const view = JSON.stringify(members);
+  if (view === lastPresenceView) return; // heartbeat that changed nothing → no broadcast
+  lastPresenceView = view;
+  const frame = JSON.stringify({ type: 'presence', members });
+  for (const c of wss.clients) if (c.readyState === 1 && c.authed) c.send(frame);
+}
+
+wss.on('connection', (ws) => {
+  ws.authed = false;
+  ws.connId = nextConnId++;
+  ws.lastNowAt = 0;
+  ws.lastSongId = null;
+  const authTimeout = setTimeout(() => { if (!ws.authed) ws.close(4001, 'auth timeout') }, 10000);
+
+  ws.on('message', async (raw) => {
+    let msg;
+    try { msg = JSON.parse(raw.toString().slice(0, 8000)) } catch { return }
+    if (!ws.authed) {
+      if (msg?.type !== 'auth' || !msg?.token || !clerkClient) return ws.close(4001, 'auth required');
+      try {
+        const payload = await clerkClient.verifyToken(msg.token);
+        if (!payload?.sub) throw new Error('no sub');
+        ws.authed = true;
+        ws.userId = payload.sub;
+        clearTimeout(authTimeout);
+        ws.send(JSON.stringify({ type: 'auth:ok' }));
+        broadcastPresence(); // bring the new member up to date
+      } catch {
+        ws.close(4002, 'invalid session');
+      }
+      return;
+    }
+    const key = `${ws.userId}#${ws.connId}`;
+    if (msg?.type === 'now' && msg?.song?.id) {
+      // Server-side throttle: ≥5s between 'now' frames — except a different
+      // song id (a fast skip must update immediately).
+      const diffSong = msg.song.id !== ws.lastSongId;
+      if (!diffSong && Date.now() - ws.lastNowAt < 5000) return;
+      ws.lastNowAt = Date.now();
+      ws.lastSongId = msg.song.id;
+      const doc = loadUserData(ws.userId) || {};
+      if (doc.shareActivity !== true) return; // opted out — never relay
+      const name = await memberDisplayName(ws.userId);
+      presence.set(key, {
+        userId: ws.userId, name,
+        song: { id: String(msg.song.id).slice(0, 200), name: String(msg.song.name || '').slice(0, 500), artist: String(msg.song.artist || '').slice(0, 500), image: String(msg.song.image || '').slice(0, 1000) },
+        ts: Date.now() // server-stamped — client clocks are never trusted
+      });
+      broadcastPresence();
+    } else if (msg?.type === 'idle') {
+      if (presence.delete(key)) broadcastPresence();
+    }
+  });
+
+  ws.on('close', () => {
+    clearTimeout(authTimeout);
+    if (ws.authed && presence.delete(`${ws.userId}#${ws.connId}`)) broadcastPresence();
+  });
+});
+
+// Drop entries idle >90s — heartbeat cadence is 45s so a mid-song member is
+// never dropped mid-track.
+setInterval(() => {
+  const cutoff = Date.now() - 90000;
+  let changed = false;
+  for (const [k, e] of presence) {
+    if ((e.ts || 0) < cutoff) { presence.delete(k); changed = true; }
+  }
+  if (changed) broadcastPresence();
+}, 30000).unref();
+
+server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });

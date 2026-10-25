@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { Play, Pause, SkipBack, SkipForward, Shuffle, Repeat, Repeat1, Heart, Music, Loader2, ChevronDown, ListVideo, Mic2, Volume2, VolumeX, Timer } from 'lucide-react'
+import { Play, Pause, SkipBack, SkipForward, Shuffle, Repeat, Repeat1, Heart, Music, Loader2, ChevronDown, ListVideo, Mic2, Volume2, VolumeX, Timer, Cast } from 'lucide-react'
 import { formatTime, decodeHtmlEntities, getSongArtwork } from '../utils'
 import { getDominantColor } from '../utils/color'
 import { Range, getTrackBackground } from 'react-range'
@@ -34,7 +34,10 @@ export default function FullScreenPlayer({
   onGoToAlbum,
   onSongRadio, onHideSong, onHideArtist,   showToast,
   sleepTimer,
-  onSleepTimer
+  onSleepTimer,
+  castAvailable = false,
+  casting = false,
+  onCastToggle
 }) {
   const playerRef = useRef(null)
   const [lyricsOpen, setLyricsOpen] = useState(false)
@@ -266,6 +269,15 @@ export default function FullScreenPlayer({
             >
               <Timer size={20} />
             </button>
+            {castAvailable && (
+              <button
+                onClick={onCastToggle}
+                className={`transition-colors ${casting ? 'text-[#fc3c44]' : 'text-zinc-400 hover:text-white'}`}
+                title={casting ? 'Stop casting' : 'Cast to device'}
+              >
+                <Cast size={20} />
+              </button>
+            )}
           </div>
 
           {/* Play Controls Row */}

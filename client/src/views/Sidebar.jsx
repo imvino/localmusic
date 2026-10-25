@@ -1,4 +1,4 @@
-import { Compass, RefreshCw, Keyboard, X, Trash2, ListMusic, Settings, Heart, Music, Radio, Timer, SlidersHorizontal, BarChart3, Waves, Download, Lock, Pin, EyeOff, Folder, FolderOpen, ChevronDown, ChevronRight, Languages, Check, Gauge, Ban, UserX, Users, CircleUser } from 'lucide-react'
+import { Compass, RefreshCw, Keyboard, X, Trash2, ListMusic, Settings, Heart, Music, Radio, Timer, SlidersHorizontal, BarChart3, Waves, Download, Lock, Pin, EyeOff, Folder, FolderOpen, ChevronDown, ChevronRight, Languages, Check, Gauge, Ban, UserX, Users, CircleUser, Activity } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 import { useState } from 'react'
 import { usePlaylistStore } from '../stores/playlistStore'
@@ -15,7 +15,7 @@ const NAV_ITEMS = [
   { id: 'discover', label: 'Discover', icon: Compass, path: '/discover' },
 ]
 
-export default function Sidebar({ showToast, onClose, qualityPreference, onQualityChange, autoplayEnabled, onAutoplayToggle, sleepTimer, onSleepTimer, eqSettings, onEqChange, crossfadeSec = 0, onCrossfadeChange, dataSaver, onDataSaverToggle, explicitFilter, onExplicitFilterToggle, hiddenSongs = {}, hiddenArtists = {}, onUnhideSong, onUnhideArtist, shareActivity, onShareActivityToggle, displayName, onDisplayNameChange, installPrompt, onInstall, onImportLibrary, likedCount, privateSession, onPrivateSessionToggle, contentLanguages, onContentLanguageToggle }) {
+export default function Sidebar({ showToast, onClose, qualityPreference, onQualityChange, autoplayEnabled, onAutoplayToggle, sleepTimer, onSleepTimer, eqSettings, onEqChange, crossfadeSec = 0, onCrossfadeChange, dataSaver, onDataSaverToggle, normalizeVolume, onNormalizeToggle, explicitFilter, onExplicitFilterToggle, hiddenSongs = {}, hiddenArtists = {}, onUnhideSong, onUnhideArtist, shareActivity, onShareActivityToggle, displayName, onDisplayNameChange, installPrompt, onInstall, onImportLibrary, likedCount, privateSession, onPrivateSessionToggle, contentLanguages, onContentLanguageToggle }) {
   const location = useLocation()
   const currentPath = location.pathname
   const playlists = usePlaylistStore(s => s.playlists)
@@ -371,6 +371,20 @@ export default function Sidebar({ showToast, onClose, qualityPreference, onQuali
             </div>
             <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${dataSaver ? 'bg-[#fc3c44] text-white' : 'bg-zinc-800 text-zinc-500'}`}>
               {dataSaver ? 'On' : 'Off'}
+            </span>
+          </button>
+
+          {/* Normalize volume — even loudness across tracks (Spotify parity) */}
+          <button
+            onClick={() => onNormalizeToggle?.()}
+            className="flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-left w-full text-zinc-400 hover:text-white hover:bg-zinc-800/40"
+          >
+            <div className="flex items-center gap-3 whitespace-nowrap">
+              <Activity size={17} className={normalizeVolume ? 'text-[#fc3c44]' : ''} />
+              Normalize volume
+            </div>
+            <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${normalizeVolume ? 'bg-[#fc3c44] text-white' : 'bg-zinc-800 text-zinc-500'}`}>
+              {normalizeVolume ? 'On' : 'Off'}
             </span>
           </button>
 

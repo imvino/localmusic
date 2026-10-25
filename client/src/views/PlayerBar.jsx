@@ -1,10 +1,10 @@
 import { useRef, useState } from 'react'
-import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, Shuffle, Repeat, Repeat1, Heart, Music, Loader2, ListVideo, Mic2, Maximize2 } from 'lucide-react'
+import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, Shuffle, Repeat, Repeat1, Heart, Music, Loader2, ListVideo, Mic2, Maximize2, Cast } from 'lucide-react'
 import { Range, getTrackBackground } from 'react-range'
 import { formatTime, decodeHtmlEntities, getSongArtwork } from '../utils'
 import TrackMenu from '../components/TrackMenu'
 
-export default function PlayerBar({ currentSong, isPlaying, onTogglePlay, onPrev, onNext, volume, onVolumeChange, muted, onMuteToggle, shuffle, onShuffleToggle, repeat, onRepeatToggle, liked, onLikeToggle, currentTime, duration, onSeek, onArtworkClick, onQueueToggle, onLyricsToggle, isSearchingAlbum, isMobileMiniplayer = false, onOpenFullScreen = null, likedSongs, onPlayNext, onAddToQueue, onGoToAlbum, onSongRadio, onHideSong, onHideArtist, showToast }) {
+export default function PlayerBar({ currentSong, isPlaying, onTogglePlay, onPrev, onNext, volume, onVolumeChange, muted, onMuteToggle, shuffle, onShuffleToggle, repeat, onRepeatToggle, liked, onLikeToggle, currentTime, duration, onSeek, onArtworkClick, onQueueToggle, onLyricsToggle, isSearchingAlbum, isMobileMiniplayer = false, onOpenFullScreen = null, likedSongs, onPlayNext, onAddToQueue, onGoToAlbum, onSongRadio, onHideSong, onHideArtist, showToast, castAvailable = false, casting = false, onCastToggle }) {
   const touch = useRef(null)
   // Scrub preview — seek commits once on release, not per drag frame
   const [dragT, setDragT] = useState(null)
@@ -232,6 +232,11 @@ export default function PlayerBar({ currentSong, isPlaying, onTogglePlay, onPrev
         <button onClick={onQueueToggle} className="hover:text-white cursor-pointer transition-colors" title="Queue" aria-label="Queue">
           <ListVideo size={16} />
         </button>
+        {castAvailable && (
+          <button onClick={onCastToggle} className={`cursor-pointer transition-colors ${casting ? 'text-[#fc3c44]' : 'hover:text-white'}`} title={casting ? 'Stop casting' : 'Cast to device'} aria-label={casting ? 'Stop casting' : 'Cast to device'}>
+            <Cast size={16} />
+          </button>
+        )}
         {onOpenFullScreen && (
           <button onClick={onOpenFullScreen} className="hover:text-white cursor-pointer transition-colors" title="Now playing" aria-label="Open now playing view">
             <Maximize2 size={15} />

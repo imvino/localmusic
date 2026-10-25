@@ -33,6 +33,7 @@ const PERSONAL_KEYS = [
   'hiddenArtists',
   'explicitFilter',
   'dataSaver',
+  'normalizeVolume',
   'shareActivity',
   'shareActivityAt',
   'displayName',

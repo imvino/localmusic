@@ -34,6 +34,7 @@ async function pushSnapshot(getToken, likedSongs, playlists, collections) {
         hiddenArtists: readLS('hiddenArtists', {}),
         explicitFilter: !!readLS('explicitFilter', false),
         dataSaver: !!readLS('dataSaver', false),
+        normalizeVolume: !!readLS('normalizeVolume', true),
         shareActivity: !!readLS('shareActivity', false),
         shareActivityAt: Number(readLS('shareActivityAt', 0)) || 0,
         displayName: readLS('displayName', '') || '',
@@ -255,6 +256,7 @@ export function useLibrarySync({ likedSongs, setLikedSongs, savedAlbums, setSave
         }
         if (server.explicitFilter !== undefined) writeLS('explicitFilter', !!server.explicitFilter)
         if (server.dataSaver !== undefined) writeLS('dataSaver', !!server.dataSaver)
+        if (server.normalizeVolume !== undefined) writeLS('normalizeVolume', !!server.normalizeVolume)
         if (server.displayName && !readLS('displayName', '')) {
           writeLS('displayName', String(server.displayName).slice(0, 100))
         }

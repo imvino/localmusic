@@ -213,8 +213,8 @@ export function mergeHiddenMap(local, server, kind) {
 // keys are deliberately absent from PERSONAL_KEYS so a member sign-in/out
 // on a shared device never nukes them).
 export const blocklistKeys = (signedIn) => signedIn
-  ? { hiddenSongs: 'hiddenSongs', hiddenArtists: 'hiddenArtists', explicitFilter: 'explicitFilter', dataSaver: 'dataSaver' }
-  : { hiddenSongs: 'guestHiddenSongs', hiddenArtists: 'guestHiddenArtists', explicitFilter: 'guestExplicitFilter', dataSaver: 'guestDataSaver' }
+  ? { hiddenSongs: 'hiddenSongs', hiddenArtists: 'hiddenArtists', explicitFilter: 'explicitFilter', dataSaver: 'dataSaver', normalizeVolume: 'normalizeVolume' }
+  : { hiddenSongs: 'guestHiddenSongs', hiddenArtists: 'guestHiddenArtists', explicitFilter: 'guestExplicitFilter', dataSaver: 'guestDataSaver', normalizeVolume: 'guestNormalizeVolume' }
 
 // The single block check — consumed by every passive surface: suggestion
 // injection (autoplay + both radios), play-all/shuffle queue builds,

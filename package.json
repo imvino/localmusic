@@ -15,14 +15,21 @@
   "dependencies": {
     "@clerk/backend": "^3.11.7",
     "axios": "^1.17.0",
+    "better-sqlite3": "11",
     "cors": "^2.8.6",
     "dotenv": "^16.4.5",
     "express": "^5.2.1",
     "fuse.js": "^7.5.0",
-    "node-id3": "^0.2.9"
+    "node-id3": "^0.2.9",
+    "ws": "8"
   },
   "devDependencies": {
     "@fission-ai/openspec": "^1.15.0",
     "concurrently": "^10.0.4"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "better-sqlite3"
+    ]
   }
 }

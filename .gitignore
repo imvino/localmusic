@@ -11,3 +11,10 @@ yarn-error.log*
 songs-data.json
 process-log.json
 temp/
+
+# SQLite user store (batch-3)
+data/app.db
+data/app.db-wal
+data/app.db-shm
+data/users/migrated/
+.playwright-mcp/

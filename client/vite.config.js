@@ -131,6 +131,13 @@ export default defineConfig(({ mode }) => {
               proxyReq.setHeader('Origin', options.target)
             })
           }
+        },
+        // Presence websocket — same backend, upgraded connection
+        '/ws': {
+          target: env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3001',
+          ws: true,
+          changeOrigin: true,
+          secure: false
         }
       }
     }
