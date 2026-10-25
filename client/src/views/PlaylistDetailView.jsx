@@ -165,10 +165,10 @@ export default function PlaylistDetailView({ onSongClick, onShufflePlay, onPlayN
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className={`text-sm truncate ${isCurrent ? 'text-[#fc3c44] font-medium' : 'text-zinc-200'}`}>
-                    {song.name || song.title}
+                    {decodeHtmlEntities(song.name || song.title)}
                   </div>
                   <div className="text-xs text-zinc-500 truncate">
-                    {song.artist || song.artists?.primary?.[0]?.name || song.primaryArtists || ''}
+                    {decodeHtmlEntities(song.artist || song.artists?.primary?.[0]?.name || song.primaryArtists || '')}
                   </div>
                 </div>
                 <span className="text-xs text-zinc-500 shrink-0 hidden sm:block">

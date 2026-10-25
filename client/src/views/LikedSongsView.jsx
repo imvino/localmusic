@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useQueries } from '@tanstack/react-query'
 import { Heart, Play, Shuffle, Music, ArrowDownWideNarrow, Search, X } from 'lucide-react'
-import { getImageSrc, formatDuration } from '../utils'
+import { getImageSrc, formatDuration, decodeHtmlEntities } from '../utils'
 import TrackMenu from '../components/TrackMenu'
 import BatchDownloadButton from '../components/BatchDownloadButton'
 import SwipeableRow from '../components/SwipeableRow'
@@ -182,10 +182,10 @@ export default function LikedSongsView({ likedSongs, onLikeToggle, onSongClick, 
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className={`text-sm truncate ${isCurrent ? 'text-[#fc3c44] font-medium' : 'text-zinc-200'}`}>
-                    {song.name || song.title}
+                    {decodeHtmlEntities(song.name || song.title)}
                   </div>
                   <div className="text-xs text-zinc-500 truncate">
-                    {song.artist || song.artists?.primary?.[0]?.name || song.primaryArtists || ''}
+                    {decodeHtmlEntities(song.artist || song.artists?.primary?.[0]?.name || song.primaryArtists || '')}
                   </div>
                 </div>
                 <span className="text-xs text-zinc-500 shrink-0 hidden sm:block">

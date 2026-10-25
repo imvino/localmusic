@@ -34,7 +34,7 @@ import { useLibrarySync } from './hooks/useLibrarySync'
 import { usePlaylistStore } from './stores/playlistStore'
 import { enableEq, warmEq, setEqGains } from './audio/eq'
 import { isDownloaded, downloadUrlFor, reconcileDownloads } from './utils/downloads'
-import { getSongArtwork } from './utils'
+import { getSongArtwork, decodeHtmlEntities } from './utils'
 import { addTombstone, clearTombstone, slimSong } from './utils/sync'
 import TermsOfService from './pages/TermsOfService'
 import PrivacyPolicy from './pages/PrivacyPolicy'
@@ -315,7 +315,7 @@ function AppContent() {
   // Title bar mirrors now-playing — like Spotify's window title / tab text
   useEffect(() => {
     document.title = currentSong
-      ? `${currentSong.name} · ${currentSong.artist || ''} — Torsongs`
+      ? `${decodeHtmlEntities(currentSong.name)} · ${decodeHtmlEntities(currentSong.artist || '')} — Torsongs`
       : 'Torsongs'
   }, [currentSong])
 
@@ -871,13 +871,17 @@ function AppContent() {
     }
   }, [isPlaying, currentSong, queue, queueIndex, repeat, shuffle])
 
-  // Offer to resume a session saved within the last 24h (once, on mount)
+  // Offer to resume a session saved within the last 24h — ONCE per browser
+  // session (sessionStorage flag) and auto-dismissed, so it stops nagging
+  // on every reload while still offering the restore on a genuine reopen.
   useEffect(() => {
     try {
+      if (sessionStorage.getItem('resumePromptShown')) return
       const raw = localStorage.getItem('playerSession')
       if (!raw) return
       const session = JSON.parse(raw)
       if (session?.currentSong?.id && Date.now() - session.ts < 24 * 60 * 60 * 1000) {
+        sessionStorage.setItem('resumePromptShown', '1')
         setResumeSession(session)
       } else {
         localStorage.removeItem('playerSession')
@@ -886,6 +890,16 @@ function AppContent() {
       localStorage.removeItem('playerSession')
     }
   }, [])
+
+  // Auto-dismiss the resume banner after 12s — it must not linger over the
+  // song list like a broken mini-player. Also clear it the moment playback
+  // actually starts by other means.
+  useEffect(() => {
+    if (!resumeSession) return
+    if (currentSong) { setResumeSession(null); return }
+    const t = setTimeout(() => setResumeSession(null), 12000)
+    return () => clearTimeout(t)
+  }, [resumeSession, currentSong])
 
   const handleResumeSession = async () => {
     const session = resumeSession
@@ -2105,11 +2119,12 @@ function AppContent() {
       {/* Download Manager - Only in development */}
       {!isProduction && <DownloadManager />}
       
-      {/* Resume session banner */}
+      {/* Resume session banner — floats ABOVE the mini-player zone and
+          auto-dismisses; shows once per browser session */}
       {resumeSession && (
-        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[9998] bg-zinc-900 border border-zinc-700 rounded-lg shadow-xl px-4 py-3 flex items-center gap-3">
-          <span className="text-sm text-zinc-300">
-            Resume <span className="text-white font-medium">{resumeSession.currentSong?.name}</span>?
+        <div className="fixed bottom-36 md:bottom-24 left-1/2 -translate-x-1/2 z-[9998] bg-zinc-900 border border-zinc-700 rounded-lg shadow-xl px-4 py-3 flex items-center gap-3 max-w-[92vw]">
+          <span className="text-sm text-zinc-300 truncate">
+            Resume <span className="text-white font-medium">{decodeHtmlEntities(resumeSession.currentSong?.name)}</span>?
           </span>
           <button
             onClick={handleResumeSession}

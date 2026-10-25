@@ -2,7 +2,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useMemo, useState } from 'react'
 import { Play, ListPlus, Music, ArrowLeft, Users } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
-import { decodeBlendShare, getImageSrc, formatDuration } from '../utils'
+import { decodeBlendShare, decodeHtmlEntities, getImageSrc, formatDuration } from '../utils'
 import { slimSong } from '../utils/sync'
 import { usePlaylistStore } from '../stores/playlistStore'
 import { useAppAuth } from '../components/AuthGate'
@@ -151,8 +151,8 @@ export default function BlendView({ onSongClick, showToast, likedSongs }) {
                     : <Music size={14} className="text-zinc-600" />}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm text-zinc-200 truncate">{song.name || song.title}</div>
-                  <div className="text-xs text-zinc-500 truncate">{song.artist || song.artists?.primary?.[0]?.name || ''}</div>
+                  <div className="text-sm text-zinc-200 truncate">{decodeHtmlEntities(song.name || song.title)}</div>
+                  <div className="text-xs text-zinc-500 truncate">{decodeHtmlEntities(song.artist || song.artists?.primary?.[0]?.name || '')}</div>
                 </div>
                 {inCommon && (
                   <span className="text-[10px] font-semibold text-[#fc3c44] bg-[#fc3c44]/10 px-2 py-0.5 rounded-full shrink-0">IN COMMON</span>

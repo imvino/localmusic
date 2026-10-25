@@ -143,7 +143,7 @@ export default function LibraryView({ likedSongs, savedAlbums, followedArtists, 
                   iconSize={26}
                   fallback={Mic2}
                 />
-                <div className="text-xs font-medium text-white truncate w-full text-center group-hover:text-[#fc3c44] transition-colors">{artist.name}</div>
+                <div className="text-xs font-medium text-white truncate w-full text-center group-hover:text-[#fc3c44] transition-colors">{decodeHtmlEntities(artist.name)}</div>
               </button>
             ))}
           </div>
@@ -252,7 +252,7 @@ export default function LibraryView({ likedSongs, savedAlbums, followedArtists, 
                 iconSize={26}
                 fallback={Mic2}
               />
-              <div className="text-xs font-medium text-white truncate w-full text-center group-hover:text-[#fc3c44] transition-colors">{artist.name}</div>
+              <div className="text-xs font-medium text-white truncate w-full text-center group-hover:text-[#fc3c44] transition-colors">{decodeHtmlEntities(artist.name)}</div>
               <div className="text-[11px] text-zinc-500 -mt-1.5">{artist.count} albums</div>
             </button>
           ))}

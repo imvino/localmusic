@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { X, ArrowUp, ArrowDown, Trash2, ListX, Music, GripVertical } from 'lucide-react'
-import { getImageSrc } from '../utils'
+import { getImageSrc, decodeHtmlEntities } from '../utils'
 
 export default function QueueDrawer({ open, onClose, queue, queueIndex, shuffle, shuffleOrder, shufflePos = -1, isPlaying, onPlayAt, onRemoveAt, onMove, onMoveTo, onClear }) {
   const [dragPos, setDragPos] = useState(null)
@@ -37,8 +37,8 @@ export default function QueueDrawer({ open, onClose, queue, queueIndex, shuffle,
     const song = queue[queueIdx]
     if (!song) return null
     const isCurrent = queueIdx === queueIndex
-    const title = song.title || song.name || 'Unknown'
-    const artist = song.artist || song.artists?.primary?.[0]?.name || song.primaryArtists || ''
+    const title = decodeHtmlEntities(song.title || song.name || 'Unknown')
+    const artist = decodeHtmlEntities(song.artist || song.artists?.primary?.[0]?.name || song.primaryArtists || '')
     const art = getImageSrc(song.image) || song.imageUrl
     return (
       <div

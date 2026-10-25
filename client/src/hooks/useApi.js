@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
+import { deepDecodeEntities } from '../utils'
 
 const API_BASE = import.meta.env.VITE_API_URL
 const VERCEL_API_BASE = import.meta.env.VITE_VERCEL_API_URL
@@ -25,7 +26,10 @@ async function fetchAPI(endpoint, options = {}) {
   if (!response.ok) {
     throw new Error(`API error: ${response.status}`)
   }
-  return response.json()
+  // Decode HTML entities once at the boundary — upstream ships "&quot;" /
+  // "&amp;" inside nested name/artist/album strings; renderers then don't
+  // each need to remember to decode.
+  return deepDecodeEntities(await response.json())
 }
 
 // Detail endpoints

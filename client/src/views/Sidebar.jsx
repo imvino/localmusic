@@ -219,7 +219,7 @@ export default function Sidebar({ showToast, onClose, qualityPreference, onQuali
 
           {/* Sleep timer */}
           <div className="flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium text-zinc-400">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 whitespace-nowrap">
               <Timer size={17} className={sleepTimer ? 'text-[#fc3c44]' : ''} />
               <span className={sleepTimer ? 'text-white' : ''}>Sleep timer</span>
             </div>
@@ -257,7 +257,7 @@ export default function Sidebar({ showToast, onClose, qualityPreference, onQuali
             onClick={() => onSmoothTransitionsToggle?.(!smoothTransitions)}
             className="flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-left w-full text-zinc-400 hover:text-white hover:bg-zinc-800/40"
           >
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 whitespace-nowrap">
               <Waves size={17} />
               Smooth transitions
             </div>

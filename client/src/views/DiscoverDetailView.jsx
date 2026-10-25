@@ -489,7 +489,7 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
             </div>
           )}
         </div>
-        <div className="flex-1 min-w-0 text-center md:text-left">
+        <div className="flex-1 min-w-0 w-full text-center md:text-left">
           <div className="flex items-center justify-center md:justify-start gap-2 mb-2">
             <h1 className="text-2xl md:text-3xl font-bold text-white">{data?.name || meta?.name}</h1>
             
@@ -501,8 +501,9 @@ export default function DiscoverDetailView({ onSongClick, showToast, currentSong
             )}
           </p>
 
-          {/* Play / Shuffle */}
-          <div className="flex items-center justify-center md:justify-start gap-3 mb-4">
+          {/* Play / Shuffle — flex-wrap keeps 5 buttons on a small screen
+              instead of overflowing 90px off both edges */}
+          <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 mb-4">
             <button
               onClick={handlePlayAll}
               className="flex items-center gap-2 px-5 py-2.5 bg-[#fc3c44] hover:bg-[#e03239] text-white text-sm font-semibold rounded-full transition-colors touch-target"

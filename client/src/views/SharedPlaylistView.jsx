@@ -1,7 +1,7 @@
 import { useParams, useNavigate } from 'react-router-dom'
 import { useMemo, useState } from 'react'
 import { Play, ListPlus, Music, ArrowLeft } from 'lucide-react'
-import { decodePlaylistShare, getImageSrc, formatDuration } from '../utils'
+import { decodePlaylistShare, decodeHtmlEntities, getImageSrc, formatDuration } from '../utils'
 import { usePlaylistStore } from '../stores/playlistStore'
 import { useAppAuth } from '../components/AuthGate'
 
@@ -86,8 +86,8 @@ export default function SharedPlaylistView({ onSongClick, showToast }) {
               {getImageSrc(song.image) && <img src={getImageSrc(song.image)} alt="" className="w-full h-full object-cover" loading="lazy" />}
             </div>
             <div className="flex-1 min-w-0">
-              <div className="text-sm text-zinc-200 truncate">{song.name}</div>
-              <div className="text-xs text-zinc-500 truncate">{song.artist}</div>
+              <div className="text-sm text-zinc-200 truncate">{decodeHtmlEntities(song.name)}</div>
+              <div className="text-xs text-zinc-500 truncate">{decodeHtmlEntities(song.artist)}</div>
             </div>
             <span className="text-xs text-zinc-500 shrink-0 hidden sm:block">{formatDuration(song.duration)}</span>
           </button>

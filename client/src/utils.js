@@ -6,6 +6,29 @@ export function decodeHtmlEntities(text) {
   return textarea.value
 }
 
+// Pure-regex entity decoder — DOM-free so it can run on whole API payloads.
+// JioSaavn ships HTML-encoded strings ("(From &quot;Ramayana&quot;)") deep in
+// nested fields; decode once at the fetch boundary instead of every render.
+const NAMED_ENTITIES = { quot: '"', apos: "'", amp: '&', lt: '<', gt: '>', nbsp: ' ', copy: '©', reg: '®' }
+export function decodeEntities(str) {
+  if (!str || typeof str !== 'string' || str.indexOf('&') === -1) return str
+  return str.replace(/&(#x?[0-9a-fA-F]+|\w+);/g, (m, code) => {
+    if (code[0] === '#') {
+      const n = code[1] === 'x' || code[1] === 'X' ? parseInt(code.slice(2), 16) : parseInt(code.slice(1), 10)
+      return Number.isFinite(n) ? String.fromCodePoint(n) : m
+    }
+    return NAMED_ENTITIES[code.toLowerCase()] ?? m
+  })
+}
+
+// Recursively decode every string in an API payload (arrays + objects).
+export function deepDecodeEntities(node) {
+  if (typeof node === 'string') return decodeEntities(node)
+  if (Array.isArray(node)) { for (let i = 0; i < node.length; i++) node[i] = deepDecodeEntities(node[i]); return node }
+  if (node && typeof node === 'object') { for (const k of Object.keys(node)) node[k] = deepDecodeEntities(node[k]); return node }
+  return node
+}
+
 // Playlist share links — compact {v,n,s:[{i,n,a,d,m,l}]} → base64url in the URL
 // path, so a whole playlist travels as a link. Import rebuilds minimal song
 // objects that the player/store already understand (id + isLocal drive streams).
