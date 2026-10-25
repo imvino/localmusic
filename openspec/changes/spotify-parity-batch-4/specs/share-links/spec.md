@@ -36,15 +36,11 @@ client MUST prefer the resulting `/s/:code` URL for the share action.
 - **THEN** the row is removed and `/s/:code` returns not-found thereafter
 
 ### Requirement: Share page renders crawler-readable metadata
-`GET /s/:code` MUST return 200 server-rendered HTML containing `og:title`,
-`og:description`, and `og:image` absolute-URL meta tags in `<head>` —
-crawlers read head-only and never execute JavaScript. The same response MUST
-hand human visitors into the app's shared-playlist preview: a `<noscript>`
-preview/fallback for no-JS contexts plus a script redirect into the SPA's
-existing `/shared/:data` flow (the payload is embedded in the page). All
-user-derived strings in the rendered HTML MUST be escaped. A bare-302
-redirect MUST NOT be used (crawlers do not reliably re-scrape redirect
-hops).
+`GET /s/:code` MUST return 200 server-rendered HTML with `og:title`,
+`og:description`, and absolute-URL `og:image` meta tags in `<head>`, plus a
+`<noscript>` preview and a script redirect into the SPA's `/shared/:data`
+flow. All user-derived strings MUST be escaped, and a bare-302 redirect
+MUST NOT be used (crawlers do not reliably re-scrape redirect hops).
 
 #### Scenario: WhatsApp unfurls a card
 - **WHEN** a chat crawler fetches `/s/:code` with no JS execution
@@ -70,17 +66,12 @@ hops).
 - **THEN** a graceful not-found page is returned (no crash, no bare 500)
 
 ### Requirement: The art proxy cannot become an SSRF oracle
-The `/s/:code/art` proxy is public and fetches a client-influenced URL, so
-egress MUST be restricted at both boundaries with a three-way write-time
-rule applied to the first song's `m` field (the only URL the proxy will
-ever fetch):
-- `m` empty, absent, or relative (the encoder emits both legitimately) →
-  **accept**; the share uses the generated default card.
-- `m` absolute → MUST parse via a URL parser (never substring matching),
-  scheme MUST be `https`, and the parsed host MUST equal or be a subdomain
-  of `saavncdn.com` or `gaanacdn.com` — else the POST is rejected.
-- The proxy independently re-enforces https-only, no redirect-following,
-  a response size cap, and a per-IP rate limit on cache misses.
+The public `/s/:code/art` proxy fetches a client-influenced URL, so egress
+MUST be restricted at both boundaries: write-time validation of the first
+song's `m` (empty/relative → accept with default card; absolute → URL-parse,
+https-only, host equal-or-subdomain of `saavncdn.com`/`gaanacdn.com` else
+reject) and fetch-time re-enforcement (https-only, no redirects, size cap,
+per-IP miss rate limit).
 
 #### Scenario: Evil image URL is refused
 - **WHEN** a share payload carries `m: "http://169.254.169.254/x"`, a

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { X, ArrowUp, ArrowDown, Trash2, ListX, Music, GripVertical } from 'lucide-react'
+import { X, ArrowUp, ArrowDown, Trash2, ListX, Music, GripVertical, Sparkles } from 'lucide-react'
 import { getImageSrc, decodeHtmlEntities } from '../utils'
 
 export default function QueueDrawer({ open, onClose, queue, queueIndex, shuffle, shuffleOrder, shufflePos = -1, isPlaying, onPlayAt, onRemoveAt, onMove, onMoveTo, onClear }) {
@@ -67,8 +67,9 @@ export default function QueueDrawer({ open, onClose, queue, queueIndex, shuffle,
             )}
           </div>
           <div className="min-w-0">
-            <div className={`text-sm truncate ${isCurrent ? 'text-[#fc3c44] font-medium' : 'text-zinc-200'}`}>
-              {title}
+            <div className={`flex items-center gap-1.5 text-sm truncate ${isCurrent ? 'text-[#fc3c44] font-medium' : 'text-zinc-200'}`}>
+              <span className="truncate">{title}</span>
+              {song.injected && <Sparkles size={10} className="shrink-0 text-[#fc3c44]" title="Smart shuffle suggestion" />}
             </div>
             <div className="text-xs text-zinc-500 truncate">{artist}</div>
           </div>

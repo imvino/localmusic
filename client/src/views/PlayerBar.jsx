@@ -1,10 +1,10 @@
 import { useRef, useState } from 'react'
-import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, Shuffle, Repeat, Repeat1, Heart, Music, Loader2, ListVideo, Mic2, Maximize2, Cast } from 'lucide-react'
+import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, Shuffle, Repeat, Repeat1, Heart, Music, Loader2, ListVideo, Mic2, Maximize2, Cast, Sparkles } from 'lucide-react'
 import { Range, getTrackBackground } from 'react-range'
 import { formatTime, decodeHtmlEntities, getSongArtwork } from '../utils'
 import TrackMenu from '../components/TrackMenu'
 
-export default function PlayerBar({ currentSong, isPlaying, onTogglePlay, onPrev, onNext, volume, onVolumeChange, muted, onMuteToggle, shuffle, onShuffleToggle, repeat, onRepeatToggle, liked, onLikeToggle, currentTime, duration, onSeek, onArtworkClick, onQueueToggle, onLyricsToggle, isSearchingAlbum, isMobileMiniplayer = false, onOpenFullScreen = null, likedSongs, onPlayNext, onAddToQueue, onGoToAlbum, onSongRadio, onHideSong, onHideArtist, showToast, castAvailable = false, casting = false, onCastToggle }) {
+export default function PlayerBar({ currentSong, isPlaying, onTogglePlay, onPrev, onNext, volume, onVolumeChange, muted, onMuteToggle, shuffle, smartShuffle = false, onShuffleToggle, repeat, onRepeatToggle, liked, onLikeToggle, currentTime, duration, onSeek, onArtworkClick, onQueueToggle, onLyricsToggle, isSearchingAlbum, isMobileMiniplayer = false, onOpenFullScreen = null, likedSongs, onPlayNext, onAddToQueue, onGoToAlbum, onSongRadio, onHideSong, onHideArtist, showToast, castAvailable = false, casting = false, onCastToggle }) {
   const touch = useRef(null)
   // Scrub preview — seek commits once on release, not per drag frame
   const [dragT, setDragT] = useState(null)
@@ -151,8 +151,9 @@ export default function PlayerBar({ currentSong, isPlaying, onTogglePlay, onPrev
       {/* Controls */}
       <div className="flex-1 flex flex-col items-center gap-1.5 max-w-lg mx-auto">
         <div className="flex items-center gap-5 text-zinc-400">
-          <button onClick={onShuffleToggle} className={`transition-colors ${shuffle ? 'text-[#fc3c44]' : 'hover:text-white'}`} aria-label="Shuffle" title="Shuffle">
+          <button onClick={onShuffleToggle} className={`relative transition-colors ${shuffle ? 'text-[#fc3c44]' : 'hover:text-white'}`} aria-label="Shuffle" title={smartShuffle ? 'Smart shuffle (tap for off)' : shuffle ? 'Shuffle (tap for smart)' : 'Shuffle'}>
             <Shuffle size={15} />
+            {smartShuffle && <Sparkles size={8} className="absolute -top-1 -right-1.5 text-[#fc3c44]" />}
           </button>
           <button onClick={onPrev} className="hover:text-white transition-colors" aria-label="Previous track" title="Previous">
             <SkipBack size={20} className="fill-zinc-400 hover:fill-white" />

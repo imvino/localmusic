@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { Play, Pause, SkipBack, SkipForward, Shuffle, Repeat, Repeat1, Heart, Music, Loader2, ChevronDown, ListVideo, Mic2, Volume2, VolumeX, Timer, Cast } from 'lucide-react'
+import { Play, Pause, SkipBack, SkipForward, Shuffle, Repeat, Repeat1, Heart, Music, Loader2, ChevronDown, ListVideo, Mic2, Volume2, VolumeX, Timer, Cast, Sparkles } from 'lucide-react'
 import { formatTime, decodeHtmlEntities, getSongArtwork } from '../utils'
 import { getDominantColor } from '../utils/color'
 import { Range, getTrackBackground } from 'react-range'
@@ -12,7 +12,8 @@ export default function FullScreenPlayer({
   onTogglePlay, 
   onPrev, 
   onNext, 
-  shuffle, 
+  shuffle,
+  smartShuffle = false,
   onShuffleToggle, 
   repeat, 
   onRepeatToggle, 
@@ -228,11 +229,12 @@ export default function FullScreenPlayer({
           {/* Top Controls Row */}
           <div className="flex items-center justify-between w-full px-6">
             <button 
-              onClick={onShuffleToggle} 
-              className={`transition-colors ${shuffle ? 'text-[#fc3c44]' : 'text-zinc-400 hover:text-white'}`}
-              title="Shuffle"
+              onClick={onShuffleToggle}
+              className={`relative transition-colors ${shuffle ? 'text-[#fc3c44]' : 'text-zinc-400 hover:text-white'}`}
+              title={smartShuffle ? 'Smart shuffle (tap for off)' : shuffle ? 'Shuffle (tap for smart)' : 'Shuffle'}
             >
               <Shuffle size={20} />
+              {smartShuffle && <Sparkles size={10} className="absolute -top-1 -right-1.5 text-[#fc3c44]" />}
             </button>
             <button 
               onClick={onLikeToggle} 

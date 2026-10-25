@@ -1,8 +1,22 @@
 import { useParams, useNavigate } from 'react-router-dom'
 import { ArrowLeft, Play, Shuffle, Music, ArrowUp, ArrowDown, Trash2, Pencil, Share2, Search, X, ArrowUpDown, Check } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { usePlaylistStore } from '../stores/playlistStore'
-import { getImageSrc, formatDuration, encodePlaylistShare, haptic, decodeHtmlEntities } from '../utils'
+import { useAuth } from '@clerk/clerk-react'
+import { getImageSrc, formatDuration, encodePlaylistShare, buildPlaylistSharePayload, haptic, decodeHtmlEntities } from '../utils'
+
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3001'
+
+// last-created short-link code per playlist — client-local (codes are
+// per-owner anyway); powers the Unshare affordance without touching the
+// synced playlist schema.
+const SHARE_CODES_KEY = 'shareCodes'
+const readShareCodes = () => { try { return JSON.parse(localStorage.getItem(SHARE_CODES_KEY) || '{}') } catch { return {} } }
+const writeShareCode = (pid, code) => {
+  const m = readShareCodes()
+  if (code) m[pid] = code; else delete m[pid]
+  localStorage.setItem(SHARE_CODES_KEY, JSON.stringify(m))
+}
 import TrackMenu from '../components/TrackMenu'
 import BatchDownloadButton from '../components/BatchDownloadButton'
 import SwipeableRow from '../components/SwipeableRow'
@@ -40,6 +54,9 @@ export default function PlaylistDetailView({ onSongClick, onShufflePlay, onPlayN
   const [sortOpen, setSortOpen] = useState(false)
   const [dragIdx, setDragIdx] = useState(null)
   const [dropIdx, setDropIdx] = useState(null)
+  const { getToken } = useAuth()
+  const [shareCode, setShareCode] = useState(null)
+  useEffect(() => setShareCode(readShareCodes()[playlist?.id] || null), [playlist?.id])
 
   const finishDrag = () => {
     if (dragIdx != null && dropIdx != null && dropIdx !== dragIdx) {
@@ -123,8 +140,25 @@ export default function PlaylistDetailView({ onSongClick, onShufflePlay, onPlayN
                   }
                   if (remote.length > 100) showToast?.('Shared playlists are capped at 100 songs', 'warning')
                   if (!remote.length) { showToast?.('Nothing shareable — all songs are local files', 'error'); return }
-                  // Whole playlist travels inside the link — recipient previews/imports it
-                  const url = `${window.location.origin}/shared/${encodePlaylistShare(playlist.name, playlist.songs)}`
+                  // Prefer a server short link (crawler card); fall back to
+                  // the whole-playlist-in-URL payload when offline/unsigned.
+                  let url = `${window.location.origin}/shared/${encodePlaylistShare(playlist.name, playlist.songs)}`
+                  try {
+                    const token = await getToken()
+                    if (token) {
+                      const r = await fetch(`${API_BASE}/api/shares`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+                        body: JSON.stringify({ payload: buildPlaylistSharePayload(playlist.name, playlist.songs) })
+                      })
+                      const j = await r.json()
+                      if (j?.success && j.code) {
+                        url = `${window.location.origin}/s/${j.code}`
+                        writeShareCode(playlist.id, j.code)
+                        setShareCode(j.code)
+                      }
+                    }
+                  } catch { /* short link unavailable — payload URL still works */ }
                   try {
                     if (navigator.share) await navigator.share({ title: playlist.name, text: `Playlist: ${playlist.name}`, url })
                     else { await navigator.clipboard.writeText(url); showToast?.('Playlist link copied', 'success') }
@@ -134,6 +168,28 @@ export default function PlaylistDetailView({ onSongClick, onShufflePlay, onPlayN
               >
                 <Share2 size={16} /> Share
               </button>
+              {shareCode && (
+                <button
+                  onClick={async () => {
+                    haptic()
+                    try {
+                      const token = await getToken()
+                      if (token) {
+                        await fetch(`${API_BASE}/api/shares/${shareCode}`, {
+                          method: 'DELETE', headers: { Authorization: `Bearer ${token}` }
+                        })
+                      }
+                    } catch { /* best effort */ }
+                    writeShareCode(playlist.id, null)
+                    setShareCode(null)
+                    showToast?.('Shared link removed', 'success')
+                  }}
+                  className="px-3 py-2.5 text-xs text-zinc-500 hover:text-red-400 transition-colors touch-target"
+                  title="Delete the shared short link — anyone with it loses access"
+                >
+                  Unshare
+                </button>
+              )}
             </div>
           )}
         </div>

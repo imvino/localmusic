@@ -32,10 +32,10 @@ export function deepDecodeEntities(node) {
 // Playlist share links — compact {v,n,s:[{i,n,a,d,m,l}]} → base64url in the URL
 // path, so a whole playlist travels as a link. Import rebuilds minimal song
 // objects that the player/store already understand (id + isLocal drive streams).
-export function encodePlaylistShare(name, songs) {
+export function buildPlaylistSharePayload(name, songs) {
   const all = (songs || []).filter(s => s.i || s.id)
   const localCount = all.filter(s => s.isLocal).length
-  const payload = {
+  return {
     v: 1, n: name,
     // local files can't play on anyone else's server — don't ship them
     lc: localCount || undefined,
@@ -47,6 +47,10 @@ export function encodePlaylistShare(name, songs) {
       m: getBestImageUrl(s.image) || s.imageUrl || ''
     })).filter(s => s.i)
   }
+}
+
+export function encodePlaylistShare(name, songs) {
+  const payload = buildPlaylistSharePayload(name, songs)
   return btoa(unescape(encodeURIComponent(JSON.stringify(payload))))
     .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
 }

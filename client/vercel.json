@@ -59,6 +59,30 @@
       "destination": "https://torsongs.onrender.com/api/trending-youtube"
     },
     {
+      "source": "/s/:path*",
+      "destination": "https://torsongs.onrender.com/s/:path*"
+    },
+    {
+      "source": "/api/shares/:path*",
+      "destination": "https://torsongs.onrender.com/api/shares/:path*"
+    },
+    {
+      "source": "/api/play-events",
+      "destination": "https://torsongs.onrender.com/api/play-events"
+    },
+    {
+      "source": "/api/log-error",
+      "destination": "https://torsongs.onrender.com/api/log-error"
+    },
+    {
+      "source": "/api/moods/:path*",
+      "destination": "https://torsongs.onrender.com/api/moods/:path*"
+    },
+    {
+      "source": "/api/admin/:path*",
+      "destination": "https://torsongs.onrender.com/api/admin/:path*"
+    },
+    {
       "source": "/discover/:path*",
       "destination": "/index.html"
     },

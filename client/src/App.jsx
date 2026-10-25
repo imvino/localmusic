@@ -123,6 +123,7 @@ function AppContent() {
   const [shuffle, setShuffle] = useState(false)
   const [shuffleOrder, setShuffleOrder] = useState([])
   const [shufflePos, setShufflePos] = useState(0)
+  const [smartShuffle, setSmartShuffle] = useState(() => localStorage.getItem('smartShuffle') === 'on')
   const [repeat, setRepeat] = useState('off') // 'off' | 'all' | 'one'
   const [queue, setQueue] = useState([])
   const [queueIndex, setQueueIndex] = useState(-1)
@@ -207,6 +208,7 @@ function AppContent() {
   // the song, whichever is shorter). countedPlayRef holds the song id once
   // counted so resume/re-buffer/xfade-commit never double-count.
   const countedPlayRef = useRef(null)
+  const playSessionIdRef = useRef(null) // session-scoped id for play-event adjacency
   // Offline awareness — navigator.onLine + the health-check signal
   const [isOnline, setIsOnline] = useState(() => navigator.onLine !== false)
 
@@ -784,11 +786,41 @@ function AppContent() {
   // Record play history + counts — shared by the primary 'playing' handler
   // and the crossfade commit (the incoming element's 'playing' fires before
   // listeners rebind to it, so the commit must record the play itself).
+  // ─── Play events (server capture for future co-play mining) ───
+  // Session-scoped id enables "played X near Y" adjacency. Buffer flushes
+  // piggyback on the next play's send — bounded 200, overflow discards.
+  if (!playSessionIdRef.current) {
+    playSessionIdRef.current = (crypto.randomUUID?.() || `s${Date.now()}`)
+  }
+  const emitPlayEvent = (s) => {
+    if (!isSignedIn) return // guests emit nothing — no call is made
+    const bufKey = 'playEventBuffer'
+    const buf = readKey(bufKey, []).map(e => ({ ...e, buffered: true }))
+    const events = [...buf, { songId: String(s.id), artist: s.artist || '', sessionId: playSessionIdRef.current }].slice(0, 200)
+    ;(async () => {
+      try {
+        const token = await getToken()
+        if (!token) throw 0
+        const res = await fetch(`${API_BASE}/api/play-events`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ events })
+        })
+        const j = await res.json().catch(() => ({}))
+        if (!res.ok || !j.success) throw 0
+        localStorage.removeItem(bufKey)
+      } catch {
+        localStorage.setItem(bufKey, JSON.stringify(events.slice(0, 200))) // drop overflow on repeated failure
+      }
+    })()
+  }
+
   const recordPlayStats = (s, dur) => {
     if (!s?.id) return
     if (countedPlayRef.current === s.id) return // already counted this listen
     if (privateSessionRef.current) return // private session — record nothing
     countedPlayRef.current = s.id
+    emitPlayEvent(s) // fire-and-forget — never blocks or throws into playback
     try {
       const pc = readKey('playCounts', {})
       const prevPc = pc[s.id] || {}
@@ -1508,13 +1540,86 @@ function AppContent() {
     return repeat === 'all' ? 0 : null
   }
 
+  // Smart shuffle — persisted pref; shuffle button cycles off → on → smart → off.
+  // Inject uses append-to-queue + splice-indices-into-shuffleOrder (the
+  // handlePlayNext pattern — mid-list queue inserts corrupt the permutation).
+  const injectSmartSongs = async (seedSongs) => {
+    const epoch = queueEpochRef.current
+    const seeds = (seedSongs || []).filter(s => s?.id).slice(0, 3)
+    if (!seeds.length) return
+    const lists = await Promise.all(seeds.map(s => fetchSuggestions(s.id)))
+    if (queueEpochRef.current !== epoch) return // queue changed mid-fetch
+    const { queue: q, shuffle: sh, shuffleOrder: so, shufflePos: sp } = liveQueueRef.current
+    if (!q.length) return
+    // Repeatedly-skipped songs never inject — this filter is net-new (the
+    // pickSuggestions funnel itself has no skipCounts handling).
+    let sk = {}
+    try { sk = JSON.parse(localStorage.getItem('skipCounts') || '{}') } catch {}
+    const picked = pickSuggestions(lists.flat(), q)
+      .filter(s => (sk[s.id]?.count || 0) < 2)
+      .map(s => ({ ...s, injected: true }))
+    // Per-artist spacing cap (≤2 each) — no suggestion echo-chamber.
+    const counts = new Map()
+    const capped = picked.filter(s => {
+      const k = normalizeArtistName(s.artist || s.artists?.primary?.[0]?.name || s.primaryArtists || '')
+      const n = counts.get(k) || 0
+      if (n >= 2) return false
+      counts.set(k, n + 1); return true
+    })
+    // ~1 injected per 6 own-songs, ≤25% of the resulting queue
+    const target = Math.min(capped.length, Math.max(1, Math.ceil(q.length * 0.25)), Math.ceil(q.length / 6) + 3)
+    const inject = capped.slice(0, target)
+    if (!inject.length) return
+    queueEpochRef.current++
+    const base = q.length
+    setQueue([...q, ...inject])
+    if (sh && so.length > 0) {
+      const newOrder = [...so]
+      let ins = sp + 6, j = 0
+      while (j < inject.length && ins <= newOrder.length) {
+        newOrder.splice(ins, 0, base + j); j++; ins += 6
+      }
+      while (j < inject.length) { newOrder.push(base + j); j++ } // overflow appends
+      setShuffleOrder(newOrder)
+    }
+  }
+
+  // Turn-off: remove unplayed injected entries (current injected song keeps
+  // playing), remap queueIndex + permutation, invalidate in-flight commits.
+  const stripInjected = () => {
+    const newIdxOf = new Map()
+    const newQueue = []
+    queue.forEach((s, i) => {
+      if (!s?.injected || i === queueIndex) { newIdxOf.set(i, newQueue.length); newQueue.push(s) }
+    })
+    if (newQueue.length === queue.length) return
+    queueEpochRef.current++
+    setQueue(newQueue)
+    setQueueIndex(newIdxOf.get(queueIndex) ?? -1)
+    if (shuffleOrder.length > 0) {
+      const newOrder = shuffleOrder.filter(i => newIdxOf.has(i)).map(i => newIdxOf.get(i))
+      setShuffleOrder(newOrder)
+      setShufflePos(Math.max(0, newOrder.indexOf(newIdxOf.get(queueIndex))))
+    }
+  }
+
   const handleShuffleToggle = () => {
     if (!shuffle) {
       // Enable: build permutation anchored on the current song
       setShuffleOrder(queue.length > 0 ? buildShuffleOrder(queue.length, Math.max(queueIndex, 0)) : [])
       setShufflePos(0)
       setShuffle(true)
+    } else if (!smartShuffle) {
+      // on → smart: inject suggestions into the live permutation
+      setSmartShuffle(true)
+      localStorage.setItem('smartShuffle', 'on')
+      injectSmartSongs(queue.slice(Math.max(0, queueIndex), queueIndex + 6))
+      showToastMessage('Smart shuffle — suggestions mixed in', 'success')
     } else {
+      // smart → off: strip injected songs, back to ordered queue
+      setSmartShuffle(false)
+      localStorage.setItem('smartShuffle', 'off')
+      stripInjected()
       setShuffle(false)
       setShuffleOrder([])
       setShufflePos(0)
@@ -1711,6 +1816,7 @@ function AppContent() {
     const startIdx = Math.floor(Math.random() * playable.length)
     setShuffle(true)
     handleSongSelect(playable[startIdx], playable, startIdx, true)
+    if (smartShuffle) injectSmartSongs(playable.slice(0, 6))
   }
 
   const handleGoToAlbum = (song) => {
@@ -2591,6 +2697,7 @@ function AppContent() {
             muted={muted}
             onMuteToggle={handleMuteToggle}
             shuffle={shuffle}
+            smartShuffle={smartShuffle}
             onShuffleToggle={handleShuffleToggle}
             repeat={repeat}
             onRepeatToggle={() => setRepeat(r => repeatCycle(r))}
@@ -2631,6 +2738,7 @@ function AppContent() {
             muted={muted}
             onMuteToggle={handleMuteToggle}
             shuffle={shuffle}
+            smartShuffle={smartShuffle}
             onShuffleToggle={handleShuffleToggle}
             repeat={repeat}
             onRepeatToggle={() => setRepeat(r => repeatCycle(r))}
@@ -2693,6 +2801,7 @@ function AppContent() {
           onPrev={handlePrev}
           onNext={handleNext}
           shuffle={shuffle}
+          smartShuffle={smartShuffle}
           onShuffleToggle={handleShuffleToggle}
           repeat={repeat}
           onRepeatToggle={() => setRepeat(r => repeatCycle(r))}

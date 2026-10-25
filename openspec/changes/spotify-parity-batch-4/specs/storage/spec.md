@@ -1,8 +1,5 @@
 # Spec Delta — storage (modified)
 
-*Applies on top of the batch-3 `storage` spec, which this change also
-archives into `openspec/specs/` as part of its verification gate.*
-
 ## ADDED Requirements
 
 ### Requirement: Durable tables for shares, play events, and client errors

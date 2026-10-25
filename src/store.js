@@ -63,7 +63,14 @@ const jsonBackend = {
     } catch (e) {
       console.error('store.all(json) error:', e.message);
     }
-  }
+  },
+  // batch-4 features degrade to explicit unavailability under the fallback
+  createShare() { throw new Error('storage unavailable') },
+  getShare() { return null },
+  deleteShare() { return false },
+  addPlayEvent() { throw new Error('storage unavailable') },
+  addClientError() { throw new Error('storage unavailable') },
+  listClientErrors() { return [] }
 };
 
 // ─── SQLite backend ─────────────────────────────────────────────────────────
@@ -77,12 +84,71 @@ function makeSqliteBackend() {
     doc     TEXT NOT NULL,
     ts      INTEGER NOT NULL
   )`);
+  // batch-4 tables — created idempotently alongside users
+  db.exec(`CREATE TABLE IF NOT EXISTS shares (
+    code       TEXT PRIMARY KEY,
+    payload    TEXT NOT NULL,
+    owner_id   TEXT NOT NULL,
+    owner_name TEXT,
+    created_at INTEGER NOT NULL,
+    expires_at INTEGER NOT NULL
+  )`);
+  db.exec(`CREATE TABLE IF NOT EXISTS play_events (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id    TEXT NOT NULL,
+    song_id    TEXT NOT NULL,
+    artist_key TEXT,
+    played_at  INTEGER NOT NULL,
+    session_id TEXT,
+    shared     INTEGER NOT NULL DEFAULT 1,
+    buffered   INTEGER NOT NULL DEFAULT 0
+  )`);
+  db.exec(`CREATE INDEX IF NOT EXISTS idx_events_user_time ON play_events(user_id, played_at)`);
+  db.exec(`CREATE TABLE IF NOT EXISTS client_errors (
+    signature   TEXT PRIMARY KEY,
+    user_id     TEXT,
+    message     TEXT,
+    stack       TEXT,
+    route       TEXT,
+    user_agent  TEXT,
+    app_version TEXT,
+    count       INTEGER NOT NULL DEFAULT 1,
+    first_seen  INTEGER NOT NULL,
+    last_seen   INTEGER NOT NULL
+  )`);
+
+  const SHARE_TTL_MS = 90 * 24 * 60 * 60 * 1000;         // 90 days
+  const EVENT_TTL_MS = 365 * 24 * 60 * 60 * 1000;        // 12 months
+  const EVENT_CAP_PER_USER = 2000;
+  const ERROR_ROW_CAP = 1000;
+
   const getStmt = db.prepare('SELECT doc FROM users WHERE user_id = ?');
   const getTsStmt = db.prepare('SELECT ts FROM users WHERE user_id = ?');
   const upsertStmt = db.prepare(`INSERT INTO users (user_id, doc, ts)
     VALUES (@id, @doc, @ts)
     ON CONFLICT(user_id) DO UPDATE SET doc = @doc, ts = @ts`);
   const allStmt = db.prepare('SELECT user_id, doc FROM users');
+
+  // shares
+  const insShareStmt = db.prepare(`INSERT INTO shares (code, payload, owner_id, owner_name, created_at, expires_at)
+    VALUES (@code, @payload, @ownerId, @ownerName, @now, @exp)`);
+  const getShareStmt = db.prepare('SELECT payload, owner_name, expires_at FROM shares WHERE code = ?');
+  const delShareStmt = db.prepare('DELETE FROM shares WHERE code = ? AND owner_id = ?');
+  const sweepSharesStmt = db.prepare('DELETE FROM shares WHERE expires_at < ?');
+  // play events
+  const insEventStmt = db.prepare(`INSERT INTO play_events (user_id, song_id, artist_key, played_at, session_id, shared, buffered)
+    VALUES (@uid, @sid, @akey, @ts, @sess, @shared, @buf)`);
+  const sweepEventsStmt = db.prepare('DELETE FROM play_events WHERE played_at < ?');
+  const capEventsStmt = db.prepare(`DELETE FROM play_events WHERE user_id = ? AND id NOT IN (
+    SELECT id FROM play_events WHERE user_id = ? ORDER BY played_at DESC LIMIT ?)`);
+  // client errors — dedup by signature
+  const upsertErrStmt = db.prepare(`INSERT INTO client_errors
+    (signature, user_id, message, stack, route, user_agent, app_version, count, first_seen, last_seen)
+    VALUES (@sig, @uid, @msg, @stk, @route, @ua, @ver, 1, @now, @now)
+    ON CONFLICT(signature) DO UPDATE SET count = count + 1, last_seen = @now, user_id = @uid`);
+  const capErrorsStmt = db.prepare(`DELETE FROM client_errors WHERE signature NOT IN (
+    SELECT signature FROM client_errors ORDER BY last_seen DESC LIMIT ?)`);
+  const listErrStmt = db.prepare('SELECT * FROM client_errors ORDER BY count DESC, last_seen DESC LIMIT ?');
 
   const backend = {
     name: 'sqlite',
@@ -115,6 +181,34 @@ function makeSqliteBackend() {
     _getTs(userId) {
       const row = getTsStmt.get(userId);
       return row ? row.ts : null;
+    },
+    // ─── batch-4 accessors (retention swept on write) ───
+    createShare({ code, payload, ownerId, ownerName }) {
+      const now = Date.now();
+      sweepSharesStmt.run(now);
+      insShareStmt.run({ code, payload, ownerId, ownerName, now, exp: now + SHARE_TTL_MS });
+    },
+    getShare(code) {
+      const row = getShareStmt.get(code);
+      if (!row || row.expires_at < Date.now()) return null;
+      return row;
+    },
+    deleteShare(code, ownerId) {
+      return delShareStmt.run(code, ownerId).changes > 0;
+    },
+    addPlayEvent({ userId, songId, artistKey, sessionId, shared, buffered }) {
+      insEventStmt.run({ uid: userId, sid: songId, akey: artistKey || null,
+        ts: Date.now(), sess: sessionId || null, shared: shared ? 1 : 0, buf: buffered ? 1 : 0 });
+      sweepEventsStmt.run(Date.now() - EVENT_TTL_MS);
+      capEventsStmt.run(userId, userId, EVENT_CAP_PER_USER);
+    },
+    addClientError({ signature, userId, message, stack, route, userAgent, appVersion }) {
+      upsertErrStmt.run({ sig: signature, uid: userId || null, msg: message, stk: stack,
+        route: route || null, ua: userAgent || null, ver: appVersion || null, now: Date.now() });
+      capErrorsStmt.run(ERROR_ROW_CAP);
+    },
+    listClientErrors(limit = 50) {
+      return listErrStmt.all(limit);
     }
   };
 

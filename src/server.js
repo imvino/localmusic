@@ -11,7 +11,7 @@ const { WebSocketServer } = require('ws');
 const store = require('./store'); // runs JSON→sqlite migration at require time
 const { decodeHtmlEntities, loadLibrary: loadLibraryUtil, detectComposerFromSongs, getBestImage, fetchFromMusicServiceOfficial, fetchWithFallback, generateJioSaavnAuthToken, generateJioSaavnAuthUrls } = require('./utils');
 const { PRIMARY_API, FALLBACK_API } = require('./constants');
-const { createClerkClient } = require('@clerk/backend');
+const { createClerkClient, verifyToken } = require('@clerk/backend');
 const Fuse = require('fuse.js');
 
 // Clerk client for session verification — sync endpoints require a valid
@@ -185,7 +185,7 @@ async function requireUser(req, res, next) {
     const header = req.headers.authorization || '';
     const token = header.startsWith('Bearer ') ? header.slice(7) : null;
     if (!token) return res.status(401).json({ success: false, error: 'Missing session token' });
-    const payload = await clerkClient.verifyToken(token);
+    const payload = await verifyToken(token, { secretKey: process.env.CLERK_SECRET_KEY });
     if (!payload?.sub) return res.status(401).json({ success: false, error: 'Invalid session' });
     req.userId = payload.sub;
     next();
@@ -3652,7 +3652,7 @@ wss.on('connection', (ws) => {
     if (!ws.authed) {
       if (msg?.type !== 'auth' || !msg?.token || !clerkClient) return ws.close(4001, 'auth required');
       try {
-        const payload = await clerkClient.verifyToken(msg.token);
+        const payload = await verifyToken(msg.token, { secretKey: process.env.CLERK_SECRET_KEY });
         if (!payload?.sub) throw new Error('no sub');
         ws.authed = true;
         ws.userId = payload.sub;
@@ -3690,6 +3690,240 @@ wss.on('connection', (ws) => {
     clearTimeout(authTimeout);
     if (ws.authed && presence.delete(`${ws.userId}#${ws.connId}`)) broadcastPresence();
   });
+});
+
+// ─── batch-4: share links, play events, client errors ───────────────────────
+
+const crypto = require('crypto');
+
+const escHtml = (s) => String(s ?? '')
+  .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+  .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+
+// SSRF guard — the only hosts the public art proxy may ever fetch.
+function isAllowedArtHost(u) {
+  try {
+    const url = new URL(u);
+    if (url.protocol !== 'https:') return false;
+    const h = url.hostname.toLowerCase();
+    return h === 'saavncdn.com' || h.endsWith('.saavncdn.com') ||
+           h === 'gaanacdn.com' || h.endsWith('.gaanacdn.com');
+  } catch { return false }
+}
+const SHARE_PAYLOAD_CAP = 40 * 1024; // ~40KB — a full 100-song share measures ~26KB
+
+function validateSharePayload(p) {
+  if (!p || p.v !== 1 || typeof p.n !== 'string' || !p.n.trim() || p.n.length > 200) return 'bad playlist';
+  if (!Array.isArray(p.s) || !p.s.length || p.s.length > 100) return 'bad song list';
+  if (JSON.stringify(p).length > SHARE_PAYLOAD_CAP) return 'playlist too large';
+  for (const s of p.s) {
+    if (!s || typeof s.i === 'undefined') return 'bad song entry';
+  }
+  // First song's `m` is the only URL the art proxy fetches — validate it
+  // here (empty/relative → default card; absolute → allowlist or reject).
+  const m = p.s[0]?.m;
+  if (m && typeof m === 'string' && !m.startsWith('/') && !isAllowedArtHost(m)) return 'bad image url';
+  return null;
+}
+
+const shareCode = () => crypto.randomBytes(9).toString('base64url'); // 72 bits, unguessable
+
+app.post('/api/shares', requireUser, async (req, res) => {
+  try {
+    const payload = req.body?.payload;
+    const err = validateSharePayload(payload);
+    if (err) return res.status(400).json({ success: false, error: err });
+    const code = shareCode();
+    let ownerName = null;
+    try { ownerName = await memberDisplayName(req.userId) } catch {}
+    store.createShare({ code, payload: JSON.stringify(payload), ownerId: req.userId, ownerName });
+    res.json({ success: true, code });
+  } catch (e) {
+    const status = e.message === 'storage unavailable' ? 503 : 500;
+    res.status(status).json({ success: false, error: e.message });
+  }
+});
+
+app.delete('/api/shares/:code', requireUser, (req, res) => {
+  try {
+    const ok = store.deleteShare(String(req.params.code), req.userId);
+    res.json({ success: ok });
+  } catch { res.status(503).json({ success: false, error: 'storage unavailable' }) }
+});
+
+function publicOrigin(req) {
+  const proto = (req.headers['x-forwarded-proto'] || req.protocol || 'https').split(',')[0].trim();
+  return `${proto}://${req.get('host')}`;
+}
+
+const shareNotFoundHtml = `<!doctype html><html><head><meta charset="utf-8"><title>Torsongs</title></head>
+<body style="font-family:system-ui;background:#121212;color:#fff;display:flex;min-height:100vh;align-items:center;justify-content:center">
+<div><h1>Playlist not found</h1><p>This shared playlist expired or was removed.</p></div></body></html>`;
+
+app.get('/s/:code', (req, res) => {
+  let share = null;
+  try { share = store.getShare(String(req.params.code)) } catch { share = null }
+  if (!share) return res.status(404).send(shareNotFoundHtml);
+  let payload;
+  try { payload = JSON.parse(share.payload) } catch { return res.status(404).send(shareNotFoundHtml) }
+  const origin = publicOrigin(req);
+  const name = escHtml(payload.n);
+  const desc = escHtml(`${payload.s.length} songs · shared by ${share.owner_name || 'a member'} · Torsongs`);
+  const artUrl = `${origin}/s/${encodeURIComponent(req.params.code)}/art`;
+  const b64 = Buffer.from(share.payload, 'utf8').toString('base64url');
+  const target = `${origin}/shared/${b64}`;
+  res.set('Cache-Control', 'public, max-age=300');
+  res.send(`<!doctype html><html><head><meta charset="utf-8">
+<title>${name} — Torsongs</title>
+<meta property="og:title" content="${name}">
+<meta property="og:description" content="${desc}">
+<meta property="og:image" content="${artUrl}">
+<meta property="og:type" content="music.playlist">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="${name}">
+<meta name="twitter:description" content="${desc}">
+<meta name="twitter:image" content="${artUrl}">
+<script>location.replace(${JSON.stringify(target)})</script>
+</head><body style="font-family:system-ui;background:#121212;color:#fff;display:flex;min-height:100vh;align-items:center;justify-content:center">
+<noscript><div><h1>${name}</h1><p>${desc}</p><p><a style="color:#1db954" href="${escHtml(target)}">Open playlist</a> (requires JavaScript)</p></div></noscript>
+<div><h1>${name}</h1><p>${desc}</p></div>
+</body></html>`);
+});
+
+const DEFAULT_CARD_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630"><rect width="1200" height="630" fill="#121212"/><circle cx="600" cy="270" r="110" fill="#1db954"/><text x="600" y="530" font-family="system-ui" font-size="72" fill="#ffffff" text-anchor="middle">Torsongs</text></svg>`;
+
+app.get('/s/:code/art', async (req, res) => {
+  if (rateLimited(`art:${req.ip}`, 30)) {
+    return res.status(429).set('Content-Type', 'image/svg+xml').send(DEFAULT_CARD_SVG);
+  }
+  const sendDefault = () => res.set({ 'Content-Type': 'image/svg+xml', 'Cache-Control': 'public, max-age=3600' }).send(DEFAULT_CARD_SVG);
+  let share = null;
+  try { share = store.getShare(String(req.params.code)) } catch { return sendDefault() }
+  if (!share) return sendDefault();
+  let m;
+  try { m = JSON.parse(share.payload).s?.[0]?.m } catch { return sendDefault() }
+  if (!m || typeof m !== 'string' || !isAllowedArtHost(m)) return sendDefault();
+  try {
+    const r = await axios.get(m, {
+      responseType: 'arraybuffer', timeout: 6000,
+      maxRedirects: 0, // never chase redirects off the allowlisted host
+      maxContentLength: 2 * 1024 * 1024,
+      validateStatus: s => s === 200
+    });
+    const ct = String(r.headers['content-type'] || '');
+    if (!ct.startsWith('image/')) return sendDefault();
+    res.set({ 'Content-Type': ct, 'Cache-Control': 'public, max-age=86400' }).send(Buffer.from(r.data));
+  } catch { sendDefault() }
+});
+
+// Play events — threshold-qualified listens. `shared` is server-derived from
+// the member's own doc (privacy flags are never client-declared).
+app.post('/api/play-events', requireUser, (req, res) => {
+  try {
+    const body = req.body || {};
+    const events = Array.isArray(body.events) ? body.events.slice(0, 50) : [body];
+    const doc = loadUserData(req.userId) || {};
+    const shared = doc.shareActivity === true;
+    let wrote = 0;
+    for (const ev of events) {
+      const songId = String(ev?.songId || ev?.id || '').slice(0, 200);
+      if (!songId) continue;
+      store.addPlayEvent({
+        userId: req.userId, songId,
+        artistKey: String(ev?.artist || '').slice(0, 200).toLowerCase() || null,
+        sessionId: String(ev?.sessionId || '').slice(0, 100) || null,
+        shared, buffered: ev?.buffered === true
+      });
+      wrote++;
+    }
+    res.json({ success: true, wrote });
+  } catch (e) {
+    const status = e.message === 'storage unavailable' ? 503 : 500;
+    res.status(status).json({ success: false, error: e.message });
+  }
+});
+
+// Client error reporting — unauthenticated (crash loops can't sign in) but
+// tightly rate-limited; allowlisted fields only; dedup by signature.
+app.post('/api/log-error', async (req, res) => {
+  try {
+    if (rateLimited(`err:${req.ip}`, 10)) {
+      return res.status(429).json({ success: false, error: 'Rate limited' });
+    }
+    const b = req.body || {};
+    const message = String(b.message || '').slice(0, 1000);
+    if (!message) return res.status(400).json({ success: false, error: 'empty' });
+    const stack = String(b.stack || '').slice(0, 4000);
+    const signature = crypto.createHash('sha256')
+      .update(message + '|' + stack.split('\n')[1]?.trim().slice(0, 300))
+      .digest('hex').slice(0, 32);
+    let userId = null;
+    const header = req.headers.authorization || '';
+    if (header.startsWith('Bearer ') && clerkClient) {
+      try { userId = (await verifyToken(header.slice(7), { secretKey: process.env.CLERK_SECRET_KEY }))?.sub || null } catch {}
+    }
+    store.addClientError({
+      signature, userId, message, stack,
+      route: String(b.route || '').slice(0, 200),
+      userAgent: String(req.headers['user-agent'] || '').slice(0, 300),
+      appVersion: String(b.appVersion || '').slice(0, 50)
+    });
+    res.json({ success: true });
+  } catch (e) {
+    const status = e.message === 'storage unavailable' ? 503 : 500;
+    res.status(status).json({ success: false, error: e.message });
+  }
+});
+
+// Editorial mood channels — upstream moods endpoint with failover, curated
+// Tamil-weighted fallback when unreachable. Each mood carries a search
+// `query` — channels have no playable-songs endpoint on the mirrors, so
+// mood content resolves through the existing search funnel.
+const CURATED_MOODS = [
+  { id: 'melody',     name: 'Melody',     query: 'tamil melody songs' },
+  { id: 'kuthu',      name: 'Kuthu',      query: 'kuthu songs tamil' },
+  { id: 'romance',    name: 'Romance',    query: 'tamil love songs' },
+  { id: 'sad',        name: 'Sad',        query: 'tamil sad songs' },
+  { id: 'retro',      name: 'Retro',      query: 'ilayaraja hits' },
+  { id: 'devotional', name: 'Devotional', query: 'tamil devotional songs' },
+  { id: 'workout',    name: 'Workout',    query: 'tamil dance hits' },
+  { id: 'chill',      name: 'Chill',      query: 'tamil chill songs' }
+];
+let moodsCache = { at: 0, data: null };
+app.get('/api/moods', async (req, res) => {
+  if (moodsCache.data && Date.now() - moodsCache.at < 24 * 60 * 60 * 1000) {
+    return res.json({ success: true, data: moodsCache.data });
+  }
+  for (const base of [PRIMARY_API, FALLBACK_API]) {
+    try {
+      const r = await axios.get(`${base}/moods`, {
+        params: { limit: 15 }, timeout: 6000, headers: { 'User-Agent': 'Mozilla/5.0' }
+      });
+      const results = r.data?.data?.results;
+      if (Array.isArray(results) && results.length) {
+        const data = results.map(m => ({
+          id: String(m.id),
+          name: decodeHtmlEntities(String(m.name || '')),
+          image: m.image?.[m.image.length - 1]?.url || null,
+          query: String(m.name || '')
+        })).filter(m => m.name);
+        moodsCache = { at: Date.now(), data };
+        return res.json({ success: true, data });
+      }
+    } catch (e) {
+      console.log(`moods via ${base} failed:`, e.message);
+    }
+  }
+  res.json({ success: true, data: CURATED_MOODS, fallback: true });
+});
+
+const ADMIN_USER_IDS = new Set((process.env.ADMIN_USER_IDS || '').split(',').map(s => s.trim()).filter(Boolean));
+app.get('/api/admin/errors', requireUser, (req, res) => {
+  if (!ADMIN_USER_IDS.has(req.userId)) {
+    return res.status(403).json({ success: false, error: 'Not an admin' });
+  }
+  try { res.json({ success: true, data: store.listClientErrors(100) }) }
+  catch { res.status(503).json({ success: false, error: 'storage unavailable' }) }
 });
 
 // Drop entries idle >90s — heartbeat cadence is 45s so a mid-song member is

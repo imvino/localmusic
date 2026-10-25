@@ -7,6 +7,7 @@ import HorizontalScroll from '../components/HorizontalScroll'
 import TrackMenu from '../components/TrackMenu'
 import { decodeHtmlEntities, getBestImageUrl, getImageSrc } from '../utils'
 import { normalizeArtistName, isContentBlocked, slimSong } from '../utils/sync'
+import { capPerArtist, buildMixBuckets, assembleDailyMix } from '../utils/dailyMix'
 import { useJioFeaturedPlaylists, useJioNewReleases, useCharts, useTrending, useNewReleaseAlbums, useSongSuggestions } from '../hooks/useApi'
 import { useArtistConfig } from '../artist-config'
 import { useAppAuth } from '../components/AuthGate'
@@ -24,18 +25,6 @@ function isoWeekId(d = new Date()) {
   firstThu.setUTCDate(firstThu.getUTCDate() - fday + 3)
   const week = 1 + Math.round((dt - firstThu) / (7 * 24 * 3600 * 1000))
   return `${dt.getUTCFullYear()}-W${String(week).padStart(2, '0')}`
-}
-
-// Max N songs per artist — keeps the mix varied like Spotify's daily mixes
-const capPerArtist = (songs, max = 3) => {
-  const counts = new Map()
-  return songs.filter(s => {
-    const k = normalizeArtistName(s.artist || s.artists?.primary?.[0]?.name || s.primaryArtists || '')
-    const n = counts.get(k) || 0
-    if (n >= max) return false
-    counts.set(k, n + 1)
-    return true
-  })
 }
 
 const API_BASE = import.meta.env.VITE_API_URL
@@ -77,7 +66,7 @@ export default function DiscoverView({ onSongClick, showToast, likedSongs, onLik
   const railPass = (item) => {
     if (!blockCtx) return true
     if (isContentBlocked(item, blockCtx)) return false
-    const names = (item?.artists || [])
+    const names = (Array.isArray(item?.artists) ? item.artists : [])
       .map(a => normalizeArtistName(typeof a === 'object' ? a?.name : a))
       .filter(Boolean)
     return !names.some(n => blockCtx.hiddenArtists?.[n])
@@ -129,6 +118,54 @@ export default function DiscoverView({ onSongClick, showToast, likedSongs, onLik
   const { data: trending } = useTrending()
   const { data: newAlbums } = useNewReleaseAlbums()
 
+  // Editorial moods — server-proxied channel list (curated Tamil fallback
+  // baked into the endpoint). Selecting a chip pulls that mood's songs
+  // through the existing search funnel; both layers day-cached.
+  const { data: moods } = useQuery({
+    queryKey: ['moods'],
+    queryFn: async () => {
+      try {
+        const res = await fetch(`${API_BASE}/api/moods`)
+        const json = await res.json()
+        return json?.success ? (json.data || []) : []
+      } catch { return [] }
+    },
+    staleTime: 24 * 60 * 60 * 1000,
+    retry: 1
+  })
+  const [moodSel, setMoodSel] = useState(null)
+  const activeMoodQuery = (moodSel ?? moods?.[0])?.query
+  const activeMoodName = (moodSel ?? moods?.[0])?.name
+  // Upstream mood queries are bare concepts ("Romance") that resolve
+  // Hindi-heavy — bias the search with the member's first content-language
+  // pref so the rail returns songs they'd actually play. No pref = generic.
+  const moodLangBias = langPrefs.size ? [...langPrefs][0] : ''
+  const moodSearchQuery = activeMoodQuery
+    ? (moodLangBias && !activeMoodQuery.toLowerCase().includes(moodLangBias)
+        ? `${moodLangBias} ${activeMoodQuery}` : activeMoodQuery)
+    : ''
+  const { data: moodSongs } = useQuery({
+    queryKey: ['mood-songs', moodSearchQuery],
+    queryFn: async () => {
+      try {
+        const res = await fetch(`${API_BASE}/api/search?q=${encodeURIComponent(moodSearchQuery)}&n=15`)
+        const json = await res.json()
+        return (json?.data?.songs || []).map(song => ({
+          id: song.id,
+          name: decodeHtmlEntities(song.title || song.name || ''),
+          artist: decodeHtmlEntities(song.subtitle || song.artists?.primary?.[0]?.name || ''),
+          album: decodeHtmlEntities(song.more_info?.album || ''),
+          image: getImageSrc(song.image),
+          language: song.language || song.more_info?.language || '',
+          type: song.type
+        }))
+      } catch { return [] }
+    },
+    enabled: !!moodSearchQuery,
+    staleTime: 12 * 60 * 60 * 1000,
+    retry: 1
+  })
+
   // "Because you listened to X" — suggestions seeded by the most recent play
   const seedSong = isSignedIn ? recentlyPlayed[0] : null
   const { data: becauseYouListened } = useSongSuggestions(seedSong?.id)
@@ -148,51 +185,33 @@ export default function DiscoverView({ onSongClick, showToast, likedSongs, onLik
     } catch { return [] }
   }, [isSignedIn, trending])
 
-  // Daily mixes — cluster playCounts by normalized artist → top-3 by total
-  // count. Each mix seeds from the user's OWN top-played songs for that
-  // artist, then tops up via ONE suggestions call per mix (never the heavy
-  // /api/artist/:id endpoint). Cache keyed by date → refreshes daily.
-  const mixClusters = useMemo(() => {
+  // Daily mixes — top ~9 weighted artists grouped into ≤3 buckets of ~3;
+  // each bucket is one mix (lead artist names it, "& more" when multi).
+  // Seeds are the member's OWN top songs across the bucket's artists
+  // (capPerArtist so none dominates); fill pulls suggestions for up to 3
+  // distinct-artist seeds PER MIX (≤9 parallel day-cached calls total).
+  // Sparse tail: 1-2 artists → one honest artist-named mix; none → no mix.
+  const mixBuckets = useMemo(() => {
     if (!isSignedIn) return []
     try {
       const pc = JSON.parse(localStorage.getItem('playCounts') || '{}')
       const sk = JSON.parse(localStorage.getItem('skipCounts') || '{}')
-      const net = (e) => (e.count || 1) - 2 * (sk[e.id]?.count || 0)
-      const byArtist = new Map()
-      for (const e of Object.values(pc)) {
-        if (!e?.id || !e.artist) continue
-        const key = normalizeArtistName(e.artist)
-        if (!key) continue
-        if (!byArtist.has(key)) byArtist.set(key, { name: e.artist, songs: [], total: 0 })
-        const c = byArtist.get(key)
-        c.songs.push(e)
-        c.total += e.count || 1
-      }
-      return [...byArtist.values()]
-        .sort((a, b) => b.total - a.total)
-        .slice(0, 3)
-        .map(c => ({
-          name: c.name,
-          seeds: c.songs
-            .filter(e => net(e) > 0) // songs the user keeps skipping aren't seeds
-            .sort((x, y) => net(y) - net(x))
-            .slice(0, 10)
-        }))
+      return buildMixBuckets(pc, sk)
     } catch { return [] }
   }, [isSignedIn])
 
-  const mixSeedIds = mixClusters.map(m => m.seeds[0]?.id).filter(Boolean)
+  const mixSeedIds = mixBuckets.flatMap(b => b.suggSeeds.map(s => s.id)).filter(Boolean)
   const { data: mixSuggestions } = useQuery({
     queryKey: ['daily-mixes', new Date().toISOString().slice(0, 10), mixSeedIds.join(',')],
     queryFn: async () => {
       const out = {}
-      for (const id of mixSeedIds.slice(0, 3)) {
+      await Promise.all(mixSeedIds.map(async (id) => {
         try {
           const res = await fetch(`${API_BASE}/api/songs/${id}/suggestions`)
           const json = await res.json()
           out[id] = json?.success ? (json.data || []) : []
         } catch { out[id] = [] }
-      }
+      }))
       return out
     },
     enabled: isSignedIn && mixSeedIds.length > 0,
@@ -200,16 +219,9 @@ export default function DiscoverView({ onSongClick, showToast, likedSongs, onLik
     retry: 1
   })
 
-  const dailyMixes = mixClusters.map((cluster, i) => {
-    const seen = new Set(cluster.seeds.map(s => s.id))
-    const fill = (mixSuggestions?.[cluster.seeds[0]?.id] || [])
-      .filter(s => s?.id && !seen.has(s.id) && seen.add(s.id))
-      .slice(0, Math.max(0, 20 - cluster.seeds.length))
-    return {
-      title: `Daily Mix ${i + 1} — ${cluster.name}`,
-      songs: [...cluster.seeds, ...fill]
-    }
-  }).filter(m => m.songs.length > 0)
+  const dailyMixes = mixBuckets
+    .map((bucket, i) => assembleDailyMix(bucket, mixSuggestions, blockCtx, i))
+    .filter(m => m.songs.length > 0)
 
   // ─── Weekly Mix ───
   // Discover-Weekly analog: a REAL playlist (shows in Playlists/Sidebar,
@@ -477,6 +489,38 @@ export default function DiscoverView({ onSongClick, showToast, likedSongs, onLik
           emptyMessage=""
         />
       ))}
+
+      {/* Moods — editorial channels; chip row + selected mood's rail */}
+      {moods?.length > 0 && (
+        <div className="mb-6">
+          <div className="flex items-center gap-2 mb-3 overflow-x-auto scrollbar-hide">
+            <Sparkles size={16} className="text-[#fc3c44] shrink-0" />
+            {moods.map(m => (
+              <button
+                key={m.id}
+                onClick={() => setMoodSel(m)}
+                className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                  (moodSel ?? moods[0])?.id === m.id
+                    ? 'bg-[#fc3c44] text-white'
+                    : 'bg-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-700'
+                }`}
+              >
+                {m.name}
+              </button>
+            ))}
+          </div>
+          {(moodSongs || []).filter(i => matchLang(i) && railPass(i)).length > 0 && (
+            <HorizontalScroll
+              title={activeMoodName ? `${activeMoodName} picks` : 'Mood picks'}
+              items={(moodSongs || []).filter(i => matchLang(i) && railPass(i))}
+              renderItem={(song) => (
+                <SongCard song={song} onSongClick={onSongClick} downloadProgress={downloadProgress} setDownloadProgress={setDownloadProgress} likedSongs={likedSongs} onLikeToggle={onLikeToggle} onPlayNext={onPlayNext} onAddToQueue={onAddToQueue} onGoToAlbum={onGoToAlbum} onSongRadio={onSongRadio} onHideSong={onHideSong} onHideArtist={onHideArtist} showToast={showToast} />
+              )}
+              emptyMessage=""
+            />
+          )}
+        </div>
+      )}
 
       {/* Top Artists */}
       <HorizontalScroll

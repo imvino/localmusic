@@ -59,3 +59,59 @@ section.
 #### Scenario: Library section visible without sign-in
 - **WHEN** an anonymous (not signed-in) user opens the sidebar
 - **THEN** the Library section (playlists, liked) is still visible — the collections are local, not account-bound
+
+### Requirement: Playlist folders
+The user MUST be able to organize playlists into named folders shown as collapsible groups in the playlists view and sidebar. Folder assignment MUST sync across devices with the playlist.
+
+#### Scenario: Create folder and assign
+- **WHEN** a signed-in user creates a folder and moves a playlist into it
+- **THEN** the playlist renders inside the collapsible folder group and the folder id persists through library sync
+
+#### Scenario: Guests see no folders
+- **WHEN** a signed-out user views the sidebar or playlists route
+- **THEN** no folder UI renders (routes remain gated)
+
+### Requirement: Folder deletion propagates
+Folder deletion MUST propagate across devices via tombstones (same mechanism as playlist deletion); a deleted folder MUST NOT resurrect on another device's push. Playlists inside a deleted folder MUST be un-filed, not deleted.
+
+#### Scenario: Cross-device folder delete
+- **WHEN** device A deletes a folder and syncs, then device B syncs
+- **THEN** the folder is gone on B and its member playlists render un-filed
+
+#### Scenario: Concurrent add survives delete correctly
+- **WHEN** device A deletes folder F while offline device B adds playlist P to F, then both sync
+- **THEN** F stays deleted (folder tombstone wins), and P survives un-filed — no data loss
+
+#### Scenario: Backup-imported folder restores with membership
+- **WHEN** a folder is restored via backup import (restamps `createdAt`/`updatedAt`, clears its tombstone)
+- **THEN** it survives the merge since its timestamps postdate the tombstone, and member playlists regain membership because their `folderId` is preserved on import
+
+#### Scenario: Pinned playlist inside a folder renders pinned
+- **WHEN** a playlist is both pinned and assigned to a folder
+- **THEN** it renders in the pinned section (pinning wins over folder grouping)
+
+### Requirement: Playlist sort menu
+The playlist detail view SHALL provide a sort menu with options: **Custom** (the playlist's stored order — the default), Oldest (reverse stored order), Title, Artist. Non-custom sorts are view-only and MUST NOT mutate stored song order. The header's Play/Shuffle always operate on stored order; when a non-custom sort is active the row-number column shows the displayed sequence (1..n), not stored indices.
+
+#### Scenario: Sort by title
+- **WHEN** a member opens a playlist and selects "Title" in the sort menu
+- **THEN** rows render alphabetically by song title, numbered 1..n in display order, and the stored `songs` array is unchanged
+
+#### Scenario: Custom order is the default
+- **WHEN** a member opens a playlist
+- **THEN** rows render in the playlist's stored order
+
+### Requirement: Drag-to-reorder playlist songs
+When the custom sort is active, the playlist detail view SHALL let members reorder songs by dragging a row on desktop (HTML5 drag-and-drop, the same pattern `QueueDrawer` uses). Reorder MUST route through `moveSong` so `updatedAt` bumps and the new order syncs cross-device. On touch devices the existing up/down arrows are the reorder control — they MUST stay visible whenever custom sort is active, on every platform (HTML5 drag on touch browsers is inconsistent — Chrome Android supports long-press drag, Safari does not — so arrows are the defined touch path, not a degraded fallback). While a non-custom sort is active, all reorder controls (drag and arrows) MUST be hidden because indices no longer map to stored order.
+
+#### Scenario: Drag row 3 to position 10 (desktop)
+- **WHEN** a member drags the third song row onto the tenth position with custom sort active
+- **THEN** the song moves to index 9 in the stored `songs` array, `updatedAt` updates, and the change pushes via library sync
+
+#### Scenario: Touch reorder via arrows
+- **WHEN** a member on a touch device reorders with the arrow buttons
+- **THEN** the same stored reorder result is produced
+
+#### Scenario: Sorting hides reorder
+- **WHEN** a member switches the sort to "Title"
+- **THEN** drag handles and up/down arrows are not rendered until they return to custom order

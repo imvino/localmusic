@@ -1,5 +1,6 @@
 import { Component } from 'react'
 import { AlertTriangle } from 'lucide-react'
+import { reportClientError } from '../utils/errorReporter'
 
 // Route-level crash guard — a flaky upstream API or a bad render path
 // should take down one view, not the whole app
@@ -11,6 +12,10 @@ export default class ErrorBoundary extends Component {
 
   static getDerivedStateFromError(error) {
     return { error }
+  }
+
+  componentDidCatch(error, info) {
+    reportClientError({ message: error?.message, stack: `${error?.stack || ''}\n${info?.componentStack || ''}` })
   }
 
   componentDidUpdate(prevProps) {
