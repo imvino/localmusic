@@ -1,4 +1,4 @@
-import { Compass, RefreshCw, Keyboard, X, Trash2, ListMusic, Settings, Heart, Music, Radio, Timer, SlidersHorizontal, BarChart3, Waves, Download, Lock, Pin, EyeOff, Folder, FolderOpen, ChevronDown, ChevronRight } from 'lucide-react'
+import { Compass, RefreshCw, Keyboard, X, Trash2, ListMusic, Settings, Heart, Music, Radio, Timer, SlidersHorizontal, BarChart3, Waves, Download, Lock, Pin, EyeOff, Folder, FolderOpen, ChevronDown, ChevronRight, Languages, Check } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 import { useState } from 'react'
 import { usePlaylistStore } from '../stores/playlistStore'
@@ -6,6 +6,7 @@ import { EQ_PRESETS, isEqAvailable } from '../audio/eq'
 import UserMenu from '../components/UserMenu'
 import BackupControls from '../components/BackupControls'
 import { useAppAuth } from '../components/AuthGate'
+import { CONTENT_LANGUAGES } from '../utils'
 
 const API_BASE = import.meta.env.VITE_API_URL
 const isProduction = import.meta.env.MODE === 'production'
@@ -14,7 +15,7 @@ const NAV_ITEMS = [
   { id: 'discover', label: 'Discover', icon: Compass, path: '/discover' },
 ]
 
-export default function Sidebar({ showToast, onClose, qualityPreference, onQualityChange, autoplayEnabled, onAutoplayToggle, sleepTimer, onSleepTimer, eqSettings, onEqChange, smoothTransitions, onSmoothTransitionsToggle, installPrompt, onInstall, onImportLibrary, likedCount, privateSession, onPrivateSessionToggle }) {
+export default function Sidebar({ showToast, onClose, qualityPreference, onQualityChange, autoplayEnabled, onAutoplayToggle, sleepTimer, onSleepTimer, eqSettings, onEqChange, smoothTransitions, onSmoothTransitionsToggle, installPrompt, onInstall, onImportLibrary, likedCount, privateSession, onPrivateSessionToggle, contentLanguages, onContentLanguageToggle }) {
   const location = useLocation()
   const currentPath = location.pathname
   const playlists = usePlaylistStore(s => s.playlists)
@@ -26,6 +27,7 @@ export default function Sidebar({ showToast, onClose, qualityPreference, onQuali
   const [showEqSettings, setShowEqSettings] = useState(false)
   const [collapsedFolders, setCollapsedFolders] = useState({})
   const [sleepMenuOpen, setSleepMenuOpen] = useState(false)
+  const [langMenuOpen, setLangMenuOpen] = useState(false)
 
   const sleepTimerValue = sleepTimer?.type === 'eot' ? 'eot'
     : sleepTimer?.type === 'timer' ? String(Math.max(1, Math.round((sleepTimer.endsAt - Date.now()) / 60000)))
@@ -197,6 +199,52 @@ export default function Sidebar({ showToast, onClose, qualityPreference, onQuali
             Streaming Quality
           </button>
           
+          {/* Content languages — Spotify's Settings → "Content languages":
+              persistent multi-select that biases Discover rails toward the
+              chosen languages. Empty = All (no filtering). */}
+          <div className="relative">
+            <button
+              onClick={() => setLangMenuOpen(o => !o)}
+              className="flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-left w-full text-zinc-400 hover:text-white hover:bg-zinc-800/40"
+            >
+              <div className="flex items-center gap-3 whitespace-nowrap">
+                <Languages size={17} className={contentLanguages?.length ? 'text-[#fc3c44]' : ''} />
+                <span className={contentLanguages?.length ? 'text-white' : ''}>Content languages</span>
+              </div>
+              <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${contentLanguages?.length ? 'bg-[#fc3c44] text-white' : 'bg-zinc-800 text-zinc-500'}`}>
+                {contentLanguages?.length ? contentLanguages.length : 'All'}
+              </span>
+            </button>
+            {langMenuOpen && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setLangMenuOpen(false)} />
+                <div className="absolute left-2 right-2 top-full mt-1 z-50 bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden shadow-xl max-h-72 overflow-y-auto">
+                  {CONTENT_LANGUAGES.map(([code, label]) => {
+                    const on = contentLanguages?.includes(code)
+                    return (
+                      <button
+                        key={code}
+                        onClick={() => onContentLanguageToggle?.(code)}
+                        className={`w-full flex items-center justify-between px-4 py-2.5 text-sm transition-colors ${on ? 'text-[#fc3c44] font-semibold' : 'text-zinc-300 hover:bg-zinc-800'}`}
+                      >
+                        {label}
+                        {on && <Check size={14} className="shrink-0" />}
+                      </button>
+                    )
+                  })}
+                  {contentLanguages?.length > 0 && (
+                    <button
+                      onClick={() => { contentLanguages.forEach(c => onContentLanguageToggle?.(c)); setLangMenuOpen(false) }}
+                      className="w-full text-left px-4 py-2.5 text-xs text-zinc-500 hover:text-white hover:bg-zinc-800 transition-colors border-t border-zinc-800"
+                    >
+                      Reset to all languages
+                    </button>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
+
           <button
             onClick={handleClearCache}
             className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-left w-full text-zinc-400 hover:text-white hover:bg-zinc-800/40"

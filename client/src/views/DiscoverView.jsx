@@ -26,13 +26,23 @@ function formatPlayCount(count) {
   return num.toString()
 }
 
-export default function DiscoverView({ onSongClick, showToast, likedSongs, onLikeToggle, onPlayNext, onAddToQueue, onGoToAlbum, onSongRadio }) {
+export default function DiscoverView({ onSongClick, showToast, likedSongs, onLikeToggle, onPlayNext, onAddToQueue, onGoToAlbum, onSongRadio, contentLanguages }) {
   const navigate = useNavigate()
   const [downloadProgress, setDownloadProgress] = useState({})
   const appUrl = import.meta.env.VITE_APP_URL
   // Personalization is a member feature — guests get generic editorial rails
   // only (charts/new releases/artists), like Spotify's logged-out browse.
   const { isSignedIn } = useAppAuth()
+
+  // Content-language preference (Settings → Content languages): rails whose
+  // items carry a `language` field keep only matching items; items without
+  // a language stay (can't be classified). Empty pref = no filtering.
+  const langPrefs = useMemo(() => new Set((contentLanguages || []).map(l => l.toLowerCase())), [contentLanguages])
+  const matchLang = (item) => {
+    if (!langPrefs.size) return true
+    const l = (item?.language || item?.more_info?.language || '').toLowerCase()
+    return !l || langPrefs.has(l)
+  }
 
   // Recently played from local play history (unique songs, newest first)
   const [recentlyPlayed] = useState(() => {
@@ -176,8 +186,9 @@ export default function DiscoverView({ onSongClick, showToast, likedSongs, onLik
     songCount: playlist.more_info?.song_count || 0
   }))
 
-  // Process new releases (songs)
-  const newSongs = (newReleasesData || []).slice(0, 10).map(song => ({
+  // Process new releases (songs) — language-filtered before slicing so a
+  // pref for e.g. Telugu doesn't just empty a Tamil-heavy rail
+  const newSongs = (newReleasesData || []).filter(matchLang).slice(0, 10).map(song => ({
     id: song.id,
     name: decodeHtmlEntities(song.title),
     artist: decodeHtmlEntities(song.subtitle || ''),
@@ -364,7 +375,7 @@ export default function DiscoverView({ onSongClick, showToast, likedSongs, onLik
         <HorizontalScroll
           title="Charts"
           icon={ListMusic}
-          items={charts}
+          items={charts.filter(matchLang)}
           renderItem={(chart) => (
             <EntityCard item={chart} onClick={() => handleEntityClick(chart)} subtitle={chart.songCount ? `${chart.songCount} songs` : 'Chart'} />
           )}
@@ -376,7 +387,7 @@ export default function DiscoverView({ onSongClick, showToast, likedSongs, onLik
       {trending?.length > 0 && (
         <HorizontalScroll
           title="Trending Albums"
-          items={trending}
+          items={trending.filter(matchLang)}
           renderItem={(album) => (
             <EntityCard item={album} onClick={() => handleAlbumClick(album)} subtitle={album.year || 'Album'} />
           )}
@@ -388,7 +399,7 @@ export default function DiscoverView({ onSongClick, showToast, likedSongs, onLik
       {newAlbums?.length > 0 && (
         <HorizontalScroll
           title="New Releases"
-          items={newAlbums}
+          items={newAlbums.filter(matchLang)}
           renderItem={(album) => (
             <EntityCard item={album} onClick={() => handleAlbumClick(album)} subtitle={album.year || 'Album'} />
           )}

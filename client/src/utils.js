@@ -97,6 +97,19 @@ export function decodeBlendShare(data) {
   } catch { return null }
 }
 
+// Content-language preference — Spotify's Settings → "Content languages".
+// Device-scoped persisted set; Discover biases rails toward chosen
+// languages. Empty array = all languages (no filtering).
+export const CONTENT_LANGUAGES = [
+  ['tamil', 'Tamil'], ['telugu', 'Telugu'], ['hindi', 'Hindi'],
+  ['malayalam', 'Malayalam'], ['kannada', 'Kannada'], ['punjabi', 'Punjabi'],
+  ['bengali', 'Bengali'], ['marathi', 'Marathi'], ['gujarati', 'Gujarati'],
+  ['english', 'English']
+]
+export function readContentLanguages() {
+  try { return JSON.parse(localStorage.getItem('contentLanguages') || '[]') } catch { return [] }
+}
+
 // Compact K/M formatting for follower counts ("1.2M followers")
 export function formatCount(n) {
   const num = Number(n) || 0

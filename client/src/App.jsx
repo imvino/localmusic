@@ -34,7 +34,7 @@ import { useLibrarySync } from './hooks/useLibrarySync'
 import { usePlaylistStore } from './stores/playlistStore'
 import { enableEq, warmEq, setEqGains } from './audio/eq'
 import { isDownloaded, downloadUrlFor, reconcileDownloads } from './utils/downloads'
-import { getSongArtwork, decodeHtmlEntities } from './utils'
+import { getSongArtwork, decodeHtmlEntities, readContentLanguages } from './utils'
 import { addTombstone, clearTombstone, slimSong } from './utils/sync'
 import TermsOfService from './pages/TermsOfService'
 import PrivacyPolicy from './pages/PrivacyPolicy'
@@ -181,6 +181,15 @@ function AppContent() {
   // Private session — device-scoped, never synced; suppresses history/count
   // writes so a shared listening session doesn't pollute personalization.
   const [privateSession, setPrivateSession] = useState(() => localStorage.getItem('privateSession') === 'on')
+  // Content languages — Spotify-style persistent pref biasing Discover rails
+  const [contentLanguages, setContentLanguages] = useState(readContentLanguages)
+  const toggleContentLanguage = (code) => {
+    setContentLanguages(prev => {
+      const next = prev.includes(code) ? prev.filter(c => c !== code) : [...prev, code]
+      try { localStorage.setItem('contentLanguages', JSON.stringify(next)) } catch { /* quota */ }
+      return next
+    })
+  }
   const privateSessionRef = useRef(privateSession) // handlePlaying reads the live value
   // Offline awareness — navigator.onLine + the health-check signal
   const [isOnline, setIsOnline] = useState(() => navigator.onLine !== false)
@@ -1755,6 +1764,8 @@ function AppContent() {
               likedCount={likedSongs.size}
               privateSession={privateSession}
               onPrivateSessionToggle={setPrivateSession}
+              contentLanguages={contentLanguages}
+              onContentLanguageToggle={toggleContentLanguage}
             />
           </div>
         </div>
@@ -1782,6 +1793,8 @@ function AppContent() {
           likedCount={likedSongs.size}
           privateSession={privateSession}
           onPrivateSessionToggle={setPrivateSession}
+          contentLanguages={contentLanguages}
+          onContentLanguageToggle={toggleContentLanguage}
         />
       </div>
 
@@ -1922,7 +1935,7 @@ function AppContent() {
         <div ref={scrollContainerRef} className="flex-1 overflow-y-auto bg-zinc-950 pb-32 md:pb-0">
           <ErrorBoundary resetKey={location.pathname}>
           <Routes>
-            <Route path="/discover" element={<DiscoverView onSongClick={handleSongSelect} showToast={showToastMessage} likedSongs={likedSongs} onLikeToggle={handleLikeToggle} onPlayNext={handlePlayNext} onAddToQueue={handleAddToQueue} onGoToAlbum={handleGoToAlbum} onSongRadio={handleSongRadio} />} />
+            <Route path="/discover" element={<DiscoverView onSongClick={handleSongSelect} showToast={showToastMessage} likedSongs={likedSongs} onLikeToggle={handleLikeToggle} onPlayNext={handlePlayNext} onAddToQueue={handleAddToQueue} onGoToAlbum={handleGoToAlbum} onSongRadio={handleSongRadio} contentLanguages={contentLanguages} />} />
             <Route path="/discover/album/:id/:slug?" element={<DiscoverDetailView onSongClick={handleSongSelect} showToast={showToastMessage} currentSong={currentSong} isPlaying={isPlaying} sidebarOpen={sidebarOpen} likedSongs={likedSongs} onLikeToggle={handleLikeToggle} onPlayNext={handlePlayNext} onAddToQueue={handleAddToQueue} onGoToAlbum={handleGoToAlbum} onSongRadio={handleSongRadio} onShufflePlay={handleShufflePlay} onArtistRadio={handleArtistRadio} savedAlbums={savedAlbums} onSaveAlbumToggle={handleSaveAlbumToggle} followedArtists={followedArtists} onFollowArtistToggle={handleFollowArtistToggle} />} />
             <Route path="/discover/playlist/:id" element={<DiscoverDetailView onSongClick={handleSongSelect} showToast={showToastMessage} currentSong={currentSong} isPlaying={isPlaying} sidebarOpen={sidebarOpen} likedSongs={likedSongs} onLikeToggle={handleLikeToggle} onPlayNext={handlePlayNext} onAddToQueue={handleAddToQueue} onGoToAlbum={handleGoToAlbum} onSongRadio={handleSongRadio} onShufflePlay={handleShufflePlay} onArtistRadio={handleArtistRadio} savedAlbums={savedAlbums} onSaveAlbumToggle={handleSaveAlbumToggle} followedArtists={followedArtists} onFollowArtistToggle={handleFollowArtistToggle} />} />
             <Route path="/discover/artist/:id" element={<DiscoverDetailView onSongClick={handleSongSelect} showToast={showToastMessage} currentSong={currentSong} isPlaying={isPlaying} sidebarOpen={sidebarOpen} likedSongs={likedSongs} onLikeToggle={handleLikeToggle} onPlayNext={handlePlayNext} onAddToQueue={handleAddToQueue} onGoToAlbum={handleGoToAlbum} onSongRadio={handleSongRadio} onShufflePlay={handleShufflePlay} onArtistRadio={handleArtistRadio} savedAlbums={savedAlbums} onSaveAlbumToggle={handleSaveAlbumToggle} followedArtists={followedArtists} onFollowArtistToggle={handleFollowArtistToggle} />} />
