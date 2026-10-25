@@ -230,9 +230,14 @@ export function useLibrarySync({ likedSongs, setLikedSongs, savedAlbums, setSave
               merged[id] = c && typeof c === 'object' ? c : { id, count: cnt, ts: 0 }
             }
           }
-          // Cap local bloat — keep the 3000 most recently played ids
+          // Cap local bloat — keep the 3000 most recently played ids.
+          // Numeric-only ids can never resolve to a stream (upstream ids
+          // are base64-ish, local ids too) — filter them out so seeded or
+          // corrupted entries can't survive merges forever.
           const capped = Object.fromEntries(
-            Object.entries(merged).sort((a, b) => (b[1]?.ts || 0) - (a[1]?.ts || 0)).slice(0, 3000)
+            Object.entries(merged)
+              .filter(([id]) => !/^\d+$/.test(id))
+              .sort((a, b) => (b[1]?.ts || 0) - (a[1]?.ts || 0)).slice(0, 3000)
           )
           writeLS('playCounts', capped)
         }
